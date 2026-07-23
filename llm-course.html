@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How Does an LLM Work? — A Build-From-Zero Course</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1A1B2E; --bg:#F6F7FB; --surface:#FFFFFF; --muted:#6B6E87;
+    --line:#E4E6F0; --accent:#5B5BD6; --accent-deep:#4A45B8; --accent-soft:#ECECFB;
+    --win:#D98A1F; --win-soft:#FBEFD8; --ok:#2E8B6F; --ok-soft:#E7F4EF; --danger:#C0506A;
+    --display:'Space Grotesk',system-ui,sans-serif;
+    --body:'IBM Plex Sans',system-ui,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,monospace;
+    --radius:14px; --shadow:0 1px 2px rgba(26,27,46,.04),0 8px 28px rgba(26,27,46,.06);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased}
+  .shell{display:grid;grid-template-columns:282px minmax(0,1fr);max-width:1240px;margin:0 auto}
+
+  /* ---------- Rail ---------- */
+  .rail{border-right:1px solid var(--line);padding:28px 20px 60px;position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto}
+  .brandmark{display:flex;align-items:center;gap:10px}
+  .brandmark .dot{width:11px;height:11px;border-radius:3px;background:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+  .brandmark b{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:-.01em}
+  .rail .sub{font-size:12.5px;color:var(--muted);margin:6px 0 18px;line-height:1.4}
+  .progress-wrap{background:var(--accent-soft);border-radius:10px;padding:11px 13px;margin-bottom:20px}
+  .progress-wrap .pl{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-deep);display:flex;justify-content:space-between}
+  .pbar{height:6px;background:#fff;border-radius:4px;margin-top:8px;overflow:hidden}
+  .pbar i{display:block;height:100%;width:0;background:var(--accent);border-radius:4px;transition:width .5s}
+  .map-label{font-family:var(--mono);font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+  .mod{display:flex;gap:11px;align-items:baseline;padding:8px 10px;border-radius:9px;margin:1px 0;cursor:pointer;color:var(--muted);font-size:14px;line-height:1.35;border:none;background:none;width:100%;text-align:left;font-family:var(--body)}
+  .mod:hover{background:var(--bg);color:var(--ink)}
+  .mod .num{font-family:var(--mono);font-size:12px;min-width:20px;color:var(--line);font-weight:500}
+  .mod.active{background:var(--accent-soft);color:var(--ink);font-weight:600}
+  .mod.active .num{color:var(--accent)}
+  .mod .check{margin-left:auto;color:var(--ok);font-size:13px;opacity:0;transition:opacity .2s}
+  .mod.done .check{opacity:1}
+  .mod.done .num{color:var(--ok)}
+
+  /* ---------- Main ---------- */
+  .main{padding:42px clamp(20px,5vw,70px) 100px;min-width:0}
+  .module{display:none}
+  .module.show{display:block;animation:fade .35s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin:0 0 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .eyebrow .tag{background:var(--win-soft);color:var(--win);padding:3px 9px;border-radius:20px;letter-spacing:.06em;font-size:10.5px}
+  h1{font-family:var(--display);font-weight:700;font-size:clamp(29px,5vw,44px);line-height:1.06;letter-spacing:-.025em;margin:0 0 16px}
+  h1 .lede{display:block;color:var(--accent);font-size:.46em;font-weight:500;letter-spacing:.005em;margin-top:14px;line-height:1.32}
+  .intro{font-size:19px;max-width:62ch;margin:0 0 34px}
+  .intro b{font-weight:600}
+  h2{font-family:var(--display);font-weight:600;font-size:24px;letter-spacing:-.02em;margin:48px 0 14px}
+  h2 .k{font-family:var(--mono);font-size:13px;color:var(--accent);background:var(--accent-soft);padding:3px 8px;border-radius:6px;vertical-align:middle;margin-right:10px;font-weight:500}
+  p{max-width:65ch}
+  .main a{color:var(--accent-deep)}
+  code{font-family:var(--mono);font-size:.88em;background:var(--accent-soft);color:var(--accent-deep);padding:1px 6px;border-radius:5px}
+
+  .takeaway{border-left:3px solid var(--accent);padding:4px 0 4px 18px;margin:28px 0;font-size:17px}
+  .takeaway b{font-weight:600}
+  .flag{background:var(--win-soft);border:1px solid #EAD2A4;border-radius:11px;padding:13px 16px;margin:24px 0;font-size:14.5px;color:#7a5418}
+  .flag b{color:#5e3f12}
+  .callback{font-size:14.5px;color:var(--muted);font-style:italic;margin:22px 0}
+  .callback b{color:var(--accent-deep);font-style:normal;font-weight:600}
+
+  /* ---------- Cards / widgets ---------- */
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px;margin:18px 0}
+  .card .ctitle{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:0 0 14px;display:flex;align-items:center;gap:8px}
+  .prompt{font-family:var(--display);font-size:clamp(19px,3.5vw,25px);font-weight:500;letter-spacing:-.01em;margin:0 0 4px}
+  .prompt .blank{display:inline-block;min-width:92px;border-bottom:3px solid var(--accent);text-align:center;color:var(--accent);font-weight:600;transition:color .25s}
+  .caption{font-size:13.5px;color:var(--muted);margin:0 0 20px}
+  .bars{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
+  .bar-row{display:grid;grid-template-columns:108px 1fr 56px;align-items:center;gap:11px}
+  .bar-row .word{font-family:var(--mono);font-size:13px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .track{height:24px;background:var(--accent-soft);border-radius:6px;overflow:hidden}
+  .fill{height:100%;width:0;background:var(--accent);border-radius:6px;transition:width .7s cubic-bezier(.22,1,.36,1)}
+  .bar-row .pct{font-family:var(--mono);font-size:12px;color:var(--muted);text-align:right}
+  .bar-row.win .word,.bar-row.win .pct{color:var(--win);font-weight:600}
+  .bar-row.win .fill{background:var(--win)}
+  .bar-row.crumb .word{color:var(--muted)}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(217,138,31,.5)}100%{box-shadow:0 0 0 12px rgba(217,138,31,0)}}
+  .bar-row.flash .track{animation:pulse .6s ease-out}
+  .bar-row.picked .track{box-shadow:0 0 0 3px var(--win)}
+
+  .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  button.btn{font-family:var(--body);font-size:14px;font-weight:600;cursor:pointer;border-radius:9px;border:1px solid var(--accent);background:var(--accent);color:#fff;padding:10px 17px;transition:transform .08s,background .2s}
+  button.btn:hover{background:var(--accent-deep)}
+  button.btn:active{transform:translateY(1px)}
+  button.btn.ghost{background:transparent;color:var(--accent-deep);border-color:var(--line)}
+  button.btn.ghost:hover{background:var(--accent-soft)}
+  button:focus-visible,.mod:focus-visible{outline:3px solid var(--win);outline-offset:2px}
+  .readout{font-family:var(--mono);font-size:13px;color:var(--muted);min-height:20px;margin:14px 0 0;line-height:1.5}
+  .readout b{color:var(--win)}
+  input[type=range]{accent-color:var(--accent);width:100%}
+  .slider-row{display:grid;grid-template-columns:90px 1fr 52px;gap:12px;align-items:center;margin:7px 0;font-size:13px}
+  .slider-row .lab{font-family:var(--mono);color:var(--muted)}
+  .slider-row .val{font-family:var(--mono);text-align:right;color:var(--accent-deep)}
+
+  /* tokenizer */
+  .tok-input{width:100%;font-family:var(--body);font-size:16px;padding:11px 13px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);resize:vertical}
+  .tok-out{display:flex;flex-wrap:wrap;gap:5px;margin-top:16px}
+  .tok{font-family:var(--mono);font-size:13px;padding:4px 8px;border-radius:6px;background:var(--accent-soft);color:var(--accent-deep);border:1px solid #d9d9f6}
+  .tok.sp{background:var(--win-soft);color:var(--win);border-color:#ecd6a8}
+  .tok-meta{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:12px}
+
+  /* svg widgets */
+  .svg-wrap{width:100%;display:block}
+  .vsvg text{font-family:var(--mono);font-size:11px;fill:var(--ink)}
+  .heat{display:grid;gap:3px;margin-top:6px}
+  .heat .hr{display:grid;gap:3px;align-items:center}
+  .heat .hw{font-family:var(--mono);font-size:12px;text-align:right;padding-right:6px;cursor:pointer}
+  .heat .hw:hover{color:var(--accent)}
+  .heat .hc{height:30px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;color:#fff;cursor:default}
+
+  /* math panel */
+  .qz{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12.5px}
+  .qz th,.qz td{padding:6px 8px;text-align:right;border-bottom:1px solid var(--line)}
+  .qz th{color:var(--muted);font-weight:500;font-size:10px;text-transform:uppercase;letter-spacing:.04em}
+  .qz td:first-child,.qz th:first-child{text-align:left;color:var(--accent-deep);font-weight:600}
+  .qz td.err{color:var(--win)}
+  .rulersvg{width:100%;display:block}.rulersvg text{font-family:var(--mono);font-size:9px;fill:var(--muted)}
+  .qtok{display:inline-block;font-family:var(--mono);font-weight:600;padding:5px 9px;border-radius:7px;margin:2px;font-size:14px;border:1px solid var(--line);cursor:pointer;background:var(--bg);color:var(--ink)}
+  .qtok:hover{border-color:var(--accent)}
+  .qtok.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .qtok.sep{border:none;background:none;color:var(--muted);cursor:default;font-weight:400;padding:5px 1px}
+  .qexplain{display:grid;gap:7px;margin-top:6px}
+  .qexplain .qe{display:grid;grid-template-columns:74px 1fr;gap:12px;align-items:baseline;font-size:14px}
+  .qexplain .qe .k{font-family:var(--mono);color:var(--accent-deep);font-weight:600;text-align:center;background:var(--accent-soft);border-radius:6px;padding:3px 4px;font-size:11.5px}
+  .stack{display:flex;height:34px;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:repeating-linear-gradient(45deg,#fff,#fff 6px,#F0F1F7 6px,#F0F1F7 12px)}
+  .stack .seg{height:100%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;color:#fff;white-space:nowrap;overflow:hidden;transition:width .4s}
+  .stack-legend{display:flex;gap:14px;flex-wrap:wrap;font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:8px}
+  .stack-legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:middle}
+  .bpwtable{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+  .bpwtable .bpw{font-family:var(--mono);font-size:11.5px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 10px;text-align:center}
+  .bpwtable .bpw b{color:var(--accent-deep);display:block;font-size:13px;margin-bottom:2px}
+  details.math{border:1px solid var(--line);border-radius:12px;background:var(--surface);margin:24px 0;overflow:hidden}
+  details.math summary{cursor:pointer;padding:14px 18px;font-weight:600;font-family:var(--display);font-size:15px;list-style:none;display:flex;align-items:center;gap:11px;user-select:none}
+  details.math summary::-webkit-details-marker{display:none}
+  details.math summary .ic{font-family:var(--mono);color:var(--accent);transition:transform .2s}
+  details.math[open] summary .ic{transform:rotate(90deg)}
+  details.math summary .hint{margin-left:auto;font-family:var(--body);font-weight:400;font-size:12px;color:var(--muted)}
+  .math-body{padding:2px 18px 20px;border-top:1px solid var(--line)}
+  .math-body p{font-size:15px}
+  .decoder{display:grid;gap:7px;margin:13px 0}
+  .decoder .d{display:grid;grid-template-columns:60px 1fr;gap:13px;align-items:baseline;font-size:14px}
+  .decoder .sym{font-family:var(--mono);color:var(--accent-deep);font-weight:600;text-align:center;background:var(--accent-soft);border-radius:6px;padding:3px 0}
+  pre{background:var(--ink);color:#E8E9F5;font-family:var(--mono);font-size:12.5px;line-height:1.7;padding:15px 17px;border-radius:10px;overflow-x:auto;margin:15px 0}
+  pre .c{color:#8C8FB5}.pre .kw,pre .kw{color:#C2A0F5}
+
+  /* quiz */
+  .quiz{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px 24px;margin:28px 0}
+  .quiz h3{font-family:var(--display);font-size:16px;margin:0 0 2px}
+  .q{margin:18px 0 0}
+  .q .stem{font-weight:500;margin:0 0 11px}
+  .opt{display:block;width:100%;text-align:left;background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:11px 14px;margin:7px 0;font-size:14.5px;cursor:pointer;font-family:var(--body)}
+  .opt:hover{border-color:var(--accent);background:var(--accent-soft)}
+  .opt.right{border-color:var(--ok);background:var(--ok-soft);color:#1d5e4a;font-weight:500}
+  .opt.wrong{border-color:#d98a8a;background:#fbecec;color:#8a3232}
+  .opt:disabled{cursor:default}
+  .fb{font-size:13.5px;color:var(--muted);margin:10px 0 0;min-height:16px}
+  .fb.show{color:var(--ink)}
+
+  /* footer nav */
+  .mnav{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;border-top:1px solid var(--line);margin-top:46px;padding-top:24px}
+  .mnav .left{display:flex;align-items:center;gap:12px}
+  .done-badge{color:var(--ok);font-weight:600;font-size:14px;display:none;align-items:center;gap:6px}
+  .done-badge.show{display:flex}
+  .nextlink{font-size:14px;color:var(--muted);cursor:pointer;text-align:right}
+  .nextlink:hover b{color:var(--accent-deep)}
+  .nextlink b{color:var(--ink);font-weight:600;display:block;font-family:var(--display)}
+
+  /* home */
+  .home-hero{margin-bottom:10px}
+  .promise{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin:30px 0}
+  .promise .pc{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px}
+  .promise .pc .n{font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.1em}
+  .promise .pc h4{font-family:var(--display);font-size:16px;margin:8px 0 5px}
+  .promise .pc p{font-size:13.5px;color:var(--muted);margin:0}
+  .howto{background:var(--accent-soft);border-radius:14px;padding:22px 24px;margin:26px 0}
+  .howto h3{font-family:var(--display);margin:0 0 12px;font-size:18px}
+  .howto ol{margin:0;padding-left:20px}
+  .howto li{margin:7px 0;font-size:15px}
+  .start-row{margin-top:26px}
+  .complete-banner{display:none;background:linear-gradient(120deg,var(--ok-soft),var(--win-soft));border:1px solid #bfe3d3;border-radius:14px;padding:22px 24px;margin:24px 0}
+  .complete-banner.show{display:block}
+  .complete-banner h3{font-family:var(--display);margin:0 0 6px}
+
+  @media (max-width:900px){
+    .shell{grid-template-columns:1fr}
+    .rail{position:static;height:auto;border-right:none;border-bottom:1px solid var(--line)}
+    .rail-map{display:none}.rail-map.open{display:block}
+    .map-toggle{display:flex;width:100%;justify-content:space-between;align-items:center;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:10px 13px;margin-top:6px;font-weight:600;cursor:pointer;font-family:var(--body)}
+    .bar-row{grid-template-columns:84px 1fr 48px;gap:8px}
+    .slider-row{grid-template-columns:74px 1fr 44px}
+    .decoder .d{grid-template-columns:54px 1fr}
+  }
+  @media (min-width:901px){.map-toggle{display:none}}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="rail">
+  <div class="brandmark"><span class="dot"></span><b>How Does an LLM Work?</b></div>
+  <p class="sub">From "it guesses the next word" to "why jailbreaks exist" — built up one step at a time.</p>
+  <div class="progress-wrap">
+    <div class="pl"><span>Progress</span><span id="progTxt">0 / 12</span></div>
+    <div class="pbar"><i id="progBar"></i></div>
+  </div>
+  <button class="map-toggle" id="mapToggle" aria-expanded="false">Course map <span aria-hidden="true">▾</span></button>
+  <nav class="rail-map" id="railMap" aria-label="Modules">
+    <p class="map-label">Start here</p>
+    <button class="mod" data-go="home"><span class="num">·</span> Welcome &amp; how to use this</button>
+    <p class="map-label" style="margin-top:14px">12 modules</p>
+  </nav>
+</aside>
+<main class="main" id="main"></main>
+</div>
+
+<script>
+/* =========================================================================
+   COURSE CONTENT  — each module is an object that renders into #main
+   ========================================================================= */
+var MODS = [
+{
+ id:"m1", num:"01", title:"An LLM Has One Job",
+ thesis:"It guesses the next word. Then it does it again. That is the whole engine.",
+ render:function(){return `
+  <p class="intro">Before tokens, vectors, attention or softmax, there is one idea everything else hangs off. Get this and the rest of the course is just <b>zooming in</b> on how this single step happens.</p>
+  <div class="card" id="m1demo">
+    <p class="ctitle">▸ live demo · the running example</p>
+    <p class="prompt">The cat sat on the <span class="blank" id="m1blank">___</span></p>
+    <p class="caption">The model rates every word it knows and turns those ratings into percentages. Press a button and watch it pick one.</p>
+    <div class="bars" id="m1bars"></div>
+    <div class="controls">
+      <button class="btn" id="m1one">🎲 Sample one word</button>
+      <button class="btn ghost" id="m1hund">Run 100× &amp; tally</button>
+      <button class="btn ghost" id="m1reset">Reset</button>
+    </div>
+    <p class="readout" id="m1read">Tip: notice <b>banana</b> never reaches zero — hold that thought for Module 12.</p>
+  </div>
+  <div class="takeaway">It is not <b>looking anything up</b>. It is predicting — the way a grandmaster "guesses" their next move. So well-informed it usually looks like knowing.</div>
+  <h2><span class="k">why</span>How does guessing words become intelligence?</h2>
+  <p>The model was trained on a colossal amount of human writing with one goal: predict the next word. But to get <i>good</i> at that across maths, code, arguments and stories, it was forced to absorb the patterns underneath — grammar, facts, logic, cause and effect.</p>
+  <p>So "predict the next word" was the <b>goal</b>. Learning how the world works was the <b>side effect</b> required to hit that goal. That side effect is where the apparent intelligence lives.</p>
+  ${mathPanel(`
+    <p>You do not need to <i>do</i> the maths — just <i>read</i> it. Almost every scary symbol is something you already write in code:</p>
+    ${decoder([["K",'just a count. "How many." It is <code>list.size()</code>.'],["x&#8336;",'an array index — <code>x[i]</code>, the i-th item.'],["&Sigma;",'a sum loop. Add a bunch of things up.'],["e&#739;",'"make it positive and stretch the big ones."']])}
+    <p>So "a distribution over K outcomes" just means: each word gets a score, and we turn that list of scores into percentages. The percentage-maker (softmax, Module 8) is only:</p>
+    <pre><span class="c"># scores in, percentages out</span>
+<span class="kw">def</span> next_word_probs(scores):
+    boosted = [exp(s) <span class="kw">for</span> s <span class="kw">in</span> scores]   <span class="c"># the &Sigma; / e&#739; part</span>
+    total   = sum(boosted)
+    <span class="kw">return</span> [b / total <span class="kw">for</span> b <span class="kw">in</span> boosted]  <span class="c"># adds to 100%</span></pre>`)}
+  ${quiz("m1",[
+    {stem:"When an LLM writes a paragraph, what is it fundamentally doing?",correct:1,
+     opts:["Looking the answer up in a stored database","Predicting the next token, then repeating that step","Searching the live internet for matching text"],
+     ok:"Exactly. That is the whole foundation.",no:"Not quite — no lookup, no search. Just prediction, one token at a time."},
+    {stem:"Why does a silly word like \"banana\" still get a tiny non-zero score?",correct:2,
+     opts:["Because the model thinks cats like bananas","Because the maths spreads some probability onto every word — it cannot hit exactly zero","Because it is a bug good models fix"],
+     ok:"Right — and that single fact is the seed of Module 12.",no:"It is the maths: every word gets a sliver. We will see why in Module 8."}
+  ])}`;},
+ init:function(){predictorWidget("m1");}
+},
+{
+ id:"m2", num:"02", title:"Tokens & Vocabulary",
+ thesis:"The model does not read words. It reads chunks called tokens — and the list of chunks never changes.",
+ render:function(){return `
+  <p class="intro">In Module 1 we said "the next word." That was a white lie to keep things simple. The real atom the model works with is the <b>token</b> — a chunk of text that is sometimes a whole word, sometimes a piece of one.</p>
+  <div class="card">
+    <p class="ctitle">▸ try it · illustrative tokenizer</p>
+    <p class="caption">Type anything. Watch it break into tokens. Notice common words stay whole while rarer ones split into pieces.</p>
+    <textarea class="tok-input" id="m2in" rows="2">The cat sat on the unbelievably comfortable windowsill.</textarea>
+    <div class="tok-out" id="m2out"></div>
+    <p class="tok-meta" id="m2meta"></p>
+  </div>
+  <div class="flag"><b>Honesty flag:</b> this splitter is a simplified illustration. Real tokenizers (like BPE) learn their chunks statistically from data, so the exact splits differ — but the <i>idea</i> you are seeing is the real one.</div>
+  <h2><span class="k">why</span>Why chunks instead of whole words?</h2>
+  <p>Three reasons, all practical. A fixed list of whole words could never cover every name, typo, or new word ever written. Chunks can be recombined to spell <i>anything</i> — including <code>windowsill</code> as <code>window</code> + <code>sill</code>, or a typo you have never seen. It also keeps the vocabulary a sensible size.</p>
+  <p>And that vocabulary is <b>fixed</b>. Around 100,000 tokens, decided before training and never changed. This is the same list from Module 1 — the model is not inventing options, it is scoring this one frozen list every single step.</p>
+  <div class="callback">Callback to Module 1: when we said "millions of things could come next," the truth is it is always the <b>same ~100k tokens</b>, re-scored. The list is finite and frozen; only the scores move.</div>
+  ${mathPanel(`
+    <p>A token is just an integer — its position in the vocabulary list. "cat" might be token <code>2543</code>. That is literally all a token ID is: a row number.</p>
+    ${decoder([["vocab",'a fixed list of ~100k chunks, like a giant lookup array.'],["token",'one entry in that list — stored as its index (an int).'],["ID",'<code>vocab.indexOf(chunk)</code>. Nothing more.']])}
+    <p>So when you hear "the model has a 50k vocabulary," read it as: <code>String[] vocab = new String[50000]</code>, and every prediction is a score for each slot.</p>`)}
+  ${quiz("m2",[
+    {stem:"Why split rare words into smaller pieces?",correct:1,
+     opts:["To make text shorter","So a fixed-size vocabulary can still spell any word, name or typo","Because the model cannot read long words"],
+     ok:"Right — recombinable pieces give infinite coverage from a finite list.",no:"It is about coverage: small reusable pieces can build any word from a fixed list."}
+  ])}`;},
+ init:function(){tokenizerWidget();}
+},
+{
+ id:"m3", num:"03", title:"Intro to Vectors",
+ thesis:"A vector is just a list of numbers — which is the same as an arrow pointing somewhere. Meaning will live in the direction.",
+ render:function(){return `
+  <p class="intro">This is the one piece of maths the whole field rests on, and it is genuinely simple. A <b>vector</b> is a list of numbers like <code>[0.2, -1.4, 3.1]</code>. That list is also a <b>point in space</b>, which is also an <b>arrow</b> from the origin to that point. Same thing, three ways of saying it.</p>
+  <div class="card">
+    <p class="ctitle">▸ play · how aligned are two arrows?</p>
+    <p class="caption">Drag the slider to rotate the second arrow. Watch the <b>cosine similarity</b> — one number from -1 to 1 telling you how aligned they are.</p>
+    <svg viewBox="0 0 320 240" class="svg-wrap vsvg" id="m3svg" style="max-width:380px;margin:0 auto"></svg>
+    <div class="slider-row"><span class="lab">angle</span><input type="range" id="m3ang" min="0" max="359" value="35"><span class="val" id="m3angv">35&deg;</span></div>
+    <p class="readout" id="m3read"></p>
+  </div>
+  <h2><span class="k">why</span>Why measure the angle, not the distance?</h2>
+  <p>Because in these spaces the <b>direction carries the meaning, and the length is mostly noise</b>. An arrow can be long or short for boring reasons that have nothing to do with what it means. Cosine similarity throws the length away and looks only at direction — pointing the same way scores <code>1</code>, at right angles <code>0</code>, opposite <code>-1</code>.</p>
+  <div class="callback">You already ship this: the vector half of Zora's BM25 + vector hybrid finds relevant chunks by cosine similarity. "Closest direction wins" is exactly this widget.</div>
+  ${mathPanel(`
+    <p>The formula looks scary and is not. The dot product <code>a&middot;b</code> is just "multiply matching elements, add them up" — another for-loop:</p>
+    ${decoder([["a&middot;b",'multiply pairs, sum them. <code>sum(a[i]*b[i])</code>.'],["|v|",'the length of the arrow.'],["cos&theta;",'<code>(a&middot;b) / (|a|&times;|b|)</code> — a number from -1 to 1.']])}
+    <p>No trig needed. You are just asking "do these two arrows point the same way?" and getting a tidy score back.</p>`)}
+  ${quiz("m3",[
+    {stem:"Two word-arrows point in almost the same direction. Their cosine similarity is close to:",correct:2,
+     opts:["0","-1","1"],
+     ok:"Right — same direction means similar meaning, score near 1.",no:"Same direction → cosine near 1. Right angles → 0. Opposite → -1."}
+  ])}`;},
+ init:function(){cosineWidget();}
+},
+{
+ id:"m4", num:"04", title:"Embeddings",
+ thesis:"An embedding turns a token into one of those vectors — placed so that similar meanings sit in similar directions.",
+ render:function(){return `
+  <p class="intro">Module 2 gave each token an ID (a row number). But <code>2543</code> tells the model nothing about meaning. The <b>embedding</b> is a learned lookup table that swaps each token ID for a rich vector — and during training those vectors get arranged so related words land near each other.</p>
+  <div class="card">
+    <p class="ctitle">▸ explore · a meaning map (2D)</p>
+    <p class="caption">Each word is placed by meaning. Click one to see its nearest neighbours light up. Notice the clusters form themselves.</p>
+    <svg viewBox="0 0 360 260" class="svg-wrap vsvg" id="m4svg"></svg>
+    <p class="readout" id="m4read">Click a word above.</p>
+  </div>
+  <div class="flag"><b>Honesty flag:</b> real embeddings have <i>hundreds</i> of dimensions, not 2. We flatten to 2D so you can see the clustering. The "king − man + woman ≈ queen" trick really does work in the full space.</div>
+  <h2><span class="k">why</span>Where do the positions come from?</h2>
+  <p>Nobody places them by hand. They start as random numbers and get nudged during training (Module 10). Because "cat" and "kitten" keep appearing in similar sentences, the model learns to give them similar vectors — meaning falls out of usage. This is the input that everything downstream actually works on.</p>
+  <div class="callback">This is why RAG works at all (Module 11's cousin): your query and your documents become vectors, and "nearby in meaning" becomes a thing you can compute.</div>
+  ${mathPanel(`
+    <p>An embedding is a matrix — one row per token. "Look up token 2543" means "grab row 2543," which is just array indexing into a big table of learned numbers.</p>
+    ${decoder([["E",'the embedding table — shape <code>[vocab &times; dims]</code>.'],["E[id]",'one row = one token vector.'],["dims",'how many numbers per word (e.g. 768, 4096).']])}
+    <p>So a sentence becomes a stack of vectors: one row pulled from <code>E</code> for each token. That stack is what flows into the network next.</p>`)}
+  ${quiz("m4",[
+    {stem:"How do similar words end up with similar embeddings?",correct:2,
+     opts:["A linguist tags them by hand","They are alphabetised","Training nudges words used in similar contexts toward similar vectors"],
+     ok:"Right — meaning emerges from usage during training.",no:"It is learned from context: words used alike get placed alike."}
+  ])}`;},
+ init:function(){wordMapWidget();}
+},
+{
+ id:"m5", num:"05", title:"Inside the Network",
+ thesis:"Between the embeddings and the answer is a tall stack of layers, each one a big matrix multiply that reshapes the vectors.",
+ render:function(){return `
+  <p class="intro">So far: text → tokens → a stack of embedding vectors. Now those vectors travel up through the <b>network</b> — dozens of layers stacked on top of each other. Each layer takes the vectors, transforms them, and passes them up. By the top, the vectors have been reshaped enough to predict what comes next.</p>
+  <div class="card">
+    <p class="ctitle">▸ watch · a vector climbing the stack</p>
+    <p class="caption">One token's vector, reshaped layer by layer. Press play to send it up.</p>
+    <svg viewBox="0 0 360 220" class="svg-wrap vsvg" id="m5svg"></svg>
+    <div class="controls" style="margin-top:14px"><button class="btn" id="m5play">▶ Send it up</button></div>
+    <p class="readout" id="m5read">Each layer mixes in a little more context and abstraction.</p>
+  </div>
+  <h2><span class="k">why</span>What is a "weight," really?</h2>
+  <p>The whole model <i>is</i> its weights — billions of plain numbers living inside those matrix multiplies. When people say "a 70-billion-parameter model," they mean it has 70 billion of these numbers. Training is the process of finding good values for them. Running the model is just multiplying your vectors through them.</p>
+  <p>There is no separate "logic engine." A layer is mostly: multiply by a learned matrix, apply one simple bending function, repeat. Stack enough of these and the system can represent astonishingly complex patterns — depth is what buys abstraction.</p>
+  ${mathPanel(`
+    <p>One layer, in spirit, is <code>output = bend(W &times; input)</code>. <code>W</code> is a grid of learned weights; the bend (a "nonlinearity") stops the whole stack collapsing into one boring multiplication.</p>
+    ${decoder([["W",'a learned weight matrix — the knobs.'],["W&times;x",'matrix multiply: weighted sums of the inputs.'],["bend()",'a simple curve (e.g. ReLU) applied to each number.']])}
+    <p>Parameters = every number in every <code>W</code>, added up. That count <i>is</i> the model size.</p>`)}
+  ${quiz("m5",[
+    {stem:"What are a model's \"parameters\"?",correct:1,
+     opts:["The questions it can answer","The learned numbers inside its layers","The words in its vocabulary"],
+     ok:"Right — billions of learned numbers in the matrices.",no:"Parameters are the learned weights inside the layers — the model is those numbers."}
+  ])}`;},
+ init:function(){layerWidget();}
+},
+{
+ id:"m6", num:"06", title:"Attention",
+ thesis:"The trick that lets every word look at every other word and decide what matters — including what \"it\" refers to.",
+ render:function(){return `
+  <p class="intro">Here is the breakthrough that made modern LLMs work. A plain stack of layers treats each word in isolation. <b>Attention</b> lets each word <i>look at all the others</i> and pull in what is relevant. It is how the model figures out that "it" refers to the cat, not the mat.</p>
+  <div class="card">
+    <p class="ctitle">▸ explore · who looks at whom</p>
+    <p class="caption">Click a word to see what it pays attention to. Brighter = more attention. Watch where "it" looks.</p>
+    <div class="heat" id="m6heat"></div>
+    <p class="readout" id="m6read">Click "it" — see it reach back to "cat".</p>
+  </div>
+  <div class="flag"><b>Honesty flag:</b> these attention weights are illustrative, hand-set to show the pattern. A real model computes them on the fly and has many attention "heads" doing this at once. But "words pulling context from other words" is exactly what happens.</div>
+  <h2><span class="k">why</span>Why was this the breakthrough?</h2>
+  <p>Two reasons. It handles <b>long-range</b> connections — "it" can grab a word from twenty words back as easily as one word back. And it works on every word <b>in parallel</b>, which is what made these models trainable at huge scale. This single mechanism is what "Transformer" (the T in GPT) refers to.</p>
+  <div class="callback">You reverse-engineered the need for this yourself: when you asked how your message shapes my first word, the answer was "every part of it influences the prediction at once." That is attention.</div>
+  ${mathPanel(`
+    <p>Each word does three things: asks a question (a <b>query</b>), advertises what it offers (a <b>key</b>), and carries content (a <b>value</b>). Match strength between a query and a key is — you guessed it — a <b>dot product</b>. Run those matches through softmax (Module 8) to get the attention weights.</p>
+    ${decoder([["query",'what this word is looking for.'],["key",'what each other word offers.'],["q&middot;k",'match score (dot product again).'],["softmax",'turns scores into the attention weights.']])}
+    <p>So attention reuses two things you already know: the dot product from Module 3, and softmax from Module 8.</p>`)}
+  ${quiz("m6",[
+    {stem:"What problem does attention mainly solve?",correct:2,
+     opts:["Making the model smaller","Spell-checking the input","Letting each word pull in relevant context from any other word"],
+     ok:"Right — context-mixing across the whole sequence, even long range.",no:"It lets words share context across the sequence — that is the core job."}
+  ])}`;},
+ init:function(){attentionWidget();}
+},
+{
+ id:"m7", num:"07", title:"Logits — the Scores",
+ thesis:"After the last layer, the model emits one raw number per vocabulary token. Those raw numbers are the scores.",
+ render:function(){return `
+  <p class="intro">We have ridden the vectors all the way up the stack. At the very top, the model produces its final output: one raw number for every token in the vocabulary. These are the <b>logits</b> — the "scores" we kept mentioning back in Module 1.</p>
+  <div class="card">
+    <p class="ctitle">▸ see them · raw logits (before softmax)</p>
+    <p class="prompt">The cat sat on the <span class="blank">___</span></p>
+    <p class="caption">These are raw, uncalibrated scores. They can be big, small, or negative. They are <b>not</b> yet percentages.</p>
+    <div class="bars" id="m7bars"></div>
+    <p class="readout">See "banana" sitting at a negative score? Perfectly allowed. Logits have no rules about range or sign.</p>
+  </div>
+  <h2><span class="k">why</span>What is a logit, plainly?</h2>
+  <p>It is the model's raw enthusiasm for one token — the unfiltered output of all those matrix multiplies. A logit of <code>8.3</code> means "I rate this highly"; <code>-6.7</code> means "I doubt it." But "highly" compared to what? You cannot answer that yet — the scores are not on any standard scale. That is precisely the problem the next module fixes.</p>
+  <div class="callback">These are the exact "scores" you reasoned about: the model chasing the numbers, never the truth. A logit is just a number — no built-in sense of being right.</div>
+  ${mathPanel(`
+    <p>The top of the network is one last matrix that maps the final vector to a list as long as the vocabulary.</p>
+    ${decoder([["logits",'a vector of length = vocab size (~100k).'],["z&#8336;",'the raw score for token i.'],["range",'unbounded — any real number, positive or negative.']])}
+    <p>One number per possible next token. That is the model's entire raw opinion, pre-cleanup.</p>`)}
+  ${quiz("m7",[
+    {stem:"How is a logit different from a probability?",correct:1,
+     opts:["It is the same thing","A logit is a raw, unbounded score; a probability is calibrated 0–1 and sums to 1 across tokens","A logit is always negative"],
+     ok:"Right — raw score vs. clean percentage. Softmax bridges them.",no:"Logits are raw and unbounded; probabilities are tidy 0–1 values that sum to 1."}
+  ])}`;},
+ init:function(){logitWidget();}
+},
+{
+ id:"m8", num:"08", title:"Softmax",
+ thesis:"The step that turns those raw logits into clean percentages that add up to 100%.",
+ render:function(){return `
+  <p class="intro">This is the function from the very first thing you showed me. <b>Softmax</b> sits at the end of the line and does one job: convert the messy logits into a tidy probability distribution — all positive, all between 0 and 1, summing to 100%.</p>
+  <div class="card">
+    <p class="ctitle">▸ build it · logits in, percentages out</p>
+    <p class="caption">Drag the logit sliders. Watch softmax instantly turn them into percentages that always sum to 100%.</p>
+    <div id="m8sliders"></div>
+    <div class="bars" id="m8bars" style="margin-top:16px"></div>
+    <p class="readout" id="m8read"></p>
+  </div>
+  <h2><span class="k">why</span>The three moves, and the "never zero" part</h2>
+  <p>Softmax does three things: <b>exponentiate</b> each logit (<code>e&#739;</code> makes everything positive and amplifies the big ones), <b>sum</b> them, then <b>divide</b> each by the sum. The "soft" part: a <i>hard</i> max would hand the winner 100% and everyone else 0%. Softmax spreads the weight smoothly — the winner leads, but everyone keeps a slice.</p>
+  <p>And because <code>e&#739;</code> is never zero, <b>every token always gets a non-zero slice</b> — even a hugely negative logit gives a vanishingly small but positive number. Try to drag a slider low enough to zero a bar out. You cannot. Remember that for Module 12.</p>
+  <div class="callback">This is the Wikipedia formula you first sent me — now you can read it cold: exponentiate, sum, divide. A for-loop and a divide.</div>
+  ${mathPanel(`
+    <p><code>softmax(z&#8336;) = e&#739;&#8310; / &Sigma;&#8332; e&#739;&#8311;</code> — symbol by symbol:</p>
+    ${decoder([["z&#8336;",'one logit (a score).'],["e&#739;&#8310;",'exponentiate that one score.'],["&Sigma;&#8332; e&#739;&#8311;",'add up the exponentiated scores of all tokens.'],["&divide;",'divide → a percentage.']])}
+    <pre><span class="kw">def</span> softmax(z):
+    boosted = [exp(s) <span class="kw">for</span> s <span class="kw">in</span> z]
+    total   = sum(boosted)
+    <span class="kw">return</span> [b/total <span class="kw">for</span> b <span class="kw">in</span> boosted]</pre>
+    <p>The "K" you found intimidating was only ever <code>len(z)</code> — the length of the list.</p>`)}
+  ${quiz("m8",[
+    {stem:"Why can softmax never assign a token exactly 0%?",correct:1,
+     opts:["A safety rule blocks it","Because e&#739; is always positive, so every slice stays above zero","Because all tokens are equally likely"],
+     ok:"Exactly — and that is the entire basis of Module 12.",no:"It is the exponential: e&#739; is always > 0, so no slice ever hits zero."}
+  ])}`;},
+ init:function(){softmaxWidget();}
+},
+{
+ id:"m9", num:"09", title:"Sampling: Temperature, Top-k, Top-p",
+ thesis:"Given the percentages, how does the model actually pick one word? With a dial for risk and two ways to trim the tail.",
+ render:function(){return `
+  <p class="intro">Softmax gave us percentages. Now the model has to <b>choose</b>. The simplest rule is "always take the highest" — but that makes it repetitive and robotic. Instead it usually rolls a weighted die, and you get three controls over how that roll behaves.</p>
+  <div class="card">
+    <p class="ctitle">▸ feel it · the temperature dial</p>
+    <p class="caption">Temperature reshapes the distribution before the die is rolled. Low = safe and sharp. High = adventurous and flat.</p>
+    <div class="slider-row"><span class="lab">temp</span><input type="range" id="m9temp" min="10" max="200" value="100"><span class="val" id="m9tempv">1.0</span></div>
+    <div class="bars" id="m9bars"></div>
+    <p class="readout" id="m9read"></p>
+  </div>
+  <h2><span class="k">why</span>Three knobs, plainly</h2>
+  <p><b>Temperature</b> is the creativity/risk dial. Below 1 it sharpens the distribution toward the favourite (focused, predictable); above 1 it flattens it (surprising, sometimes incoherent); at 0 it always picks the top word. <b>Top-k</b> keeps only the k highest-scoring tokens as candidates and ignores the rest. <b>Top-p</b> (nucleus) keeps the smallest set of tokens that together cover, say, 90% of the probability — a smarter, adaptive version of top-k.</p>
+  <div class="callback">Now Module 1 fully makes sense: this die-roll is why the same prompt can give different wordings, and why "banana" <i>could</i> in principle appear. It also nuances Module 12 — top-k / top-p literally chop off the tail, so in practice many tokens really do get zero chance at a given step.</div>
+  ${mathPanel(`
+    <p>Temperature is one division <i>before</i> softmax: divide every logit by T.</p>
+    ${decoder([["z / T",'T<1 spreads scores apart (sharper); T>1 squashes them (flatter).'],["top-k",'keep the k biggest logits, drop the rest, then softmax.'],["top-p",'keep the smallest group covering p% of probability.']])}
+    <p>All three are just ways of reshaping or trimming the distribution before the weighted coin-flip.</p>`)}
+  ${quiz("m9",[
+    {stem:"You set temperature to 0. What happens?",correct:1,
+     opts:["The model outputs random noise","It always picks the single highest-probability token (deterministic)","It refuses to answer"],
+     ok:"Right — temperature 0 is pure greedy: always the top token.",no:"Temperature 0 means always take the favourite — fully deterministic."}
+  ])}`;},
+ init:function(){temperatureWidget();}
+},
+{
+ id:"m10", num:"10", title:"Training",
+ thesis:"How all those billions of weights got their values: guess, measure the error, nudge, repeat — a trillion times.",
+ render:function(){return `
+  <p class="intro">We have used the word "trained" a lot. Here is what it actually means. The weights start as <b>random numbers</b> — the model knows nothing. Training is a loop that slowly turns that randomness into knowledge.</p>
+  <div class="card">
+    <p class="ctitle">▸ run it · one learning step at a time</p>
+    <p class="caption">The true next word is <b>mat</b>. Press "train" and watch the model nudge its guess toward the truth and its error (loss) fall.</p>
+    <div class="bars" id="m10bars"></div>
+    <div class="controls" style="margin-top:6px">
+      <button class="btn" id="m10step">Train one step</button>
+      <button class="btn ghost" id="m10reset">Reset to random</button>
+      <span class="readout" id="m10read" style="margin:0 0 0 6px"></span>
+    </div>
+  </div>
+  <h2><span class="k">why</span>The loop, in four beats</h2>
+  <p>Take a piece of real text. Hide the next word. Let the model predict it. <b>Measure how wrong it was</b> — that number is the <i>loss</i> (high when it is surprised by the true word). Then <b>nudge every weight</b> a tiny amount in the direction that would have made the loss lower. Repeat across trillions of words. Each nudge is microscopic; the volume is what does it.</p>
+  <p>Crucially, the model is never told facts directly. It only ever gets "predict the next word, here is how wrong you were." Everything it knows is a side effect of getting better at that one game — which is exactly what you reasoned out earlier.</p>
+  ${mathPanel(`
+    <p>Two ideas carry the whole thing:</p>
+    ${decoder([["loss",'how surprised the model was by the true word (cross-entropy). Lower = better.'],["gradient",'which way to nudge each weight to reduce loss — "downhill."'],["step",'<code>weight = weight - tiny &times; gradient</code>. Repeat.']])}
+    <p>"Gradient descent" is just rolling downhill on the error, one small step at a time. Backprop is the bookkeeping that works out the downhill direction for every weight at once.</p>`)}
+  ${quiz("m10",[
+    {stem:"What does the \"loss\" measure during training?",correct:2,
+     opts:["How fast the model runs","How much memory it uses","How wrong its prediction was vs. the true next word"],
+     ok:"Right — loss is the error signal that drives every nudge.",no:"Loss measures prediction error: how surprised it was by the real next word."}
+  ])}`;},
+ init:function(){trainingWidget();}
+},
+{
+ id:"m11", num:"11", title:"Fine-tuning & RLHF",
+ thesis:"A raw model just continues text. A helpful assistant is made by a second round of training — and that is where safety lives.",
+ render:function(){return `
+  <p class="intro">A freshly trained model is a <b>base model</b>: it just predicts "what text tends to come next." Ask it a question and it might continue with more questions, because that is what it saw online. Turning it into a helpful assistant takes a second phase.</p>
+  <div class="card">
+    <p class="ctitle">▸ compare · same prompt, two models</p>
+    <p class="caption">Toggle between the raw base model and the fine-tuned assistant. Same machinery underneath — pointed differently.</p>
+    <div class="controls" style="margin-bottom:14px">
+      <button class="btn" id="m11base">Base model</button>
+      <button class="btn ghost" id="m11asst">Assistant</button>
+    </div>
+    <div class="card" style="margin:0;background:var(--bg);box-shadow:none">
+      <p style="font-family:var(--mono);font-size:13px;color:var(--muted);margin:0 0 8px">Prompt: "How do I make sourdough bread?"</p>
+      <p id="m11out" style="margin:0;font-size:15.5px"></p>
+    </div>
+  </div>
+  <h2><span class="k">why</span>Two steps to helpfulness</h2>
+  <p>First, <b>instruction fine-tuning</b>: keep training the base model, but now on example conversations where a helpful answer follows a question. It learns the <i>shape</i> of being an assistant. Second, <b>RLHF</b> (reinforcement learning from human feedback): humans rank competing responses, a "reward model" learns those preferences, and the model is nudged toward answers people prefer — more helpful, more honest, and refusing harmful requests.</p>
+  <p>This is the key point for what comes next: helpfulness, tone, and <b>safety are a behavioural overlay</b> applied on top of the same base. The underlying capabilities never go away — they are steered, not removed.</p>
+  <div class="callback">This is the "pointed in a more useful direction" idea from our chat — and the answer to where the safety training from your blog post actually lives.</div>
+  ${mathPanel(`
+    <p>RLHF in three plain pieces:</p>
+    ${decoder([["preferences",'humans pick the better of two answers → a dataset.'],["reward model",'a model that learns to score answers like humans would.'],["nudge",'train the LLM to produce higher-reward answers.']])}
+    <p>No new "knowledge" is added — the model is reshaped to prefer responses humans rate well. Same weights, gently re-aimed.</p>`)}
+  ${quiz("m11",[
+    {stem:"Where do an assistant's helpfulness and refusals come from?",correct:2,
+     opts:["A rules file checked at runtime","The original web training","A second training phase (fine-tuning + RLHF) layered on the base model"],
+     ok:"Right — it is a learned overlay on the same base model.",no:"They come from the fine-tuning / RLHF phase — a behavioural layer over the base."}
+  ])}`;},
+ init:function(){baseAsstWidget();}
+},
+{
+ id:"m12", num:"12", title:"Why Jailbreaks Exist",
+ thesis:"Everything ties together — and you arrive back at the blog post that started this whole conversation.",
+ render:function(){return `
+  <p class="intro">You now have every piece. Let us assemble them into the claim from that eigenwise.io post you screenshotted — the one about softmax handing a non-zero probability to every token. You can now see exactly why it is true, and exactly where it is overstated.</p>
+  <div class="card">
+    <p class="ctitle">▸ the core demo · push it down, never to zero</p>
+    <p class="caption">Drag the "safety training" slider. It pushes a refused token's probability down hard — but watch the readout. It never reaches zero.</p>
+    <div class="slider-row"><span class="lab">safety</span><input type="range" id="m12s" min="0" max="100" value="20"><span class="val" id="m12sv">20%</span></div>
+    <svg viewBox="0 0 360 70" class="svg-wrap vsvg" id="m12svg"></svg>
+    <p class="readout" id="m12read"></p>
+  </div>
+  <h2><span class="k">why</span>The argument, assembled from your own course</h2>
+  <p>The model picks tokens by sampling from a softmax distribution (Modules 8–9). Safety training (Module 11) reshapes that distribution to push harmful continuations far down. But softmax can never reach zero (Module 8) — so there is always <i>some</i> path, however strange the prompt, that resurfaces a refused answer. A "jailbreak" is just someone finding one of those paths. It is structural, not a bug you can fully patch.</p>
+  <div class="flag"><b>The honest caveat — the part the post leaves out:</b> two things. First, in practice <b>top-k / top-p</b> (Module 9) chop off the tail, so many tokens genuinely do get zero chance at a given step — "every token is always reachable" is idealised. Second, the <i>deeper</i> reason jailbreaks persist is not the softmax tail but <b>imperfect generalisation</b>: safety is a learned overlay (Module 11) on a model whose capabilities still exist underneath, and training can never cover every corner of input space. The softmax point is a neat <i>symptom</i>, not the root cause.</p>
+  <p>So the post's vibe is right — you can lower the odds, not eliminate them — but the real mechanism is richer than "softmax alone proves it." Which is exactly the nuance you would now bring to that thread.</p>
+  <div class="callback">Full circle: Image 2 in your very first message claimed jailbreaks are "a property of how these systems work." You did not take that on faith — you built the system, piece by piece, until you could judge the claim yourself. That is the whole point of this course.</div>
+  ${quiz("m12",[
+    {stem:"What is the single most accurate way to describe why jailbreaks are hard to eliminate?",correct:2,
+     opts:["Softmax alone makes them mathematically impossible to prevent","Models are not trained for safety at all","Safety is a learned overlay on a capable base, and training can't cover every input — softmax's non-zero tail is one symptom of this"],
+     ok:"Exactly — that is the full, honest picture you just built.",no:"The richest answer is the overlay-plus-imperfect-generalisation one; the softmax tail is a symptom."}
+  ])}`;},
+ init:function(){jailbreakWidget();}
+},
+{
+ id:"bonus", num:"★", bonus:true, title:"How RAG Steers the Answer",
+ thesis:"Watch a retrieved document override the model's default — the tug-of-war you reasoned out, made draggable.",
+ render:function(){return `
+  <p class="intro">Left alone, the model answers from what it learned: <code>mat</code>. But you build RAG systems for a living, so here is the payoff — drop in a retrieved document that says cats sit on <b>fences</b>, and watch the distribution shift. This is the "priority is a tug-of-war you engineer" idea from earlier, made into something you can drag.</p>
+  <div class="card">
+    <p class="ctitle">▸ play · retrieval vs. the model's prior</p>
+    <p class="prompt">The cat sat on the <span class="blank" id="ragblank">mat</span></p>
+    <div class="card" id="ragctx" style="margin:0 0 16px;background:var(--bg);box-shadow:none;transition:opacity .3s">
+      <p style="margin:0;font-size:13px;font-family:var(--mono);color:var(--muted)">📄 retrieved document</p>
+      <p style="margin:6px 0 0;font-size:14.5px">"Cats love to perch on wooden <b>fences</b>. A fence is a cat's favourite place to sit and watch the garden."</p>
+    </div>
+    <div class="slider-row"><span class="lab">retrieval strength</span><input type="range" id="ragstr" min="0" max="100" value="0"><span class="val" id="ragstrv">0%</span></div>
+    <div class="bars" id="ragbars" style="margin-top:14px"></div>
+    <p class="readout" id="ragread"></p>
+  </div>
+  <div class="flag"><b>Honesty flag:</b> this simulates the <i>effect</i> of retrieval. A real RAG system pastes the document's tokens into the context window and the model re-scores everything naturally (Module 6's attention does the work). Here the result is moved directly so you can see the shift — but the behaviour is real.</div>
+  <h2><span class="k">why</span>This is the whole tug-of-war</h2>
+  <p>At <b>strength 0</b>, no context is in play and the model falls back on its prior: <code>mat</code> wins. As you raise the strength, the retrieved "fence" claim climbs — but notice it does <i>not</i> win immediately. For a while the model's strong, well-learned prior for <code>mat</code> beats a weakly-weighted document. Push far enough and <code>fence</code> overtakes it: the retrieved source is now steering the answer.</p>
+  <p>That crossover is the entire game you play in Zora. There is no built-in "trust the document" switch — whether retrieval wins depends on how relevant, clear, and well-positioned it is. <b>Reranking</b> (your RRF-vs-cross-encoder work) and a firm <b>"answer only from the context"</b> instruction are exactly how you push this slider to the right.</p>
+  <div class="callback">This is the answer you reasoned to earlier: RAG is not higher-priority by default — it is a tug-of-war between the document and the model's prior, and you engineer which one wins.</div>
+  ${quiz("bonus",[
+    {stem:"At low retrieval strength, the model still answers \"mat\", not \"fence\". Why?",correct:3,
+     opts:["RAG never works for short sentences","The retrieved document is simply wrong","A strong learned prior can override weakly-weighted context — so relevance, position and prompting decide who wins"],
+     ok:"Exactly — which is precisely why reranking and grounding instructions matter.",no:"A strong prior can beat weak context; getting retrieval to win is what reranking and prompting are for."}
+  ])}`;},
+ init:function(){ragWidget();}
+},
+{id:"quant",num:"★",bonus:true,title:"Quantization (4-bit, K-quants & all that)",
+ thesis:"How a 28 GB model becomes a 9 GB download: store each weight with fewer bits by rounding it to the nearest mark on a ruler.",
+ render:function(){return `
+  <p class="intro">Back in Module 5 we said the model <i>is</i> its weights — billions of plain numbers. <b>Quantization</b> is the trick that stores those numbers using fewer bits each, so a model that's 28 GB at full precision becomes a ~9 GB download you can run on a laptop. The cost is a little rounding error. Here's exactly how it works — with the maths, kept simple.</p>
+
+  <div class="card">
+    <p class="ctitle">▸ the whole idea · a ruler with limited marks</p>
+    <p class="caption">Drag the bits slider. Fewer bits = fewer marks on the ruler = each weight snaps to a coarser value. Watch the storage shrink and the error grow.</p>
+    <svg viewBox="0 0 380 96" class="rulersvg" id="qz_ruler"></svg>
+    <div class="slider-row"><span class="lab">bits / weight</span><input type="range" id="qz_bits" min="2" max="8" value="4"><span class="val" id="qz_bitsv">4</span></div>
+    <div id="qz_table" style="margin-top:8px;overflow-x:auto"></div>
+    <p class="readout" id="qz_read"></p>
+  </div>
+
+  <h2><span class="k">key</span>What "bits per weight" actually means</h2>
+  <p>This is the number everything hinges on, and it's simpler than it sounds. A <b>bit</b> is a single on/off switch. With more switches you can count to bigger numbers — each extra bit <i>doubles</i> how many different values you can represent.</p>
+  <div class="bpwtable" id="qz_bpw"></div>
+  <p>So "bits per weight" is just <b>how many switches you spend to store one weight</b> — which sets how many marks your ruler has. <b>4 bits = 16 marks. 8 bits = 256 marks. 16 bits (FP16) = 65,536 marks.</b> More bits → a finer ruler → less rounding error, but a bigger file. That single tradeoff is the whole of quantization.</p>
+
+  <h2><span class="k">how</span>Squeeze in, blow back up</h2>
+  <p>Two operations, and you only need multiply, divide and round. Call the gap between marks the <b>scale</b> (s).</p>
+  <div style="font-family:var(--mono);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:14px;line-height:2;font-size:14px">store:&nbsp;&nbsp; q = round( w ÷ s )&nbsp;&nbsp;<span style="color:var(--muted)">← a small whole number, cheap to store</span><br>recover: w' = q × s&nbsp;&nbsp;<span style="color:var(--muted)">← an approximation of the original weight</span></div>
+  <p>Baby example with <code>s = 0.1</code> and a weight <code>w = 0.47</code>: store <code>round(0.47 ÷ 0.1) = round(4.7) = 5</code>. Later, recover <code>5 × 0.1 = 0.5</code>. We kept the tidy whole number <b>5</b> instead of the messy <code>0.47</code>, and got back <code>0.5</code> — off by just <code>0.03</code>. Do that for every weight and the model is quantized.</p>
+  ${mathPanel(`<p>Where does the scale come from? You stretch the marks to cover the biggest weight in a small block:</p>${decoder([["s","≈ (biggest weight in the block) ÷ (number of marks). Bigger range or fewer marks → wider gaps → more rounding."],["blocks","weights are quantized in small groups (e.g. 32), each with its own scale, so a few big weights don't wreck precision for the rest."]])}<p>That per-block scale is why real "4-bit" costs slightly <i>more</i> than 4 bits per weight — each block stores its own scale too.</p>`)}
+
+  <div class="card">
+    <p class="ctitle">▸ decode the name · Q4_K_M and friends</p>
+    <p class="caption">Those cryptic GGUF filenames are readable once you know the parts. Tap one.</p>
+    <div id="gg_chips" style="margin-bottom:4px"></div>
+    <div id="gg_name" style="margin:12px 0"></div>
+    <div class="qexplain" id="gg_explain"></div>
+  </div>
+  <h2><span class="k">names</span>Reading the labels</h2>
+  <p>Every GGUF quant name is the same three ideas: <b>how many bits</b>, <b>which scheme</b>, and <b>how aggressive</b>. The leading number (<code>Q4</code>, <code>Q8</code>) is bits per weight. <code>_K</code> means <b>k-quant</b> — a smarter scheme that mixes precision, keeping the important tensors (like attention) at higher bits; the older <code>_0</code>/<code>_1</code> are plain round-to-nearest. The <code>_S / _M / _L</code> suffix is small / medium / large — how hard it squeezes, with <b>_M the usual sweet spot</b>. So your "<b>k4</b>" is <code>Q4_K_M</code>, and "<b>k8</b>" is really <code>Q8_0</code> (8-bit is already near-lossless, so it skips the k-quant tricks).</p>
+
+  <div class="card">
+    <p class="ctitle">▸ the practical question · will it fit?</p>
+    <p class="caption">Enter your setup. It runs the real memory budget live and tells you your headroom.</p>
+    <div class="slider-row"><span class="lab">params (B)</span><input type="range" id="ft_p" min="1" max="70" value="14"><span class="val" id="ft_pv">14</span></div>
+    <div id="ft_quant" style="margin:4px 0 8px"></div>
+    <div class="slider-row"><span class="lab">your RAM (GB)</span><input type="range" id="ft_ram" min="8" max="64" step="0.5" value="31.5"><span class="val" id="ft_ramv">31.5</span></div>
+    <div class="slider-row"><span class="lab">context (K tok)</span><input type="range" id="ft_ctx" min="2" max="64" value="8"><span class="val" id="ft_ctxv">8</span></div>
+    <div class="stack" id="ft_stack" style="margin-top:14px"></div>
+    <div class="stack-legend"><span><i style="background:var(--accent)"></i>model</span><span><i style="background:var(--win)"></i>KV cache (context)</span><span><i style="background:var(--muted)"></i>system</span><span><i style="background:#F0F1F7"></i>free</span></div>
+    <p class="readout" id="ft_read"></p>
+  </div>
+  <h2><span class="k">how</span>The fitting maths</h2>
+  <p>File size is one multiplication: <code>params × bits-per-weight ÷ 8</code> (÷8 turns bits into bytes). A 14B at Q4_K_M ≈ <code>14e9 × 4.85 ÷ 8 ≈ 8.5 GB</code>. But <i>fitting</i> is an inequality — three things share your memory:</p>
+  <div style="font-family:var(--mono);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:14px;line-height:1.9;overflow-x:auto;font-size:14px">model size&nbsp; + &nbsp;KV cache&nbsp; + &nbsp;system overhead&nbsp; ≤ &nbsp;your RAM</div>
+  <p>The <b>KV cache</b> is memory for holding the conversation; it grows with context length, which is why a huge context can crowd out the model. On unified memory like an Arc iGPU, that one RAM pool covers both loading <i>and</i> running the model — there's no separate VRAM to juggle. Slide the context up and watch the KV bar swell; that's the effect that takes Q8 from comfortable to tight.</p>
+
+  <div class="flag"><b>Honesty flag:</b> the size numbers are solid, but the KV-cache and system-overhead figures are approximations — they vary by tool, settings, and whether the KV cache is itself quantized. Use this for ballpark headroom, not to the last gigabyte.</div>
+
+  ${quiz("quant",[
+    {stem:"You drop from 8 bits per weight to 4. What happens?",correct:2,opts:["The model gets more accurate","The file roughly halves in size, with a bit more rounding error","Nothing changes"],ok:"Right — half the bits ≈ half the size, traded for coarser rounding.",no:"Fewer bits = fewer marks on the ruler: smaller file, slightly more rounding error."},
+    {stem:"In \"Q4_K_M\", what does the 4 mean?",correct:1,opts:["Bits used to store each weight","The number of layers","4 gigabytes"],ok:"Right — 4 bits per weight, i.e. 16 marks on the ruler.",no:"The leading number is bits per weight — Q4 means 4 bits (16 possible values) per weight."}
+  ])}`;},
+ init:function(){quantWidget();ggufWidget();fitWidget();}}
+];
+
+/* ---------------- shared content helpers ---------------- */
+function mathPanel(inner){return `<details class="math"><summary><span class="ic">&#9656;</span> Peek at the notation <span class="hint">optional · no maths genius required</span></summary><div class="math-body">${inner}</div></details>`;}
+function decoder(rows){return `<div class="decoder">${rows.map(function(r){return `<div class="d"><span class="sym">${r[0]}</span><span>${r[1]}</span></div>`;}).join("")}</div>`;}
+function quiz(id,qs){
+  return `<div class="quiz" id="${id}quiz"><h3>Quick check</h3><p class="caption" style="margin:0">Pick an answer to see why.</p>${
+    qs.map(function(q,i){return `<div class="q" data-c="${q.correct}" data-ok="${esc(q.ok)}" data-no="${esc(q.no)}">
+      <p class="stem">${i+1}. ${q.stem}</p>
+      ${q.opts.map(function(o){return `<button class="opt">${o}</button>`;}).join("")}
+      <p class="fb"></p></div>`;}).join("")
+  }</div>`;
+}
+function esc(s){return s.replace(/"/g,"&quot;");}
+
+/* ============================ WIDGETS ============================ */
+var CAT = [
+  {w:"mat",p:62,logit:8.1},{w:"floor",p:14,logit:6.6},{w:"couch",p:9,logit:6.1},
+  {w:"rug",p:6,logit:5.7},{w:"windowsill",p:4,logit:5.3},{w:"roof",p:3,logit:5.0},
+  {w:"table",p:1.4,logit:4.2},{w:"banana",p:0.3,logit:-1.4}
+];
+function barRow(word,win,crumb){
+  return `<div class="bar-row${win?' win':''}${crumb?' crumb':''}"><div class="word">${word}</div><div class="track"><div class="fill"></div></div><div class="pct"></div></div>`;
+}
+function paintBars(el,items,maxRef){
+  var mx = maxRef||Math.max.apply(null,items.map(function(x){return x.v;}));
+  el.innerHTML = items.map(function(x){return barRow(x.w,x.win,x.crumb);}).join("");
+  requestAnimationFrame(function(){
+    [].forEach.call(el.children,function(row,i){
+      row.querySelector('.fill').style.width = Math.max(1.2,(items[i].v/mx*100))+'%';
+      row.querySelector('.pct').textContent = items[i].label;
+    });
+  });
+}
+
+/* M1 + reused predictor */
+function predictorWidget(pfx){
+  var data = CAT.map(function(x){return {w:x.w,p:x.p};});
+  var maxP = Math.max.apply(null,data.map(function(x){return x.p;}));
+  var bars=document.getElementById(pfx+'bars'), blank=document.getElementById(pfx+'blank'), read=document.getElementById(pfx+'read');
+  var tally=null;
+  function fmt(p){return p<1?p.toFixed(1)+'%':Math.round(p)+'%';}
+  function draw(){
+    var items=data.map(function(x,i){
+      var v = tally?(tally[i]/100*100):x.p;
+      return {w:x.w,v:Math.max(v,tally?0:x.p),label:tally?tally[i]+'×':fmt(x.p),win:i===0,crumb:x.p<1};
+    });
+    paintBars(bars,items,maxP);
+  }
+  function pick(){var r=Math.random()*100,a=0;for(var i=0;i<data.length;i++){a+=data[i].p;if(r<=a)return i;}return data.length-1;}
+  draw();
+  document.getElementById(pfx+'one').onclick=function(){
+    tally=null;draw();var i=pick();
+    setTimeout(function(){
+      [].forEach.call(bars.children,function(r){r.classList.remove('picked','flash');});
+      bars.children[i].classList.add('picked','flash');
+      blank.textContent=data[i].w;blank.style.color=(i===0?'var(--win)':'var(--accent)');
+      read.innerHTML='Rolled the die → picked <b>'+data[i].w+'</b>. '+(i===0?'The favourite, as usual.':'Not the favourite — that is sampling. Lower odds, not zero odds.');
+    },70);
+  };
+  document.getElementById(pfx+'hund').onclick=function(){
+    tally=data.map(function(){return 0;});for(var n=0;n<100;n++){tally[pick()]++;}
+    draw();blank.textContent='___';blank.style.color='var(--accent)';
+    read.innerHTML='Sampled 100 times — the tallies start matching the percentages. <b>Probabilities are just frequencies waiting to happen.</b>';
+  };
+  document.getElementById(pfx+'reset').onclick=function(){
+    tally=null;[].forEach.call(bars.children,function(r){r.classList.remove('picked','flash');});draw();
+    blank.textContent='___';blank.style.color='var(--accent)';
+    read.innerHTML='Tip: notice <b>banana</b> never reaches zero — hold that thought for Module 12.';
+  };
+}
+
+/* M2 tokenizer (illustrative) */
+function tokenizerWidget(){
+  var inp=document.getElementById('m2in'),out=document.getElementById('m2out'),meta=document.getElementById('m2meta');
+  var common={"the":1,"cat":1,"sat":1,"on":1,"a":1,"is":1,"of":1,"and":1,"to":1,"in":1,"it":1,"was":1};
+  function pieces(word){
+    var lw=word.toLowerCase();
+    if(common[lw]||word.length<=4) return [word];
+    // crude subword split
+    var parts=[],i=0,chunk=Math.max(3,Math.ceil(word.length/Math.ceil(word.length/5)));
+    while(i<word.length){parts.push((i>0?'':'')+word.slice(i,i+chunk));i+=chunk;}
+    return parts;
+  }
+  function run(){
+    var text=inp.value;var toks=[];
+    text.split(/(\s+)/).forEach(function(t){
+      if(t.trim()===''){if(t.length)toks.push({t:'␣',sp:true});return;}
+      var m=t.match(/^(\w+)([^\w]*)$/);
+      if(m){pieces(m[1]).forEach(function(p,idx){toks.push({t:(idx>0?'··':'')+p});});if(m[2])toks.push({t:m[2]});}
+      else toks.push({t:t});
+    });
+    out.innerHTML=toks.map(function(x){return '<span class="tok'+(x.sp?' sp':'')+'">'+x.t+'</span>';}).join("");
+    var n=toks.filter(function(x){return !x.sp;}).length;
+    meta.textContent=n+' tokens · '+text.length+' characters · each token would be stored as an integer ID';
+  }
+  inp.addEventListener('input',run);run();
+}
+
+/* M3 cosine */
+function cosineWidget(){
+  var svg=document.getElementById('m3svg'),ang=document.getElementById('m3ang'),angv=document.getElementById('m3angv'),read=document.getElementById('m3read');
+  var cx=160,cy=130,R=95;
+  function draw(){
+    var deg=+ang.value,rad=deg*Math.PI/180;
+    var ax=cx+R, ay=cy; // vector A points right
+    var bx=cx+R*Math.cos(rad), by=cy-R*Math.sin(rad);
+    var cos=Math.cos(rad);
+    var col=cos>0.3?'var(--ok)':cos<-0.3?'var(--danger)':'var(--muted)';
+    svg.innerHTML=
+      '<defs><marker id="ah" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--accent)"/></marker>'+
+      '<marker id="ah2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="'+col+'"/></marker></defs>'+
+      '<circle cx="'+cx+'" cy="'+cy+'" r="'+R+'" fill="none" stroke="var(--line)" stroke-dasharray="3 4"/>'+
+      '<line x1="'+cx+'" y1="'+cy+'" x2="'+ax+'" y2="'+ay+'" stroke="var(--accent)" stroke-width="3" marker-end="url(#ah)"/>'+
+      '<line x1="'+cx+'" y1="'+cy+'" x2="'+bx.toFixed(1)+'" y2="'+by.toFixed(1)+'" stroke="'+col+'" stroke-width="3" marker-end="url(#ah2)"/>'+
+      '<text x="'+(ax+6)+'" y="'+(ay+4)+'">word A</text>'+
+      '<text x="'+(bx+ (bx>cx?6:-44)).toFixed(1)+'" y="'+(by-6).toFixed(1)+'">word B</text>';
+    angv.textContent=deg+'\u00B0';
+    var label=cos>0.7?'almost the same meaning':cos>0.3?'related':cos>-0.3?'unrelated':cos>-0.7?'opposed':'opposite meaning';
+    read.innerHTML='cosine similarity = <b style="color:'+col+'">'+cos.toFixed(2)+'</b> &nbsp;→ '+label+'. Length is ignored; only the angle matters.';
+  }
+  ang.addEventListener('input',draw);draw();
+}
+
+/* M4 word map */
+function wordMapWidget(){
+  var svg=document.getElementById('m4svg'),read=document.getElementById('m4read');
+  var W=[
+    {w:"cat",x:70,y:60,g:0},{w:"kitten",x:110,y:45,g:0},{w:"dog",x:95,y:95,g:0},{w:"puppy",x:135,y:85,g:0},
+    {w:"king",x:255,y:55,g:1},{w:"queen",x:300,y:70,g:1},{w:"prince",x:270,y:100,g:1},
+    {w:"happy",x:80,y:195,g:2},{w:"joyful",x:120,y:210,g:2},{w:"sad",x:60,y:225,g:2},
+    {w:"run",x:280,y:185,g:3},{w:"jump",x:315,y:200,g:3},{w:"walk",x:250,y:215,g:3}
+  ];
+  function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
+  function draw(sel){
+    var near=[];
+    if(sel!=null){near=W.map(function(o,i){return {i:i,d:dist(W[sel],o)};}).filter(function(o){return o.i!==sel;}).sort(function(a,b){return a.d-b.d;}).slice(0,2).map(function(o){return o.i;});}
+    svg.innerHTML=W.map(function(o,i){
+      var on=(i===sel),nb=near.indexOf(i)>=0;
+      var fill=on?'var(--win)':nb?'var(--accent)':'var(--accent-soft)';
+      var stroke=on?'var(--win)':'var(--accent)';
+      return '<g style="cursor:pointer" data-i="'+i+'">'+
+        '<circle cx="'+o.x+'" cy="'+o.y+'" r="'+(on?7:5)+'" fill="'+fill+'" stroke="'+stroke+'" stroke-width="1.5"/>'+
+        '<text x="'+(o.x+9)+'" y="'+(o.y+4)+'" style="fill:'+(on||nb?'var(--ink)':'var(--muted)')+'">'+o.w+'</text></g>';
+    }).join("");
+    [].forEach.call(svg.querySelectorAll('g'),function(g){g.onclick=function(){var i=+g.dataset.i;draw(i);
+      read.innerHTML='<b>'+W[i].w+'</b> — nearest neighbours: '+near.map(function(n){return W[n].w;}).join(', ')+'. They cluster because they appear in similar contexts.';};});
+  }
+  draw(null);
+}
+
+/* M5 layers */
+function layerWidget(){
+  var svg=document.getElementById('m5svg'),read=document.getElementById('m5read');
+  var layers=6,vy=180;
+  function bars(seed){var s='';for(var k=0;k<6;k++){var h=10+((Math.sin(seed*1.7+k*2.1)+1)/2)*34;s+='<rect x="'+(150+k*10)+'" y="'+(vy-h)+'" width="7" height="'+h+'" rx="2" fill="var(--accent)"/>';}return s;}
+  function frame(active){
+    var s='<text x="150" y="200" style="fill:var(--muted)">token vector</text>';
+    for(var L=0;L<layers;L++){var on=L<active;
+      s+='<rect x="40" y="'+(150-L*24)+'" width="280" height="18" rx="5" fill="'+(on?'var(--accent-soft)':'#fff')+'" stroke="var(--line)"/>'+
+         '<text x="48" y="'+(163-L*24)+'" style="fill:'+(on?'var(--accent-deep)':'var(--muted)')+'">layer '+(L+1)+'</text>';}
+    s+=bars(active);
+    svg.innerHTML=s;
+  }
+  frame(0);var t=null;
+  document.getElementById('m5play').onclick=function(){
+    if(t)clearInterval(t);var a=0;read.textContent='Climbing…';
+    t=setInterval(function(){a++;frame(a);if(a>=layers){clearInterval(t);read.innerHTML='At the top the vector is reshaped enough to predict the next token. The bars changed shape at every layer — that is the weights at work.';}},420);
+  };
+}
+
+/* M6 attention */
+function attentionWidget(){
+  var heat=document.getElementById('m6heat'),read=document.getElementById('m6read');
+  var words=["The","cat","sat","on","the","mat","because","it","was","tired"];
+  // illustrative attention rows (each row sums ~1)
+  var A={7:[0.04,0.42,0.06,0.02,0.03,0.20,0.05,0.06,0.04,0.08], // "it" -> cat (and mat)
+         1:[0.10,0.30,0.18,0.05,0.05,0.12,0.03,0.05,0.04,0.08],
+         5:[0.05,0.12,0.10,0.08,0.10,0.30,0.05,0.06,0.06,0.08]};
+  function rowFor(i){return A[i]||words.map(function(_,j){return j===i?0.5:0.5/(words.length-1);});}
+  function cols(n){return 'grid-template-columns:64px repeat('+n+',1fr)';}
+  function draw(sel){
+    heat.style=''; 
+    heat.innerHTML='<div class="hr" style="'+cols(words.length)+'"><span></span>'+words.map(function(w){return '<span style="font-family:var(--mono);font-size:9px;color:var(--muted);text-align:center">'+w+'</span>';}).join('')+'</div>'+
+    words.map(function(w,i){
+      var r=rowFor(i),show=(sel==null||sel===i);
+      return '<div class="hr" style="'+cols(words.length)+';opacity:'+(show?1:0.25)+'"><span class="hw" data-i="'+i+'">'+w+'</span>'+
+        r.map(function(v){var a=Math.min(1,v*2.4);return '<span class="hc" style="background:rgba(91,91,214,'+a.toFixed(2)+')">'+(v>0.18?Math.round(v*100):'')+'</span>';}).join('')+'</div>';
+    }).join("");
+    [].forEach.call(heat.querySelectorAll('.hw'),function(s){s.onclick=function(){var i=+s.dataset.i;draw(i);
+      var r=rowFor(i),top=r.indexOf(Math.max.apply(null,r));
+      read.innerHTML='<b>'+words[i]+'</b> attends most to <b>'+words[top]+'</b>. '+(words[i]==='it'?'It correctly reaches back to "cat" — that is how the model resolves what "it" means.':'');};});
+  }
+  draw(null);
+}
+
+/* M7 logits */
+function logitWidget(){
+  var bars=document.getElementById('m7bars');
+  var mn=Math.min.apply(null,CAT.map(function(x){return x.logit;}));
+  var items=CAT.map(function(x,i){return {w:x.w,v:x.logit-mn+0.5,label:x.logit.toFixed(1),win:i===0,crumb:x.logit<0};});
+  paintBars(bars,items);
+}
+
+/* M8 softmax */
+function softmaxWidget(){
+  var sl=document.getElementById('m8sliders'),bars=document.getElementById('m8bars'),read=document.getElementById('m8read');
+  var names=["mat","floor","couch","rug","banana"];
+  var logits=[8,6,5.5,5,-1];
+  sl.innerHTML=names.map(function(n,i){return '<div class="slider-row"><span class="lab">'+n+'</span><input type="range" data-i="'+i+'" min="-30" max="120" value="'+(logits[i]*10)+'"><span class="val" id="m8v'+i+'">'+logits[i].toFixed(1)+'</span></div>';}).join("");
+  function draw(){
+    var ex=logits.map(function(z){return Math.exp(z);}),tot=ex.reduce(function(a,b){return a+b;},0);
+    var ps=ex.map(function(e){return e/tot*100;});
+    var mx=Math.max.apply(null,ps),mxi=ps.indexOf(mx);
+    var items=names.map(function(n,i){return {w:n,v:ps[i],label:ps[i].toFixed(1)+'%',win:i===mxi,crumb:ps[i]<1};});
+    paintBars(bars,items,mx);
+    read.innerHTML='These five always sum to <b>100%</b>. Drag "banana" as low as it goes — its bar shrinks toward, but never reaches, 0%.';
+  }
+  [].forEach.call(sl.querySelectorAll('input'),function(inp){inp.addEventListener('input',function(){
+    var i=+inp.dataset.i;logits[i]=+inp.value/10;document.getElementById('m8v'+i).textContent=logits[i].toFixed(1);draw();});});
+  draw();
+}
+
+/* M9 temperature */
+function temperatureWidget(){
+  var temp=document.getElementById('m9temp'),tv=document.getElementById('m9tempv'),bars=document.getElementById('m9bars'),read=document.getElementById('m9read');
+  var names=["mat","floor","couch","rug","windowsill","banana"];
+  var logits=[8,6.6,6.1,5.7,5.3,-1];
+  function draw(){
+    var T=+temp.value/100;tv.textContent=T.toFixed(1);
+    var ex=logits.map(function(z){return Math.exp(z/Math.max(0.1,T));}),tot=ex.reduce(function(a,b){return a+b;},0);
+    var ps=ex.map(function(e){return e/tot*100;}),mx=Math.max.apply(null,ps),mxi=ps.indexOf(mx);
+    var items=names.map(function(n,i){return {w:n,v:ps[i],label:ps[i].toFixed(1)+'%',win:i===mxi,crumb:ps[i]<1};});
+    paintBars(bars,items,mx);
+    read.innerHTML = T<0.6?'Low temp: the favourite dominates — focused and predictable.':T>1.3?'High temp: the field flattens out — adventurous, and more likely to wander into nonsense.':'Around 1.0: the model\u2019s natural balance of safe and surprising.';
+  }
+  temp.addEventListener('input',draw);draw();
+}
+
+/* M10 training */
+function trainingWidget(){
+  var bars=document.getElementById('m10bars'),read=document.getElementById('m10read');
+  var names=["mat","floor","couch","banana","the"];
+  var target=0;var logits;
+  function rand(){logits=names.map(function(){return (Math.random()*4-2);});}
+  function softmax(z){var ex=z.map(function(v){return Math.exp(v);}),t=ex.reduce(function(a,b){return a+b;},0);return ex.map(function(e){return e/t;});}
+  function loss(){return -Math.log(softmax(logits)[target]+1e-9);}
+  function draw(){
+    var ps=softmax(logits),mx=Math.max.apply(null,ps),mxi=ps.indexOf(mx);
+    var items=names.map(function(n,i){return {w:n+(i===target?' ✓':''),v:ps[i]*100,label:(ps[i]*100).toFixed(0)+'%',win:i===target,crumb:false};});
+    paintBars(bars,items,mx*100);
+    read.innerHTML='loss = <b>'+loss().toFixed(2)+'</b>';
+  }
+  function step(){for(var k=0;k<names.length;k++){var ps=softmax(logits);logits[k]+= (k===target? (1-ps[k]) : -ps[k])*1.2;}draw();}
+  rand();draw();
+  document.getElementById('m10step').onclick=step;
+  document.getElementById('m10reset').onclick=function(){rand();draw();};
+}
+
+/* M11 base vs assistant */
+function baseAsstWidget(){
+  var out=document.getElementById('m11out');
+  var base="And how do I get the starter going? What flour works best? Should I use a Dutch oven? I've heard rye helps. My last loaf came out flat…";
+  var asst="Great question! Here's a simple method:\n1. Feed your starter and wait until bubbly (4–6h).\n2. Mix flour, water, starter and salt; rest 30 min.\n3. Stretch and fold every 30 min for 2–3 hours…";
+  function show(which){
+    out.style.whiteSpace='pre-line';
+    out.textContent = which==='base'?base:asst;
+    document.getElementById('m11base').className='btn'+(which==='base'?'':' ghost');
+    document.getElementById('m11asst').className='btn'+(which==='asst'?'':' ghost');
+  }
+  document.getElementById('m11base').onclick=function(){show('base');};
+  document.getElementById('m11asst').onclick=function(){show('asst');};
+  show('base');
+}
+
+/* M12 jailbreak */
+function jailbreakWidget(){
+  var s=document.getElementById('m12s'),sv=document.getElementById('m12sv'),svg=document.getElementById('m12svg'),read=document.getElementById('m12read');
+  function draw(){
+    var amt=+s.value;sv.textContent=amt+'%';
+    // probability decays exponentially toward 0 but never reaches it
+    var p=0.5*Math.pow(10,-amt/14); // stays > 0 always
+    var w=Math.max(0.4,p*100*3.5);
+    svg.innerHTML='<rect x="0" y="22" width="360" height="26" rx="6" fill="var(--accent-soft)"/>'+
+      '<rect x="0" y="22" width="'+w.toFixed(2)+'" height="26" rx="6" fill="var(--danger)"/>'+
+      '<text x="6" y="16" style="fill:var(--muted);font-size:10px">probability of the refused token</text>';
+    var disp = (p*100>0.001) ? (p*100).toFixed(3)+'%' : (p*100).toExponential(1)+'%';
+    read.innerHTML='probability ≈ <b>'+disp+'</b> — '+(amt>=100?'astronomically tiny, but still strictly above zero. A weird enough prompt can still reach it.':'pushed down hard, never to zero.');
+  }
+  s.addEventListener('input',draw);draw();
+}
+
+/* BONUS rag */
+function ragWidget(){
+  var str=document.getElementById('ragstr'),strv=document.getElementById('ragstrv'),bars=document.getElementById('ragbars'),read=document.getElementById('ragread'),blank=document.getElementById('ragblank'),ctx=document.getElementById('ragctx');
+  var names=["mat","floor","couch","rug","fence","banana"];
+  var base=[8.1,6.6,6.1,5.7,2.0,-1.4];
+  function draw(){
+    var s=+str.value;strv.textContent=s+'%';
+    ctx.style.opacity = s===0?0.4:1;
+    var logits=base.slice();
+    logits[4]=2.0+(s/100)*9.5; // retrieval boosts "fence"
+    var ex=logits.map(function(z){return Math.exp(z);}),tot=ex.reduce(function(a,b){return a+b;},0);
+    var ps=ex.map(function(e){return e/tot*100;});
+    var mx=Math.max.apply(null,ps),mxi=ps.indexOf(mx);
+    var items=names.map(function(n,i){return {w:n,v:ps[i],label:ps[i].toFixed(0)+'%',win:i===mxi,crumb:ps[i]<1};});
+    paintBars(bars,items,mx);
+    blank.textContent=names[mxi];blank.style.color=(mxi===4?'var(--win)':'var(--accent)');
+    if(s===0) read.innerHTML='No context in play — the model answers from what it learned: <b>mat</b>.';
+    else if(mxi!==4) read.innerHTML='The document is nudging <b>fence</b> up, but the model\'s prior for <b>mat</b> still wins. A strong prior beating weakly-weighted retrieval.';
+    else read.innerHTML='Strong, trusted context: <b>fence</b> now beats the model\'s default. The retrieved document is steering the answer.';
+  }
+  str.addEventListener('input',draw);draw();
+}
+
+/* ---- Quantization bonus widgets ---- */
+function quantWidget(){
+  var W=[0.47,-0.82,0.15,0.91,-0.33,0.68,-0.55,0.28];
+  var maxAbs=Math.max.apply(null,W.map(function(x){return Math.abs(x);}));
+  var bits=document.getElementById('qz_bits'),bitsv=document.getElementById('qz_bitsv'),ruler=document.getElementById('qz_ruler'),table=document.getElementById('qz_table'),read=document.getElementById('qz_read');
+  var bpwEl=document.getElementById('qz_bpw');
+  if(bpwEl){bpwEl.innerHTML=[[1,2],[2,4],[4,16],[8,256],[16,65536]].map(function(p){return '<div class="bpw"><b>'+p[0]+'-bit</b>'+p[1].toLocaleString()+' marks</div>';}).join("");}
+  function draw(){
+    var b=+bits.value;bitsv.textContent=b;var L=Math.pow(2,b);var s=2*maxAbs/(L-1);
+    var W0=60,W1=340;
+    function xOf(v){return W0+((v+maxAbs)/(2*maxAbs))*(W1-W0);}
+    var svg='<line x1="'+W0+'" y1="60" x2="'+W1+'" y2="60" stroke="var(--line)" stroke-width="1.5"/>';
+    svg+='<text x="'+W0+'" y="78" text-anchor="middle">-'+maxAbs.toFixed(2)+'</text><text x="'+((W0+W1)/2)+'" y="78" text-anchor="middle">0</text><text x="'+W1+'" y="78" text-anchor="middle">+'+maxAbs.toFixed(2)+'</text>';
+    if(L<=33){for(var k=0;k<L;k++){var x=W0+(k/(L-1))*(W1-W0);svg+='<line x1="'+x.toFixed(1)+'" y1="55" x2="'+x.toFixed(1)+'" y2="65" stroke="var(--accent)" stroke-width="1"/>';}}
+    else{svg+='<text x="'+((W0+W1)/2)+'" y="46" text-anchor="middle" style="fill:var(--accent)">'+L.toLocaleString()+' marks — too fine to draw</text>';}
+    var rows='',tot=0;
+    W.forEach(function(w){
+      var idx=Math.round((w+maxAbs)/s);var wq=-maxAbs+idx*s;var err=Math.abs(w-wq);tot+=err;
+      var tx=xOf(w),sx=xOf(wq);
+      svg+='<line x1="'+tx.toFixed(1)+'" y1="37" x2="'+sx.toFixed(1)+'" y2="57" stroke="var(--win)" stroke-width="1" opacity="0.45"/>';
+      svg+='<circle cx="'+tx.toFixed(1)+'" cy="34" r="3" fill="var(--ink)"/>';
+      svg+='<circle cx="'+sx.toFixed(1)+'" cy="60" r="2.6" fill="var(--win)"/>';
+      rows+='<tr><td>'+w.toFixed(2)+'</td><td>'+idx+'</td><td>'+wq.toFixed(3)+'</td><td class="err">'+err.toFixed(3)+'</td></tr>';
+    });
+    ruler.innerHTML=svg;
+    table.innerHTML='<table class="qz"><tr><th>weight</th><th>stored (0–'+(L-1)+')</th><th>recovered</th><th>error</th></tr>'+rows+'</table>';
+    var origBits=W.length*16,newBits=W.length*b;
+    read.innerHTML='<b>'+b+' bits/weight → '+L.toLocaleString()+' marks.</b> These '+W.length+' weights now take '+newBits+' bits instead of '+origBits+' at FP16 — <b>'+(newBits/origBits*100).toFixed(0)+'%</b> of the size. Average rounding error: <b>'+(tot/W.length).toFixed(3)+'</b>. '+(b<=3?'Coarse ruler — see the error climbing.':b>=7?'Fine ruler — error is tiny, but the file is larger.':'A good balance of size and accuracy.');
+  }
+  bits.addEventListener('input',draw);draw();
+}
+
+function ggufWidget(){
+  var NAMES=["Q4_K_M","Q5_K_M","Q8_0","Q6_K","Q3_K_M","Q2_K","Q4_0"];
+  var chips=document.getElementById('gg_chips'),nameEl=document.getElementById('gg_name'),explain=document.getElementById('gg_explain');
+  var cur="Q4_K_M";
+  NAMES.forEach(function(n){var b=document.createElement('button');b.className='qtok';b.textContent=n;b.dataset.n=n;b.onclick=function(){cur=n;draw();};chips.appendChild(b);});
+  function parse(n){var parts=n.split('_');var bits=parts[0].replace('Q','');var scheme='',variant='';
+    for(var i=1;i<parts.length;i++){var p=parts[i];if(p==='K')scheme='k';else if(p==='0')scheme='0';else if(p==='1')scheme='1';else if(p==='S'||p==='M'||p==='L')variant=p;}
+    return {bits:bits,scheme:scheme,variant:variant};}
+  function draw(){
+    [].forEach.call(chips.children,function(c){c.classList.toggle('on',c.dataset.n===cur);});
+    var p=parse(cur),toks=cur.split('_');
+    nameEl.innerHTML=toks.map(function(t,i){return (i>0?'<span class="qtok sep">_</span>':'')+'<span class="qtok on">'+t+'</span>';}).join("");
+    var rows=[['bits',p.bits+' bits per weight → '+Math.pow(2,+p.bits).toLocaleString()+' possible values for each weight']];
+    if(p.scheme==='k')rows.push(['_K','k-quant — the smart scheme. Mixes precision, keeping important tensors (attention) at higher bits. Best quality per bit.']);
+    else if(p.scheme==='0')rows.push(['_0','legacy — plain round-to-nearest, symmetric around zero. Simple, a little less efficient.']);
+    else if(p.scheme==='1')rows.push(['_1','legacy — round-to-nearest with a min-offset. Slightly better than _0.']);
+    if(p.variant)rows.push(['_'+p.variant,({S:'Small — squeezes hardest. Smallest file, most quality loss.',M:'Medium — the usual sweet spot. Balances size and quality.',L:'Large — gentlest squeeze. Bigger file, closest to the original.'})[p.variant]]);
+    else if(p.scheme==='k')rows.push(['(no S/M/L)','a single fixed k-quant recipe for this bit-width.']);
+    explain.innerHTML=rows.map(function(r){return '<div class="qe"><span class="k">'+r[0]+'</span><span>'+r[1]+'</span></div>';}).join("");
+  }
+  draw();
+}
+
+function fitWidget(){
+  var QUANTS=[["FP16",16],["Q8_0",8.5],["Q6_K",6.6],["Q5_K_M",5.7],["Q4_K_M",4.85],["Q3_K_M",3.9],["Q2_K",3.35]];
+  var p=document.getElementById('ft_p'),pv=document.getElementById('ft_pv'),ram=document.getElementById('ft_ram'),ramv=document.getElementById('ft_ramv'),ctx=document.getElementById('ft_ctx'),ctxv=document.getElementById('ft_ctxv'),qhost=document.getElementById('ft_quant'),stack=document.getElementById('ft_stack'),read=document.getElementById('ft_read');
+  var qi=4;
+  QUANTS.forEach(function(q,i){var b=document.createElement('button');b.className='qtok';b.textContent=q[0];b.dataset.i=i;b.onclick=function(){qi=i;draw();};qhost.appendChild(b);});
+  function draw(){
+    [].forEach.call(qhost.children,function(c){c.classList.toggle('on',+c.dataset.i===qi);});
+    var params=+p.value,bpw=QUANTS[qi][1],R=+ram.value,ctxK=+ctx.value;
+    pv.textContent=params;ramv.textContent=R.toFixed(1);ctxv.textContent=ctxK;
+    var model=params*bpw/8,kv=ctxK*(0.1+params*0.012),os=3.5,need=model+kv+os,head=R-need;
+    function seg(gb,colour,label){var w=Math.max(0,Math.min(100,gb/R*100));return '<div class="seg" style="width:'+w+'%;background:'+colour+'">'+(w>12?label:'')+'</div>';}
+    stack.innerHTML=seg(model,'var(--accent)',model.toFixed(1)+' GB')+seg(kv,'var(--win)',kv.toFixed(1))+seg(os,'var(--muted)','OS');
+    var verdict;
+    if(head<0)verdict='❌ Does not fit — over your RAM by '+(-head).toFixed(1)+' GB. Pick a smaller quant.';
+    else if(head<1.5)verdict='⚠️ Fits, but tight — only '+head.toFixed(1)+' GB free. Little room to grow the context.';
+    else if(head<6)verdict='✅ Fits comfortably — '+head.toFixed(1)+' GB headroom.';
+    else verdict='✅ Fits easily — '+head.toFixed(1)+' GB to spare.';
+    read.innerHTML='Model <b>'+model.toFixed(1)+' GB</b> + KV ~'+kv.toFixed(1)+' GB + system ~'+os+' GB = <b>'+need.toFixed(1)+' GB</b> needed, out of '+R.toFixed(1)+' GB. '+verdict;
+  }
+  [p,ram,ctx].forEach(function(el){el.addEventListener('input',draw);});draw();
+}
+
+/* ============================ HOME ============================ */
+function homeHTML(){
+  return `
+  <p class="eyebrow">A build-from-zero course</p>
+  <h1 class="home-hero">How does an LLM actually work?
+    <span class="lede">No prior maths. No hand-waving. Twelve steps from "it guesses the next word" to "why jailbreaks exist."</span></h1>
+  <p class="intro">You started this by screenshotting a Wikipedia page on softmax and a blog post about jailbreaks, and asking "can you simplify this?" This course is the long answer — built the way we went in conversation: plain words first, the maths only when you reach for it.</p>
+  <div class="complete-banner" id="completeBanner">
+    <h3>🎓 You finished all twelve modules.</h3>
+    <p style="margin:0">You can now read that softmax formula cold, explain why RAG exists, and judge the jailbreak claim on your own terms. That is real understanding — not trivia.</p>
+  </div>
+  <div class="promise">
+    <div class="pc"><div class="n">01–04</div><h4>The setup</h4><p>Next-token prediction, tokens, vectors, and embeddings — the foundation everything sits on.</p></div>
+    <div class="pc"><div class="n">05–09</div><h4>The engine</h4><p>Inside the network, attention, logits, softmax, and how a word is actually chosen.</p></div>
+    <div class="pc"><div class="n">10–12</div><h4>The bigger picture</h4><p>How it learned, how it became an assistant, and why jailbreaks are structural.</p></div>
+  </div>
+  <div class="howto">
+    <h3>How to use this</h3>
+    <ol>
+      <li><b>Read the plain explanation first.</b> It never assumes maths. That alone is enough to understand each idea.</li>
+      <li><b>Play with the widget.</b> Most modules have something to poke — the interaction <i>is</i> the lesson.</li>
+      <li><b>Open "Peek at the notation" only if you want it.</b> Every symbol gets the decoder-ring treatment (K = <code>list.size()</code>, Σ = a sum loop). Skip it freely.</li>
+      <li><b>Take the quick check, then mark the module complete</b> to track progress. It saves automatically.</li>
+    </ol>
+  </div>
+  <p style="font-size:13.5px;color:var(--muted)">One running example — <code>The cat sat on the ___</code> — follows you through the whole course, so you watch a single prediction's entire life cycle. There's also a <b>bonus module</b> showing how a RAG document can override the model's default answer.</p>
+  <div class="start-row"><button class="btn" id="startBtn">Start Module 1 →</button></div>`;
+}
+
+/* ============================ APP ============================ */
+var DONE = loadDone();
+function loadDone(){try{return JSON.parse(localStorage.getItem('llm-course-done')||'{}');}catch(e){return {};}}
+function saveDone(){try{localStorage.setItem('llm-course-done',JSON.stringify(DONE));}catch(e){}}
+
+var railMap=document.getElementById('railMap');
+MODS.forEach(function(m){
+  if(m.bonus&&!railMap._bl){railMap._bl=1;var lbl=document.createElement('p');lbl.className='map-label';lbl.style.marginTop='14px';lbl.textContent='Bonus';railMap.appendChild(lbl);}
+  var b=document.createElement('button');b.className='mod';b.dataset.go=m.id;
+  b.innerHTML='<span class="num">'+m.num+'</span> '+m.title+'<span class="check">&#10003;</span>';
+  railMap.appendChild(b);
+});
+
+function moduleHTML(m){
+  var idx=MODS.indexOf(m), next=MODS[idx+1];
+  return `<section class="module" id="${m.id}">
+    <p class="eyebrow">${m.bonus?'Bonus module ★':'Module '+m.num}</p>
+    <h1>${m.title}<span class="lede">${m.thesis}</span></h1>
+    ${m.render()}
+    <div class="mnav">
+      <div class="left">
+        <button class="btn" data-done="${m.id}">Mark module complete</button>
+        <span class="done-badge" id="${m.id}badge">&#10003; Completed</span>
+      </div>
+      ${next?`<div class="nextlink" data-go="${next.id}">Next up<b>${next.num} · ${next.title}</b></div>`:`<div class="nextlink" data-go="home"><b>Back to start ↺</b></div>`}
+    </div>
+  </section>`;
+}
+
+var main=document.getElementById('main');
+function show(id){
+  if(id==='home'){main.innerHTML='<section class="module show" id="home">'+homeHTML()+'</section>';wireHome();}
+  else{
+    var m=MODS.filter(function(x){return x.id===id;})[0];if(!m)return;
+    main.innerHTML=moduleHTML(m);
+    var sec=document.getElementById(id);sec.classList.add('show');
+    if(m.init)try{m.init();}catch(e){console.error(e);}
+    wireQuiz();wireModuleFooter(id);
+    if(DONE[id])markBadge(id,true);
+  }
+  setActive(id);
+  window.scrollTo(0,0);
+  try{ if(history&&history.replaceState) history.replaceState(null,'','#'+id); }catch(e){/* sandboxed/null-origin: ignore */}
+}
+function setActive(id){
+  [].forEach.call(document.querySelectorAll('.mod'),function(b){b.classList.toggle('active',b.dataset.go===id);});
+}
+function markBadge(id,on){
+  var b=document.getElementById(id+'badge');if(b)b.classList.toggle('show',on);
+  var btn=document.querySelector('[data-done="'+id+'"]');if(btn)btn.textContent=on?'Mark incomplete':'Mark module complete';
+  var nav=document.querySelector('.mod[data-go="'+id+'"]');if(nav)nav.classList.toggle('done',on);
+}
+function refreshProgress(){
+  var core=MODS.filter(function(m){return !m.bonus;});
+  var n=core.filter(function(m){return DONE[m.id];}).length, total=core.length;
+  var pt=document.getElementById('progTxt'); if(pt)pt.textContent=n+' / '+total;
+  var pb=document.getElementById('progBar'); if(pb)pb.style.width=(n/total*100)+'%';
+  MODS.forEach(function(m){var nav=document.querySelector('.mod[data-go="'+m.id+'"]');if(nav)nav.classList.toggle('done',!!DONE[m.id]);});
+  var banner=document.getElementById('completeBanner');if(banner)banner.classList.toggle('show',n===total);
+}
+function wireModuleFooter(id){
+  var btn=document.querySelector('[data-done="'+id+'"]');
+  btn.onclick=function(){DONE[id]=!DONE[id];saveDone();markBadge(id,DONE[id]);refreshProgress();};
+  [].forEach.call(document.querySelectorAll('.nextlink'),function(n){n.onclick=function(){show(n.dataset.go);};});
+}
+function wireQuiz(){
+  [].forEach.call(document.querySelectorAll('.q'),function(q){
+    var c=+q.dataset.c,ok=q.dataset.ok,no=q.dataset.no,opts=q.querySelectorAll('.opt'),fb=q.querySelector('.fb');
+    opts.forEach(function(opt,idx){opt.addEventListener('click',function(){
+      opts.forEach(function(o){o.disabled=true;});
+      if(idx+1===c){opt.classList.add('right');fb.innerHTML='✓ '+ok;}
+      else{opt.classList.add('wrong');opts[c-1].classList.add('right');fb.innerHTML=no;}
+      fb.classList.add('show');
+    });});
+  });
+}
+function wireHome(){
+  document.getElementById('startBtn').onclick=function(){show('m1');};
+  refreshProgress();
+}
+
+/* nav clicks */
+document.addEventListener('click',function(e){
+  var go=e.target.closest('[data-go]');if(go){show(go.dataset.go);}
+});
+/* mobile map toggle */
+var mt=document.getElementById('mapToggle');
+mt.onclick=function(){var open=railMap.classList.toggle('open');mt.setAttribute('aria-expanded',open);};
+
+/* boot */
+var startId=(location.hash||'').replace('#','');
+show(startId && (startId==='home'||MODS.some(function(m){return m.id===startId;}))?startId:'home');
+refreshProgress();
+</script>
+</body>
+</html>

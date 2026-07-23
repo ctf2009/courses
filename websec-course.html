@@ -1,0 +1,1775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Web Security — Cookies, CORS, CSRF &amp; Token Auth</title>
+<script>
+/* marked@12.0.2 - vendored inline (was cdnjs) so this course stays fully self-contained, zero external dependencies */
+/**
+ * marked v12.0.2 - a markdown parser
+ * Copyright (c) 2011-2024, Christopher Jeffrey. (MIT Licensed)
+ * https://github.com/markedjs/marked
+ */
+!function(e,t){"object"==typeof exports&&"undefined"!=typeof module?t(exports):"function"==typeof define&&define.amd?define(["exports"],t):t((e="undefined"!=typeof globalThis?globalThis:e||self).marked={})}(this,(function(e){"use strict";function t(){return{async:!1,breaks:!1,extensions:null,gfm:!0,hooks:null,pedantic:!1,renderer:null,silent:!1,tokenizer:null,walkTokens:null}}function n(t){e.defaults=t}e.defaults={async:!1,breaks:!1,extensions:null,gfm:!0,hooks:null,pedantic:!1,renderer:null,silent:!1,tokenizer:null,walkTokens:null};const s=/[&<>"']/,r=new RegExp(s.source,"g"),i=/[<>"']|&(?!(#\d{1,7}|#[Xx][a-fA-F0-9]{1,6}|\w+);)/,l=new RegExp(i.source,"g"),o={"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"},a=e=>o[e];function c(e,t){if(t){if(s.test(e))return e.replace(r,a)}else if(i.test(e))return e.replace(l,a);return e}const h=/&(#(?:\d+)|(?:#x[0-9A-Fa-f]+)|(?:\w+));?/gi;function p(e){return e.replace(h,((e,t)=>"colon"===(t=t.toLowerCase())?":":"#"===t.charAt(0)?"x"===t.charAt(1)?String.fromCharCode(parseInt(t.substring(2),16)):String.fromCharCode(+t.substring(1)):""))}const u=/(^|[^\[])\^/g;function k(e,t){let n="string"==typeof e?e:e.source;t=t||"";const s={replace:(e,t)=>{let r="string"==typeof t?t:t.source;return r=r.replace(u,"$1"),n=n.replace(e,r),s},getRegex:()=>new RegExp(n,t)};return s}function g(e){try{e=encodeURI(e).replace(/%25/g,"%")}catch(e){return null}return e}const f={exec:()=>null};function d(e,t){const n=e.replace(/\|/g,((e,t,n)=>{let s=!1,r=t;for(;--r>=0&&"\\"===n[r];)s=!s;return s?"|":" |"})).split(/ \|/);let s=0;if(n[0].trim()||n.shift(),n.length>0&&!n[n.length-1].trim()&&n.pop(),t)if(n.length>t)n.splice(t);else for(;n.length<t;)n.push("");for(;s<n.length;s++)n[s]=n[s].trim().replace(/\\\|/g,"|");return n}function x(e,t,n){const s=e.length;if(0===s)return"";let r=0;for(;r<s;){const i=e.charAt(s-r-1);if(i!==t||n){if(i===t||!n)break;r++}else r++}return e.slice(0,s-r)}function b(e,t,n,s){const r=t.href,i=t.title?c(t.title):null,l=e[1].replace(/\\([\[\]])/g,"$1");if("!"!==e[0].charAt(0)){s.state.inLink=!0;const e={type:"link",raw:n,href:r,title:i,text:l,tokens:s.inlineTokens(l)};return s.state.inLink=!1,e}return{type:"image",raw:n,href:r,title:i,text:c(l)}}class w{options;rules;lexer;constructor(t){this.options=t||e.defaults}space(e){const t=this.rules.block.newline.exec(e);if(t&&t[0].length>0)return{type:"space",raw:t[0]}}code(e){const t=this.rules.block.code.exec(e);if(t){const e=t[0].replace(/^ {1,4}/gm,"");return{type:"code",raw:t[0],codeBlockStyle:"indented",text:this.options.pedantic?e:x(e,"\n")}}}fences(e){const t=this.rules.block.fences.exec(e);if(t){const e=t[0],n=function(e,t){const n=e.match(/^(\s+)(?:```)/);if(null===n)return t;const s=n[1];return t.split("\n").map((e=>{const t=e.match(/^\s+/);if(null===t)return e;const[n]=t;return n.length>=s.length?e.slice(s.length):e})).join("\n")}(e,t[3]||"");return{type:"code",raw:e,lang:t[2]?t[2].trim().replace(this.rules.inline.anyPunctuation,"$1"):t[2],text:n}}}heading(e){const t=this.rules.block.heading.exec(e);if(t){let e=t[2].trim();if(/#$/.test(e)){const t=x(e,"#");this.options.pedantic?e=t.trim():t&&!/ $/.test(t)||(e=t.trim())}return{type:"heading",raw:t[0],depth:t[1].length,text:e,tokens:this.lexer.inline(e)}}}hr(e){const t=this.rules.block.hr.exec(e);if(t)return{type:"hr",raw:t[0]}}blockquote(e){const t=this.rules.block.blockquote.exec(e);if(t){let e=t[0].replace(/\n {0,3}((?:=+|-+) *)(?=\n|$)/g,"\n    $1");e=x(e.replace(/^ *>[ \t]?/gm,""),"\n");const n=this.lexer.state.top;this.lexer.state.top=!0;const s=this.lexer.blockTokens(e);return this.lexer.state.top=n,{type:"blockquote",raw:t[0],tokens:s,text:e}}}list(e){let t=this.rules.block.list.exec(e);if(t){let n=t[1].trim();const s=n.length>1,r={type:"list",raw:"",ordered:s,start:s?+n.slice(0,-1):"",loose:!1,items:[]};n=s?`\\d{1,9}\\${n.slice(-1)}`:`\\${n}`,this.options.pedantic&&(n=s?n:"[*+-]");const i=new RegExp(`^( {0,3}${n})((?:[\t ][^\\n]*)?(?:\\n|$))`);let l="",o="",a=!1;for(;e;){let n=!1;if(!(t=i.exec(e)))break;if(this.rules.block.hr.test(e))break;l=t[0],e=e.substring(l.length);let s=t[2].split("\n",1)[0].replace(/^\t+/,(e=>" ".repeat(3*e.length))),c=e.split("\n",1)[0],h=0;this.options.pedantic?(h=2,o=s.trimStart()):(h=t[2].search(/[^ ]/),h=h>4?1:h,o=s.slice(h),h+=t[1].length);let p=!1;if(!s&&/^ *$/.test(c)&&(l+=c+"\n",e=e.substring(c.length+1),n=!0),!n){const t=new RegExp(`^ {0,${Math.min(3,h-1)}}(?:[*+-]|\\d{1,9}[.)])((?:[ \t][^\\n]*)?(?:\\n|$))`),n=new RegExp(`^ {0,${Math.min(3,h-1)}}((?:- *){3,}|(?:_ *){3,}|(?:\\* *){3,})(?:\\n+|$)`),r=new RegExp(`^ {0,${Math.min(3,h-1)}}(?:\`\`\`|~~~)`),i=new RegExp(`^ {0,${Math.min(3,h-1)}}#`);for(;e;){const a=e.split("\n",1)[0];if(c=a,this.options.pedantic&&(c=c.replace(/^ {1,4}(?=( {4})*[^ ])/g,"  ")),r.test(c))break;if(i.test(c))break;if(t.test(c))break;if(n.test(e))break;if(c.search(/[^ ]/)>=h||!c.trim())o+="\n"+c.slice(h);else{if(p)break;if(s.search(/[^ ]/)>=4)break;if(r.test(s))break;if(i.test(s))break;if(n.test(s))break;o+="\n"+c}p||c.trim()||(p=!0),l+=a+"\n",e=e.substring(a.length+1),s=c.slice(h)}}r.loose||(a?r.loose=!0:/\n *\n *$/.test(l)&&(a=!0));let u,k=null;this.options.gfm&&(k=/^\[[ xX]\] /.exec(o),k&&(u="[ ] "!==k[0],o=o.replace(/^\[[ xX]\] +/,""))),r.items.push({type:"list_item",raw:l,task:!!k,checked:u,loose:!1,text:o,tokens:[]}),r.raw+=l}r.items[r.items.length-1].raw=l.trimEnd(),r.items[r.items.length-1].text=o.trimEnd(),r.raw=r.raw.trimEnd();for(let e=0;e<r.items.length;e++)if(this.lexer.state.top=!1,r.items[e].tokens=this.lexer.blockTokens(r.items[e].text,[]),!r.loose){const t=r.items[e].tokens.filter((e=>"space"===e.type)),n=t.length>0&&t.some((e=>/\n.*\n/.test(e.raw)));r.loose=n}if(r.loose)for(let e=0;e<r.items.length;e++)r.items[e].loose=!0;return r}}html(e){const t=this.rules.block.html.exec(e);if(t){return{type:"html",block:!0,raw:t[0],pre:"pre"===t[1]||"script"===t[1]||"style"===t[1],text:t[0]}}}def(e){const t=this.rules.block.def.exec(e);if(t){const e=t[1].toLowerCase().replace(/\s+/g," "),n=t[2]?t[2].replace(/^<(.*)>$/,"$1").replace(this.rules.inline.anyPunctuation,"$1"):"",s=t[3]?t[3].substring(1,t[3].length-1).replace(this.rules.inline.anyPunctuation,"$1"):t[3];return{type:"def",tag:e,raw:t[0],href:n,title:s}}}table(e){const t=this.rules.block.table.exec(e);if(!t)return;if(!/[:|]/.test(t[2]))return;const n=d(t[1]),s=t[2].replace(/^\||\| *$/g,"").split("|"),r=t[3]&&t[3].trim()?t[3].replace(/\n[ \t]*$/,"").split("\n"):[],i={type:"table",raw:t[0],header:[],align:[],rows:[]};if(n.length===s.length){for(const e of s)/^ *-+: *$/.test(e)?i.align.push("right"):/^ *:-+: *$/.test(e)?i.align.push("center"):/^ *:-+ *$/.test(e)?i.align.push("left"):i.align.push(null);for(const e of n)i.header.push({text:e,tokens:this.lexer.inline(e)});for(const e of r)i.rows.push(d(e,i.header.length).map((e=>({text:e,tokens:this.lexer.inline(e)}))));return i}}lheading(e){const t=this.rules.block.lheading.exec(e);if(t)return{type:"heading",raw:t[0],depth:"="===t[2].charAt(0)?1:2,text:t[1],tokens:this.lexer.inline(t[1])}}paragraph(e){const t=this.rules.block.paragraph.exec(e);if(t){const e="\n"===t[1].charAt(t[1].length-1)?t[1].slice(0,-1):t[1];return{type:"paragraph",raw:t[0],text:e,tokens:this.lexer.inline(e)}}}text(e){const t=this.rules.block.text.exec(e);if(t)return{type:"text",raw:t[0],text:t[0],tokens:this.lexer.inline(t[0])}}escape(e){const t=this.rules.inline.escape.exec(e);if(t)return{type:"escape",raw:t[0],text:c(t[1])}}tag(e){const t=this.rules.inline.tag.exec(e);if(t)return!this.lexer.state.inLink&&/^<a /i.test(t[0])?this.lexer.state.inLink=!0:this.lexer.state.inLink&&/^<\/a>/i.test(t[0])&&(this.lexer.state.inLink=!1),!this.lexer.state.inRawBlock&&/^<(pre|code|kbd|script)(\s|>)/i.test(t[0])?this.lexer.state.inRawBlock=!0:this.lexer.state.inRawBlock&&/^<\/(pre|code|kbd|script)(\s|>)/i.test(t[0])&&(this.lexer.state.inRawBlock=!1),{type:"html",raw:t[0],inLink:this.lexer.state.inLink,inRawBlock:this.lexer.state.inRawBlock,block:!1,text:t[0]}}link(e){const t=this.rules.inline.link.exec(e);if(t){const e=t[2].trim();if(!this.options.pedantic&&/^</.test(e)){if(!/>$/.test(e))return;const t=x(e.slice(0,-1),"\\");if((e.length-t.length)%2==0)return}else{const e=function(e,t){if(-1===e.indexOf(t[1]))return-1;let n=0;for(let s=0;s<e.length;s++)if("\\"===e[s])s++;else if(e[s]===t[0])n++;else if(e[s]===t[1]&&(n--,n<0))return s;return-1}(t[2],"()");if(e>-1){const n=(0===t[0].indexOf("!")?5:4)+t[1].length+e;t[2]=t[2].substring(0,e),t[0]=t[0].substring(0,n).trim(),t[3]=""}}let n=t[2],s="";if(this.options.pedantic){const e=/^([^'"]*[^\s])\s+(['"])(.*)\2/.exec(n);e&&(n=e[1],s=e[3])}else s=t[3]?t[3].slice(1,-1):"";return n=n.trim(),/^</.test(n)&&(n=this.options.pedantic&&!/>$/.test(e)?n.slice(1):n.slice(1,-1)),b(t,{href:n?n.replace(this.rules.inline.anyPunctuation,"$1"):n,title:s?s.replace(this.rules.inline.anyPunctuation,"$1"):s},t[0],this.lexer)}}reflink(e,t){let n;if((n=this.rules.inline.reflink.exec(e))||(n=this.rules.inline.nolink.exec(e))){const e=t[(n[2]||n[1]).replace(/\s+/g," ").toLowerCase()];if(!e){const e=n[0].charAt(0);return{type:"text",raw:e,text:e}}return b(n,e,n[0],this.lexer)}}emStrong(e,t,n=""){let s=this.rules.inline.emStrongLDelim.exec(e);if(!s)return;if(s[3]&&n.match(/[\p{L}\p{N}]/u))return;if(!(s[1]||s[2]||"")||!n||this.rules.inline.punctuation.exec(n)){const n=[...s[0]].length-1;let r,i,l=n,o=0;const a="*"===s[0][0]?this.rules.inline.emStrongRDelimAst:this.rules.inline.emStrongRDelimUnd;for(a.lastIndex=0,t=t.slice(-1*e.length+n);null!=(s=a.exec(t));){if(r=s[1]||s[2]||s[3]||s[4]||s[5]||s[6],!r)continue;if(i=[...r].length,s[3]||s[4]){l+=i;continue}if((s[5]||s[6])&&n%3&&!((n+i)%3)){o+=i;continue}if(l-=i,l>0)continue;i=Math.min(i,i+l+o);const t=[...s[0]][0].length,a=e.slice(0,n+s.index+t+i);if(Math.min(n,i)%2){const e=a.slice(1,-1);return{type:"em",raw:a,text:e,tokens:this.lexer.inlineTokens(e)}}const c=a.slice(2,-2);return{type:"strong",raw:a,text:c,tokens:this.lexer.inlineTokens(c)}}}}codespan(e){const t=this.rules.inline.code.exec(e);if(t){let e=t[2].replace(/\n/g," ");const n=/[^ ]/.test(e),s=/^ /.test(e)&&/ $/.test(e);return n&&s&&(e=e.substring(1,e.length-1)),e=c(e,!0),{type:"codespan",raw:t[0],text:e}}}br(e){const t=this.rules.inline.br.exec(e);if(t)return{type:"br",raw:t[0]}}del(e){const t=this.rules.inline.del.exec(e);if(t)return{type:"del",raw:t[0],text:t[2],tokens:this.lexer.inlineTokens(t[2])}}autolink(e){const t=this.rules.inline.autolink.exec(e);if(t){let e,n;return"@"===t[2]?(e=c(t[1]),n="mailto:"+e):(e=c(t[1]),n=e),{type:"link",raw:t[0],text:e,href:n,tokens:[{type:"text",raw:e,text:e}]}}}url(e){let t;if(t=this.rules.inline.url.exec(e)){let e,n;if("@"===t[2])e=c(t[0]),n="mailto:"+e;else{let s;do{s=t[0],t[0]=this.rules.inline._backpedal.exec(t[0])?.[0]??""}while(s!==t[0]);e=c(t[0]),n="www."===t[1]?"http://"+t[0]:t[0]}return{type:"link",raw:t[0],text:e,href:n,tokens:[{type:"text",raw:e,text:e}]}}}inlineText(e){const t=this.rules.inline.text.exec(e);if(t){let e;return e=this.lexer.state.inRawBlock?t[0]:c(t[0]),{type:"text",raw:t[0],text:e}}}}const m=/^ {0,3}((?:-[\t ]*){3,}|(?:_[ \t]*){3,}|(?:\*[ \t]*){3,})(?:\n+|$)/,y=/(?:[*+-]|\d{1,9}[.)])/,$=k(/^(?!bull |blockCode|fences|blockquote|heading|html)((?:.|\n(?!\s*?\n|bull |blockCode|fences|blockquote|heading|html))+?)\n {0,3}(=+|-+) *(?:\n+|$)/).replace(/bull/g,y).replace(/blockCode/g,/ {4}/).replace(/fences/g,/ {0,3}(?:`{3,}|~{3,})/).replace(/blockquote/g,/ {0,3}>/).replace(/heading/g,/ {0,3}#{1,6}/).replace(/html/g,/ {0,3}<[^\n>]+>\n/).getRegex(),z=/^([^\n]+(?:\n(?!hr|heading|lheading|blockquote|fences|list|html|table| +\n)[^\n]+)*)/,T=/(?!\s*\])(?:\\.|[^\[\]\\])+/,R=k(/^ {0,3}\[(label)\]: *(?:\n *)?([^<\s][^\s]*|<.*?>)(?:(?: +(?:\n *)?| *\n *)(title))? *(?:\n+|$)/).replace("label",T).replace("title",/(?:"(?:\\"?|[^"\\])*"|'[^'\n]*(?:\n[^'\n]+)*\n?'|\([^()]*\))/).getRegex(),_=k(/^( {0,3}bull)([ \t][^\n]+?)?(?:\n|$)/).replace(/bull/g,y).getRegex(),A="address|article|aside|base|basefont|blockquote|body|caption|center|col|colgroup|dd|details|dialog|dir|div|dl|dt|fieldset|figcaption|figure|footer|form|frame|frameset|h[1-6]|head|header|hr|html|iframe|legend|li|link|main|menu|menuitem|meta|nav|noframes|ol|optgroup|option|p|param|search|section|summary|table|tbody|td|tfoot|th|thead|title|tr|track|ul",S=/<!--(?:-?>|[\s\S]*?(?:-->|$))/,I=k("^ {0,3}(?:<(script|pre|style|textarea)[\\s>][\\s\\S]*?(?:</\\1>[^\\n]*\\n+|$)|comment[^\\n]*(\\n+|$)|<\\?[\\s\\S]*?(?:\\?>\\n*|$)|<![A-Z][\\s\\S]*?(?:>\\n*|$)|<!\\[CDATA\\[[\\s\\S]*?(?:\\]\\]>\\n*|$)|</?(tag)(?: +|\\n|/?>)[\\s\\S]*?(?:(?:\\n *)+\\n|$)|<(?!script|pre|style|textarea)([a-z][\\w-]*)(?:attribute)*? */?>(?=[ \\t]*(?:\\n|$))[\\s\\S]*?(?:(?:\\n *)+\\n|$)|</(?!script|pre|style|textarea)[a-z][\\w-]*\\s*>(?=[ \\t]*(?:\\n|$))[\\s\\S]*?(?:(?:\\n *)+\\n|$))","i").replace("comment",S).replace("tag",A).replace("attribute",/ +[a-zA-Z:_][\w.:-]*(?: *= *"[^"\n]*"| *= *'[^'\n]*'| *= *[^\s"'=<>`]+)?/).getRegex(),E=k(z).replace("hr",m).replace("heading"," {0,3}#{1,6}(?:\\s|$)").replace("|lheading","").replace("|table","").replace("blockquote"," {0,3}>").replace("fences"," {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace("list"," {0,3}(?:[*+-]|1[.)]) ").replace("html","</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)").replace("tag",A).getRegex(),q={blockquote:k(/^( {0,3}> ?(paragraph|[^\n]*)(?:\n|$))+/).replace("paragraph",E).getRegex(),code:/^( {4}[^\n]+(?:\n(?: *(?:\n|$))*)?)+/,def:R,fences:/^ {0,3}(`{3,}(?=[^`\n]*(?:\n|$))|~{3,})([^\n]*)(?:\n|$)(?:|([\s\S]*?)(?:\n|$))(?: {0,3}\1[~`]* *(?=\n|$)|$)/,heading:/^ {0,3}(#{1,6})(?=\s|$)(.*)(?:\n+|$)/,hr:m,html:I,lheading:$,list:_,newline:/^(?: *(?:\n|$))+/,paragraph:E,table:f,text:/^[^\n]+/},Z=k("^ *([^\\n ].*)\\n {0,3}((?:\\| *)?:?-+:? *(?:\\| *:?-+:? *)*(?:\\| *)?)(?:\\n((?:(?! *\\n|hr|heading|blockquote|code|fences|list|html).*(?:\\n|$))*)\\n*|$)").replace("hr",m).replace("heading"," {0,3}#{1,6}(?:\\s|$)").replace("blockquote"," {0,3}>").replace("code"," {4}[^\\n]").replace("fences"," {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace("list"," {0,3}(?:[*+-]|1[.)]) ").replace("html","</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)").replace("tag",A).getRegex(),L={...q,table:Z,paragraph:k(z).replace("hr",m).replace("heading"," {0,3}#{1,6}(?:\\s|$)").replace("|lheading","").replace("table",Z).replace("blockquote"," {0,3}>").replace("fences"," {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace("list"," {0,3}(?:[*+-]|1[.)]) ").replace("html","</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)").replace("tag",A).getRegex()},P={...q,html:k("^ *(?:comment *(?:\\n|\\s*$)|<(tag)[\\s\\S]+?</\\1> *(?:\\n{2,}|\\s*$)|<tag(?:\"[^\"]*\"|'[^']*'|\\s[^'\"/>\\s]*)*?/?> *(?:\\n{2,}|\\s*$))").replace("comment",S).replace(/tag/g,"(?!(?:a|em|strong|small|s|cite|q|dfn|abbr|data|time|code|var|samp|kbd|sub|sup|i|b|u|mark|ruby|rt|rp|bdi|bdo|span|br|wbr|ins|del|img)\\b)\\w+(?!:|[^\\w\\s@]*@)\\b").getRegex(),def:/^ *\[([^\]]+)\]: *<?([^\s>]+)>?(?: +(["(][^\n]+[")]))? *(?:\n+|$)/,heading:/^(#{1,6})(.*)(?:\n+|$)/,fences:f,lheading:/^(.+?)\n {0,3}(=+|-+) *(?:\n+|$)/,paragraph:k(z).replace("hr",m).replace("heading"," *#{1,6} *[^\n]").replace("lheading",$).replace("|table","").replace("blockquote"," {0,3}>").replace("|fences","").replace("|list","").replace("|html","").replace("|tag","").getRegex()},Q=/^\\([!"#$%&'()*+,\-./:;<=>?@\[\]\\^_`{|}~])/,v=/^( {2,}|\\)\n(?!\s*$)/,B="\\p{P}\\p{S}",C=k(/^((?![*_])[\spunctuation])/,"u").replace(/punctuation/g,B).getRegex(),M=k(/^(?:\*+(?:((?!\*)[punct])|[^\s*]))|^_+(?:((?!_)[punct])|([^\s_]))/,"u").replace(/punct/g,B).getRegex(),O=k("^[^_*]*?__[^_*]*?\\*[^_*]*?(?=__)|[^*]+(?=[^*])|(?!\\*)[punct](\\*+)(?=[\\s]|$)|[^punct\\s](\\*+)(?!\\*)(?=[punct\\s]|$)|(?!\\*)[punct\\s](\\*+)(?=[^punct\\s])|[\\s](\\*+)(?!\\*)(?=[punct])|(?!\\*)[punct](\\*+)(?!\\*)(?=[punct])|[^punct\\s](\\*+)(?=[^punct\\s])","gu").replace(/punct/g,B).getRegex(),D=k("^[^_*]*?\\*\\*[^_*]*?_[^_*]*?(?=\\*\\*)|[^_]+(?=[^_])|(?!_)[punct](_+)(?=[\\s]|$)|[^punct\\s](_+)(?!_)(?=[punct\\s]|$)|(?!_)[punct\\s](_+)(?=[^punct\\s])|[\\s](_+)(?!_)(?=[punct])|(?!_)[punct](_+)(?!_)(?=[punct])","gu").replace(/punct/g,B).getRegex(),j=k(/\\([punct])/,"gu").replace(/punct/g,B).getRegex(),H=k(/^<(scheme:[^\s\x00-\x1f<>]*|email)>/).replace("scheme",/[a-zA-Z][a-zA-Z0-9+.-]{1,31}/).replace("email",/[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+(@)[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+(?![-_])/).getRegex(),U=k(S).replace("(?:--\x3e|$)","--\x3e").getRegex(),X=k("^comment|^</[a-zA-Z][\\w:-]*\\s*>|^<[a-zA-Z][\\w-]*(?:attribute)*?\\s*/?>|^<\\?[\\s\\S]*?\\?>|^<![a-zA-Z]+\\s[\\s\\S]*?>|^<!\\[CDATA\\[[\\s\\S]*?\\]\\]>").replace("comment",U).replace("attribute",/\s+[a-zA-Z:_][\w.:-]*(?:\s*=\s*"[^"]*"|\s*=\s*'[^']*'|\s*=\s*[^\s"'=<>`]+)?/).getRegex(),F=/(?:\[(?:\\.|[^\[\]\\])*\]|\\.|`[^`]*`|[^\[\]\\`])*?/,N=k(/^!?\[(label)\]\(\s*(href)(?:\s+(title))?\s*\)/).replace("label",F).replace("href",/<(?:\\.|[^\n<>\\])+>|[^\s\x00-\x1f]*/).replace("title",/"(?:\\"?|[^"\\])*"|'(?:\\'?|[^'\\])*'|\((?:\\\)?|[^)\\])*\)/).getRegex(),G=k(/^!?\[(label)\]\[(ref)\]/).replace("label",F).replace("ref",T).getRegex(),J=k(/^!?\[(ref)\](?:\[\])?/).replace("ref",T).getRegex(),K={_backpedal:f,anyPunctuation:j,autolink:H,blockSkip:/\[[^[\]]*?\]\([^\(\)]*?\)|`[^`]*?`|<[^<>]*?>/g,br:v,code:/^(`+)([^`]|[^`][\s\S]*?[^`])\1(?!`)/,del:f,emStrongLDelim:M,emStrongRDelimAst:O,emStrongRDelimUnd:D,escape:Q,link:N,nolink:J,punctuation:C,reflink:G,reflinkSearch:k("reflink|nolink(?!\\()","g").replace("reflink",G).replace("nolink",J).getRegex(),tag:X,text:/^(`+|[^`])(?:(?= {2,}\n)|[\s\S]*?(?:(?=[\\<!\[`*_]|\b_|$)|[^ ](?= {2,}\n)))/,url:f},V={...K,link:k(/^!?\[(label)\]\((.*?)\)/).replace("label",F).getRegex(),reflink:k(/^!?\[(label)\]\s*\[([^\]]*)\]/).replace("label",F).getRegex()},W={...K,escape:k(Q).replace("])","~|])").getRegex(),url:k(/^((?:ftp|https?):\/\/|www\.)(?:[a-zA-Z0-9\-]+\.?)+[^\s<]*|^email/,"i").replace("email",/[A-Za-z0-9._+-]+(@)[a-zA-Z0-9-_]+(?:\.[a-zA-Z0-9-_]*[a-zA-Z0-9])+(?![-_])/).getRegex(),_backpedal:/(?:[^?!.,:;*_'"~()&]+|\([^)]*\)|&(?![a-zA-Z0-9]+;$)|[?!.,:;*_'"~)]+(?!$))+/,del:/^(~~?)(?=[^\s~])([\s\S]*?[^\s~])\1(?=[^~]|$)/,text:/^([`~]+|[^`~])(?:(?= {2,}\n)|(?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@)|[\s\S]*?(?:(?=[\\<!\[`*~_]|\b_|https?:\/\/|ftp:\/\/|www\.|$)|[^ ](?= {2,}\n)|[^a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-](?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@)))/},Y={...W,br:k(v).replace("{2,}","*").getRegex(),text:k(W.text).replace("\\b_","\\b_| {2,}\\n").replace(/\{2,\}/g,"*").getRegex()},ee={normal:q,gfm:L,pedantic:P},te={normal:K,gfm:W,breaks:Y,pedantic:V};class ne{tokens;options;state;tokenizer;inlineQueue;constructor(t){this.tokens=[],this.tokens.links=Object.create(null),this.options=t||e.defaults,this.options.tokenizer=this.options.tokenizer||new w,this.tokenizer=this.options.tokenizer,this.tokenizer.options=this.options,this.tokenizer.lexer=this,this.inlineQueue=[],this.state={inLink:!1,inRawBlock:!1,top:!0};const n={block:ee.normal,inline:te.normal};this.options.pedantic?(n.block=ee.pedantic,n.inline=te.pedantic):this.options.gfm&&(n.block=ee.gfm,this.options.breaks?n.inline=te.breaks:n.inline=te.gfm),this.tokenizer.rules=n}static get rules(){return{block:ee,inline:te}}static lex(e,t){return new ne(t).lex(e)}static lexInline(e,t){return new ne(t).inlineTokens(e)}lex(e){e=e.replace(/\r\n|\r/g,"\n"),this.blockTokens(e,this.tokens);for(let e=0;e<this.inlineQueue.length;e++){const t=this.inlineQueue[e];this.inlineTokens(t.src,t.tokens)}return this.inlineQueue=[],this.tokens}blockTokens(e,t=[]){let n,s,r,i;for(e=this.options.pedantic?e.replace(/\t/g,"    ").replace(/^ +$/gm,""):e.replace(/^( *)(\t+)/gm,((e,t,n)=>t+"    ".repeat(n.length)));e;)if(!(this.options.extensions&&this.options.extensions.block&&this.options.extensions.block.some((s=>!!(n=s.call({lexer:this},e,t))&&(e=e.substring(n.raw.length),t.push(n),!0)))))if(n=this.tokenizer.space(e))e=e.substring(n.raw.length),1===n.raw.length&&t.length>0?t[t.length-1].raw+="\n":t.push(n);else if(n=this.tokenizer.code(e))e=e.substring(n.raw.length),s=t[t.length-1],!s||"paragraph"!==s.type&&"text"!==s.type?t.push(n):(s.raw+="\n"+n.raw,s.text+="\n"+n.text,this.inlineQueue[this.inlineQueue.length-1].src=s.text);else if(n=this.tokenizer.fences(e))e=e.substring(n.raw.length),t.push(n);else if(n=this.tokenizer.heading(e))e=e.substring(n.raw.length),t.push(n);else if(n=this.tokenizer.hr(e))e=e.substring(n.raw.length),t.push(n);else if(n=this.tokenizer.blockquote(e))e=e.substring(n.raw.length),t.push(n);else if(n=this.tokenizer.list(e))e=e.substring(n.raw.length),t.push(n);else if(n=this.tokenizer.html(e))e=e.substring(n.raw.length),t.push(n);else if(n=this.tokenizer.def(e))e=e.substring(n.raw.length),s=t[t.length-1],!s||"paragraph"!==s.type&&"text"!==s.type?this.tokens.links[n.tag]||(this.tokens.links[n.tag]={href:n.href,title:n.title}):(s.raw+="\n"+n.raw,s.text+="\n"+n.raw,this.inlineQueue[this.inlineQueue.length-1].src=s.text);else if(n=this.tokenizer.table(e))e=e.substring(n.raw.length),t.push(n);else if(n=this.tokenizer.lheading(e))e=e.substring(n.raw.length),t.push(n);else{if(r=e,this.options.extensions&&this.options.extensions.startBlock){let t=1/0;const n=e.slice(1);let s;this.options.extensions.startBlock.forEach((e=>{s=e.call({lexer:this},n),"number"==typeof s&&s>=0&&(t=Math.min(t,s))})),t<1/0&&t>=0&&(r=e.substring(0,t+1))}if(this.state.top&&(n=this.tokenizer.paragraph(r)))s=t[t.length-1],i&&"paragraph"===s.type?(s.raw+="\n"+n.raw,s.text+="\n"+n.text,this.inlineQueue.pop(),this.inlineQueue[this.inlineQueue.length-1].src=s.text):t.push(n),i=r.length!==e.length,e=e.substring(n.raw.length);else if(n=this.tokenizer.text(e))e=e.substring(n.raw.length),s=t[t.length-1],s&&"text"===s.type?(s.raw+="\n"+n.raw,s.text+="\n"+n.text,this.inlineQueue.pop(),this.inlineQueue[this.inlineQueue.length-1].src=s.text):t.push(n);else if(e){const t="Infinite loop on byte: "+e.charCodeAt(0);if(this.options.silent){console.error(t);break}throw new Error(t)}}return this.state.top=!0,t}inline(e,t=[]){return this.inlineQueue.push({src:e,tokens:t}),t}inlineTokens(e,t=[]){let n,s,r,i,l,o,a=e;if(this.tokens.links){const e=Object.keys(this.tokens.links);if(e.length>0)for(;null!=(i=this.tokenizer.rules.inline.reflinkSearch.exec(a));)e.includes(i[0].slice(i[0].lastIndexOf("[")+1,-1))&&(a=a.slice(0,i.index)+"["+"a".repeat(i[0].length-2)+"]"+a.slice(this.tokenizer.rules.inline.reflinkSearch.lastIndex))}for(;null!=(i=this.tokenizer.rules.inline.blockSkip.exec(a));)a=a.slice(0,i.index)+"["+"a".repeat(i[0].length-2)+"]"+a.slice(this.tokenizer.rules.inline.blockSkip.lastIndex);for(;null!=(i=this.tokenizer.rules.inline.anyPunctuation.exec(a));)a=a.slice(0,i.index)+"++"+a.slice(this.tokenizer.rules.inline.anyPunctuation.lastIndex);for(;e;)if(l||(o=""),l=!1,!(this.options.extensions&&this.options.extensions.inline&&this.options.extensions.inline.some((s=>!!(n=s.call({lexer:this},e,t))&&(e=e.substring(n.raw.length),t.push(n),!0)))))if(n=this.tokenizer.escape(e))e=e.substring(n.raw.length),t.push(n);else if(n=this.tokenizer.tag(e))e=e.substring(n.raw.length),s=t[t.length-1],s&&"text"===n.type&&"text"===s.type?(s.raw+=n.raw,s.text+=n.text):t.push(n);else if(n=this.tokenizer.link(e))e=e.substring(n.raw.length),t.push(n);else if(n=this.tokenizer.reflink(e,this.tokens.links))e=e.substring(n.raw.length),s=t[t.length-1],s&&"text"===n.type&&"text"===s.type?(s.raw+=n.raw,s.text+=n.text):t.push(n);else if(n=this.tokenizer.emStrong(e,a,o))e=e.substring(n.raw.length),t.push(n);else if(n=this.tokenizer.codespan(e))e=e.substring(n.raw.length),t.push(n);else if(n=this.tokenizer.br(e))e=e.substring(n.raw.length),t.push(n);else if(n=this.tokenizer.del(e))e=e.substring(n.raw.length),t.push(n);else if(n=this.tokenizer.autolink(e))e=e.substring(n.raw.length),t.push(n);else if(this.state.inLink||!(n=this.tokenizer.url(e))){if(r=e,this.options.extensions&&this.options.extensions.startInline){let t=1/0;const n=e.slice(1);let s;this.options.extensions.startInline.forEach((e=>{s=e.call({lexer:this},n),"number"==typeof s&&s>=0&&(t=Math.min(t,s))})),t<1/0&&t>=0&&(r=e.substring(0,t+1))}if(n=this.tokenizer.inlineText(r))e=e.substring(n.raw.length),"_"!==n.raw.slice(-1)&&(o=n.raw.slice(-1)),l=!0,s=t[t.length-1],s&&"text"===s.type?(s.raw+=n.raw,s.text+=n.text):t.push(n);else if(e){const t="Infinite loop on byte: "+e.charCodeAt(0);if(this.options.silent){console.error(t);break}throw new Error(t)}}else e=e.substring(n.raw.length),t.push(n);return t}}class se{options;constructor(t){this.options=t||e.defaults}code(e,t,n){const s=(t||"").match(/^\S*/)?.[0];return e=e.replace(/\n$/,"")+"\n",s?'<pre><code class="language-'+c(s)+'">'+(n?e:c(e,!0))+"</code></pre>\n":"<pre><code>"+(n?e:c(e,!0))+"</code></pre>\n"}blockquote(e){return`<blockquote>\n${e}</blockquote>\n`}html(e,t){return e}heading(e,t,n){return`<h${t}>${e}</h${t}>\n`}hr(){return"<hr>\n"}list(e,t,n){const s=t?"ol":"ul";return"<"+s+(t&&1!==n?' start="'+n+'"':"")+">\n"+e+"</"+s+">\n"}listitem(e,t,n){return`<li>${e}</li>\n`}checkbox(e){return"<input "+(e?'checked="" ':"")+'disabled="" type="checkbox">'}paragraph(e){return`<p>${e}</p>\n`}table(e,t){return t&&(t=`<tbody>${t}</tbody>`),"<table>\n<thead>\n"+e+"</thead>\n"+t+"</table>\n"}tablerow(e){return`<tr>\n${e}</tr>\n`}tablecell(e,t){const n=t.header?"th":"td";return(t.align?`<${n} align="${t.align}">`:`<${n}>`)+e+`</${n}>\n`}strong(e){return`<strong>${e}</strong>`}em(e){return`<em>${e}</em>`}codespan(e){return`<code>${e}</code>`}br(){return"<br>"}del(e){return`<del>${e}</del>`}link(e,t,n){const s=g(e);if(null===s)return n;let r='<a href="'+(e=s)+'"';return t&&(r+=' title="'+t+'"'),r+=">"+n+"</a>",r}image(e,t,n){const s=g(e);if(null===s)return n;let r=`<img src="${e=s}" alt="${n}"`;return t&&(r+=` title="${t}"`),r+=">",r}text(e){return e}}class re{strong(e){return e}em(e){return e}codespan(e){return e}del(e){return e}html(e){return e}text(e){return e}link(e,t,n){return""+n}image(e,t,n){return""+n}br(){return""}}class ie{options;renderer;textRenderer;constructor(t){this.options=t||e.defaults,this.options.renderer=this.options.renderer||new se,this.renderer=this.options.renderer,this.renderer.options=this.options,this.textRenderer=new re}static parse(e,t){return new ie(t).parse(e)}static parseInline(e,t){return new ie(t).parseInline(e)}parse(e,t=!0){let n="";for(let s=0;s<e.length;s++){const r=e[s];if(this.options.extensions&&this.options.extensions.renderers&&this.options.extensions.renderers[r.type]){const e=r,t=this.options.extensions.renderers[e.type].call({parser:this},e);if(!1!==t||!["space","hr","heading","code","table","blockquote","list","html","paragraph","text"].includes(e.type)){n+=t||"";continue}}switch(r.type){case"space":continue;case"hr":n+=this.renderer.hr();continue;case"heading":{const e=r;n+=this.renderer.heading(this.parseInline(e.tokens),e.depth,p(this.parseInline(e.tokens,this.textRenderer)));continue}case"code":{const e=r;n+=this.renderer.code(e.text,e.lang,!!e.escaped);continue}case"table":{const e=r;let t="",s="";for(let t=0;t<e.header.length;t++)s+=this.renderer.tablecell(this.parseInline(e.header[t].tokens),{header:!0,align:e.align[t]});t+=this.renderer.tablerow(s);let i="";for(let t=0;t<e.rows.length;t++){const n=e.rows[t];s="";for(let t=0;t<n.length;t++)s+=this.renderer.tablecell(this.parseInline(n[t].tokens),{header:!1,align:e.align[t]});i+=this.renderer.tablerow(s)}n+=this.renderer.table(t,i);continue}case"blockquote":{const e=r,t=this.parse(e.tokens);n+=this.renderer.blockquote(t);continue}case"list":{const e=r,t=e.ordered,s=e.start,i=e.loose;let l="";for(let t=0;t<e.items.length;t++){const n=e.items[t],s=n.checked,r=n.task;let o="";if(n.task){const e=this.renderer.checkbox(!!s);i?n.tokens.length>0&&"paragraph"===n.tokens[0].type?(n.tokens[0].text=e+" "+n.tokens[0].text,n.tokens[0].tokens&&n.tokens[0].tokens.length>0&&"text"===n.tokens[0].tokens[0].type&&(n.tokens[0].tokens[0].text=e+" "+n.tokens[0].tokens[0].text)):n.tokens.unshift({type:"text",text:e+" "}):o+=e+" "}o+=this.parse(n.tokens,i),l+=this.renderer.listitem(o,r,!!s)}n+=this.renderer.list(l,t,s);continue}case"html":{const e=r;n+=this.renderer.html(e.text,e.block);continue}case"paragraph":{const e=r;n+=this.renderer.paragraph(this.parseInline(e.tokens));continue}case"text":{let i=r,l=i.tokens?this.parseInline(i.tokens):i.text;for(;s+1<e.length&&"text"===e[s+1].type;)i=e[++s],l+="\n"+(i.tokens?this.parseInline(i.tokens):i.text);n+=t?this.renderer.paragraph(l):l;continue}default:{const e='Token with "'+r.type+'" type was not found.';if(this.options.silent)return console.error(e),"";throw new Error(e)}}}return n}parseInline(e,t){t=t||this.renderer;let n="";for(let s=0;s<e.length;s++){const r=e[s];if(this.options.extensions&&this.options.extensions.renderers&&this.options.extensions.renderers[r.type]){const e=this.options.extensions.renderers[r.type].call({parser:this},r);if(!1!==e||!["escape","html","link","image","strong","em","codespan","br","del","text"].includes(r.type)){n+=e||"";continue}}switch(r.type){case"escape":{const e=r;n+=t.text(e.text);break}case"html":{const e=r;n+=t.html(e.text);break}case"link":{const e=r;n+=t.link(e.href,e.title,this.parseInline(e.tokens,t));break}case"image":{const e=r;n+=t.image(e.href,e.title,e.text);break}case"strong":{const e=r;n+=t.strong(this.parseInline(e.tokens,t));break}case"em":{const e=r;n+=t.em(this.parseInline(e.tokens,t));break}case"codespan":{const e=r;n+=t.codespan(e.text);break}case"br":n+=t.br();break;case"del":{const e=r;n+=t.del(this.parseInline(e.tokens,t));break}case"text":{const e=r;n+=t.text(e.text);break}default:{const e='Token with "'+r.type+'" type was not found.';if(this.options.silent)return console.error(e),"";throw new Error(e)}}}return n}}class le{options;constructor(t){this.options=t||e.defaults}static passThroughHooks=new Set(["preprocess","postprocess","processAllTokens"]);preprocess(e){return e}postprocess(e){return e}processAllTokens(e){return e}}class oe{defaults={async:!1,breaks:!1,extensions:null,gfm:!0,hooks:null,pedantic:!1,renderer:null,silent:!1,tokenizer:null,walkTokens:null};options=this.setOptions;parse=this.#e(ne.lex,ie.parse);parseInline=this.#e(ne.lexInline,ie.parseInline);Parser=ie;Renderer=se;TextRenderer=re;Lexer=ne;Tokenizer=w;Hooks=le;constructor(...e){this.use(...e)}walkTokens(e,t){let n=[];for(const s of e)switch(n=n.concat(t.call(this,s)),s.type){case"table":{const e=s;for(const s of e.header)n=n.concat(this.walkTokens(s.tokens,t));for(const s of e.rows)for(const e of s)n=n.concat(this.walkTokens(e.tokens,t));break}case"list":{const e=s;n=n.concat(this.walkTokens(e.items,t));break}default:{const e=s;this.defaults.extensions?.childTokens?.[e.type]?this.defaults.extensions.childTokens[e.type].forEach((s=>{const r=e[s].flat(1/0);n=n.concat(this.walkTokens(r,t))})):e.tokens&&(n=n.concat(this.walkTokens(e.tokens,t)))}}return n}use(...e){const t=this.defaults.extensions||{renderers:{},childTokens:{}};return e.forEach((e=>{const n={...e};if(n.async=this.defaults.async||n.async||!1,e.extensions&&(e.extensions.forEach((e=>{if(!e.name)throw new Error("extension name required");if("renderer"in e){const n=t.renderers[e.name];t.renderers[e.name]=n?function(...t){let s=e.renderer.apply(this,t);return!1===s&&(s=n.apply(this,t)),s}:e.renderer}if("tokenizer"in e){if(!e.level||"block"!==e.level&&"inline"!==e.level)throw new Error("extension level must be 'block' or 'inline'");const n=t[e.level];n?n.unshift(e.tokenizer):t[e.level]=[e.tokenizer],e.start&&("block"===e.level?t.startBlock?t.startBlock.push(e.start):t.startBlock=[e.start]:"inline"===e.level&&(t.startInline?t.startInline.push(e.start):t.startInline=[e.start]))}"childTokens"in e&&e.childTokens&&(t.childTokens[e.name]=e.childTokens)})),n.extensions=t),e.renderer){const t=this.defaults.renderer||new se(this.defaults);for(const n in e.renderer){if(!(n in t))throw new Error(`renderer '${n}' does not exist`);if("options"===n)continue;const s=n,r=e.renderer[s],i=t[s];t[s]=(...e)=>{let n=r.apply(t,e);return!1===n&&(n=i.apply(t,e)),n||""}}n.renderer=t}if(e.tokenizer){const t=this.defaults.tokenizer||new w(this.defaults);for(const n in e.tokenizer){if(!(n in t))throw new Error(`tokenizer '${n}' does not exist`);if(["options","rules","lexer"].includes(n))continue;const s=n,r=e.tokenizer[s],i=t[s];t[s]=(...e)=>{let n=r.apply(t,e);return!1===n&&(n=i.apply(t,e)),n}}n.tokenizer=t}if(e.hooks){const t=this.defaults.hooks||new le;for(const n in e.hooks){if(!(n in t))throw new Error(`hook '${n}' does not exist`);if("options"===n)continue;const s=n,r=e.hooks[s],i=t[s];le.passThroughHooks.has(n)?t[s]=e=>{if(this.defaults.async)return Promise.resolve(r.call(t,e)).then((e=>i.call(t,e)));const n=r.call(t,e);return i.call(t,n)}:t[s]=(...e)=>{let n=r.apply(t,e);return!1===n&&(n=i.apply(t,e)),n}}n.hooks=t}if(e.walkTokens){const t=this.defaults.walkTokens,s=e.walkTokens;n.walkTokens=function(e){let n=[];return n.push(s.call(this,e)),t&&(n=n.concat(t.call(this,e))),n}}this.defaults={...this.defaults,...n}})),this}setOptions(e){return this.defaults={...this.defaults,...e},this}lexer(e,t){return ne.lex(e,t??this.defaults)}parser(e,t){return ie.parse(e,t??this.defaults)}#e(e,t){return(n,s)=>{const r={...s},i={...this.defaults,...r};!0===this.defaults.async&&!1===r.async&&(i.silent||console.warn("marked(): The async option was set to true by an extension. The async: false option sent to parse will be ignored."),i.async=!0);const l=this.#t(!!i.silent,!!i.async);if(null==n)return l(new Error("marked(): input parameter is undefined or null"));if("string"!=typeof n)return l(new Error("marked(): input parameter is of type "+Object.prototype.toString.call(n)+", string expected"));if(i.hooks&&(i.hooks.options=i),i.async)return Promise.resolve(i.hooks?i.hooks.preprocess(n):n).then((t=>e(t,i))).then((e=>i.hooks?i.hooks.processAllTokens(e):e)).then((e=>i.walkTokens?Promise.all(this.walkTokens(e,i.walkTokens)).then((()=>e)):e)).then((e=>t(e,i))).then((e=>i.hooks?i.hooks.postprocess(e):e)).catch(l);try{i.hooks&&(n=i.hooks.preprocess(n));let s=e(n,i);i.hooks&&(s=i.hooks.processAllTokens(s)),i.walkTokens&&this.walkTokens(s,i.walkTokens);let r=t(s,i);return i.hooks&&(r=i.hooks.postprocess(r)),r}catch(e){return l(e)}}}#t(e,t){return n=>{if(n.message+="\nPlease report this to https://github.com/markedjs/marked.",e){const e="<p>An error occurred:</p><pre>"+c(n.message+"",!0)+"</pre>";return t?Promise.resolve(e):e}if(t)return Promise.reject(n);throw n}}}const ae=new oe;function ce(e,t){return ae.parse(e,t)}ce.options=ce.setOptions=function(e){return ae.setOptions(e),ce.defaults=ae.defaults,n(ce.defaults),ce},ce.getDefaults=t,ce.defaults=e.defaults,ce.use=function(...e){return ae.use(...e),ce.defaults=ae.defaults,n(ce.defaults),ce},ce.walkTokens=function(e,t){return ae.walkTokens(e,t)},ce.parseInline=ae.parseInline,ce.Parser=ie,ce.parser=ie.parse,ce.Renderer=se,ce.TextRenderer=re,ce.Lexer=ne,ce.lexer=ne.lex,ce.Tokenizer=w,ce.Hooks=le,ce.parse=ce;const he=ce.options,pe=ce.setOptions,ue=ce.use,ke=ce.walkTokens,ge=ce.parseInline,fe=ce,de=ie.parse,xe=ne.lex;e.Hooks=le,e.Lexer=ne,e.Marked=oe,e.Parser=ie,e.Renderer=se,e.TextRenderer=re,e.Tokenizer=w,e.getDefaults=t,e.lexer=xe,e.marked=ce,e.options=he,e.parse=fe,e.parseInline=ge,e.parser=de,e.setOptions=pe,e.use=ue,e.walkTokens=ke}));
+
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F6F7FB; --panel:#FFFFFF; --ink:#1B1F2C; --ink-soft:#5A6172;
+  --line:#E3E6EF; --indigo:#4F46E5; --indigo-soft:#EEF0FE;
+  --amber:#B45309; --amber-soft:#FEF3E2;
+  --teal:#0D9488; --teal-soft:#E6F7F5;
+  --ok:#059669; --ok-soft:#E8F7F0; --no:#DC2626; --no-soft:#FDECEC;
+  --radius:10px;
+  --disp:"Space Grotesk",system-ui,sans-serif;
+  --body:"IBM Plex Sans",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.65}
+a{color:var(--indigo)}
+header.top{position:sticky;top:0;z-index:40;background:rgba(246,247,251,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.top-inner{max-width:1100px;margin:0 auto;padding:12px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.brand{font-family:var(--disp);font-weight:700;font-size:17px;letter-spacing:.2px}
+.brand .tag{color:var(--indigo)}
+.progress-pill{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--ink-soft);border:1px solid var(--line);border-radius:99px;padding:4px 12px;background:var(--panel)}
+nav.mods{max-width:1100px;margin:0 auto;padding:0 12px 10px;display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+nav.mods button{flex:0 0 auto;border:1px solid var(--line);background:var(--panel);color:var(--ink-soft);font-family:var(--mono);font-size:12px;padding:7px 12px;border-radius:99px;cursor:pointer;transition:all .15s}
+nav.mods button.active{background:var(--indigo);border-color:var(--indigo);color:#fff}
+nav.mods button.done::after{content:" ✓";color:var(--ok)}
+nav.mods button.active.done::after{color:#C7F5DF}
+nav.mods button:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
+main{max-width:840px;margin:0 auto;padding:28px 18px 90px}
+.mod-head{margin-bottom:26px}
+.mod-code{font-family:var(--mono);font-size:12px;color:var(--indigo);letter-spacing:1px}
+h1.mod-title{font-family:var(--disp);font-size:clamp(26px,5vw,36px);font-weight:700;line-height:1.15;margin:6px 0 4px}
+.mod-sub{color:var(--ink-soft);font-size:15px}
+.md h2{font-family:var(--disp);font-size:22px;margin:34px 0 10px;padding-top:10px;border-top:1px solid var(--line)}
+.md h3{font-family:var(--disp);font-size:17px;margin:24px 0 8px}
+.md p{margin:0 0 14px}
+.md ul,.md ol{margin:0 0 14px 22px}
+.md li{margin-bottom:6px}
+.md code{font-family:var(--mono);font-size:.86em;background:var(--indigo-soft);border-radius:4px;padding:1px 5px}
+.md pre{background:#14172A;color:#E6E8F5;border-radius:var(--radius);padding:16px;overflow-x:auto;margin:0 0 16px;font-size:13px;line-height:1.55}
+.md pre code{background:none;color:inherit;padding:0;font-size:inherit}
+.md table{border-collapse:collapse;width:100%;margin:0 0 16px;font-size:14px}
+.md th,.md td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+.md th{background:var(--indigo-soft);font-family:var(--disp);font-size:13px}
+.md blockquote{border-left:3px solid var(--teal);background:var(--teal-soft);padding:10px 14px;border-radius:0 var(--radius) var(--radius) 0;margin:0 0 16px;font-size:15px}
+.md blockquote p:last-child{margin:0}
+.callout{border:1px solid var(--line);border-left:4px solid var(--amber);background:var(--amber-soft);border-radius:var(--radius);padding:12px 16px;margin:0 0 16px;font-size:15px}
+/* wire view */
+.wire{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);margin:0 0 18px;overflow:hidden}
+.wire-head{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
+.wire-dir{font-weight:600}
+.wire-dir.req{color:var(--indigo)} .wire-dir.res{color:var(--teal)}
+.wire pre{margin:0;padding:14px;background:#14172A;color:#E6E8F5;font-family:var(--mono);font-size:12.5px;line-height:1.6;overflow-x:auto}
+.wire pre .hl-cookie{color:#FBBF24}
+.wire pre .hl-dim{color:#8A90AD}
+.verdict{display:flex;align-items:center;gap:10px;padding:10px 14px;font-family:var(--disp);font-weight:500;font-size:14px;border-top:1px solid var(--line)}
+.verdict.ok{background:var(--ok-soft);color:var(--ok)}
+.verdict.no{background:var(--no-soft);color:var(--no)}
+.verdict .dot{width:10px;height:10px;border-radius:50%;flex:0 0 auto}
+.verdict.ok .dot{background:var(--ok)} .verdict.no .dot{background:var(--no)}
+/* widgets */
+.widget{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);padding:18px;margin:0 0 20px}
+.widget h4{font-family:var(--disp);font-size:15px;margin:0 0 4px}
+.widget .hint{font-size:13px;color:var(--ink-soft);margin:0 0 14px}
+.opt-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.opt-label{width:100%;font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--ink-soft);text-transform:uppercase}
+.opt-row button{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:8px 12px;font-family:var(--mono);font-size:12.5px;cursor:pointer;color:var(--ink);transition:all .12s}
+.opt-row button.sel{background:var(--indigo);border-color:var(--indigo);color:#fff}
+.opt-row button:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
+.anatomy{font-family:var(--mono);font-size:13px;line-height:2.1;background:#14172A;color:#E6E8F5;border-radius:var(--radius);padding:16px;margin-bottom:12px;overflow-x:auto;white-space:nowrap}
+.anatomy span[data-part]{border-bottom:2px dotted #6D74F8;cursor:pointer;border-radius:3px;padding:2px 1px}
+.anatomy span[data-part].active{background:#2A2F55}
+.anatomy-note{min-height:52px;border:1px dashed var(--line);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--ink-soft)}
+.anatomy-note strong{color:var(--ink)}
+/* quiz */
+.quiz{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);margin:34px 0 0;padding:20px}
+.quiz h2{font-family:var(--disp);font-size:20px;margin:0 0 4px}
+.quiz .qmeta{font-family:var(--mono);font-size:12px;color:var(--ink-soft);margin-bottom:16px}
+.q{margin-bottom:22px}
+.q-text{font-weight:600;margin-bottom:10px}
+.q .choices{display:flex;flex-direction:column;gap:8px}
+.q .choices button{text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:10px 12px;font-family:var(--body);font-size:14.5px;cursor:pointer;color:var(--ink);transition:all .12s}
+.q .choices button:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
+.q .choices button.picked-ok{background:var(--amber-soft);border-color:var(--amber);color:var(--amber);font-weight:600}
+.q .choices button.picked-no{background:var(--no-soft);border-color:var(--no);color:var(--no)}
+.q .choices button.reveal-ok{border-color:var(--amber)}
+.q .why{margin-top:8px;font-size:13.5px;color:var(--ink-soft);border-left:3px solid var(--line);padding-left:10px;display:none}
+.q.answered .why{display:block}
+.quiz-score{font-family:var(--disp);font-weight:600;margin-top:8px;display:none}
+.mod-footer{display:flex;justify-content:space-between;gap:10px;margin-top:40px}
+.mod-footer button{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:10px 16px;font-family:var(--disp);font-weight:500;font-size:14px;cursor:pointer}
+.mod-footer button.primary{background:var(--indigo);border-color:var(--indigo);color:#fff}
+.mod-footer button:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
+.placeholder-note{border:1px dashed var(--line);border-radius:var(--radius);padding:26px;text-align:center;color:var(--ink-soft);font-size:15px}
+.sim-result{margin-top:4px}
+@media(max-width:640px){ main{padding:20px 14px 70px} .widget{padding:14px} }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">Web Security <span class="tag">// wire-level</span></div>
+    <div class="progress-pill" id="progressPill">0 / 10 modules</div>
+  </div>
+  <nav class="mods" id="modNav" aria-label="Modules"></nav>
+</header>
+
+<main id="content"></main>
+
+<!-- ============================================================= -->
+<!-- MODULE 00 — OVERVIEW -->
+<!-- ============================================================= -->
+<script type="text/markdown" id="md-00-a">
+## What this course covers
+
+Almost every web security mechanism exists to answer one question: **when a request arrives at your server, what should the browser have attached to it — and should you trust it?**
+
+Cookies, CORS, CSRF tokens, SameSite, JWTs, Bearer headers — they are all rules about *what crosses the wire and when*. So this course works at the wire level. Every concept is shown as an actual HTTP exchange, and every simulator ends with the same verdict strip: **did the credential ship, yes or no?**
+
+### The modules
+
+| # | Module | Why it's here |
+|---|--------|---------------|
+| 01 | Same-Origin Policy | The default rule everything else modifies |
+| 02 | Cookies | Every attribute: `Secure`, `HttpOnly`, `SameSite`, `Domain`, `Path`, prefixes |
+| 03 | CORS | How servers *relax* SOP — and why CORS is not a CSRF defence |
+| 04 | XSS | Why `HttpOnly` exists, and the case against tokens in `localStorage` |
+| 05 | CSRF | The attack step-by-step, then mitigations in layers |
+| 06 | Sessions vs JWTs | Anatomy, statelessness, why "logout" is suddenly hard |
+| 07 | JWT invalidation | Short-lived access tokens, refresh token in an httpOnly cookie, rotation |
+| 08 | Dual auth | One API accepting browser cookies *and* app Bearer tokens; the BFF pattern |
+| 09 | Hardening | CSP, clickjacking, and the security header checklist |
+
+### How to use it
+
+Each module: plain-English explanation → wire view of the real HTTP → interactive simulator → Java/Spring code you could ship → quick-check quiz. Progress is saved in your browser (localStorage), so you can close the tab and pick up where you left off.
+
+> **Site vs origin — learn this pair early.** An **origin** is scheme + host + port (`https://app.bank.com:443`). A **site** is the registrable domain (`bank.com`). CORS thinks in *origins*. Cookies and SameSite think in *sites*. Half the confusion in this field is people using one word while the browser is using the other.
+</script>
+
+<!-- ============================================================= -->
+<!-- MODULE 01 — SAME-ORIGIN POLICY -->
+<!-- ============================================================= -->
+<script type="text/markdown" id="md-01-a">
+## The default rule of the web
+
+The Same-Origin Policy (SOP) is the browser's built-in isolation model. It answers: **can JavaScript running on page A read data belonging to site B?** Default answer: **no**.
+
+An **origin** is the exact triple:
+
+```
+scheme :// host : port
+https  :// app.bank.com : 443
+```
+
+Change *any* of the three and you have a different origin. Two pages share an origin only when all three match exactly.
+
+### What SOP blocks — and what it deliberately allows
+
+This is the part people get wrong. SOP does **not** stop your browser from *sending* cross-origin requests. It stops scripts from *reading the responses*.
+
+| Action from `evil.example` targeting `bank.com` | Allowed? |
+|---|---|
+| `<img src="https://bank.com/logo.png">` — embed an image | ✅ Sends request, renders image |
+| `<form action="https://bank.com/transfer" method="POST">` — submit a form | ✅ Sends request (this gap is CSRF, module 05) |
+| `<script src="https://bank.com/app.js">` — load a script | ✅ Sends and executes |
+| Top-level navigation (link click) | ✅ |
+| `fetch("https://bank.com/api/balance")` then **read the JSON** | ❌ Blocked — unless CORS allows it (module 03) |
+| Read `bank.com` cookies or DOM from a script on `evil.example` | ❌ Blocked |
+
+> The mental model: SOP is a **read barrier**, not a **send barrier**. Requests fly across origins all day — that's how the web works. What's guarded is the *response data* and the other site's *state*.
+
+### Why the next eight modules exist
+
+- **CORS** (03) is the server-controlled mechanism for *relaxing* the read barrier.
+- **CSRF** (05) is what happens because SOP was never a send barrier: the browser happily attaches `bank.com` cookies to a form submitted *from* `evil.example`.
+- **SameSite cookies** (02) are the modern patch for exactly that gap.
+
+Try the comparator below — the port and scheme cases catch nearly everyone once.
+</script>
+
+<script type="text/markdown" id="md-01-b">
+## Origin vs site — the distinction that pays rent
+
+The browser uses a *second* boundary for cookies: the **site**, meaning the registrable domain (technically eTLD+1).
+
+```
+https://app.bank.com   and   https://api.bank.com
+→ different ORIGINS  (host differs)
+→ same SITE          (both are bank.com)
+```
+
+Why you care, concretely: a `SameSite=Strict` cookie set by `api.bank.com` **is** sent on requests from `app.bank.com` — they're the same *site*, so it isn't "cross-site" at all. Meanwhile CORS on `api.bank.com` will still block `app.bank.com` from reading responses, because they're different *origins*. Same pair of hosts, two different verdicts, two different rulebooks.
+
+Keep the pair on a sticky note:
+
+| Mechanism | Boundary it uses |
+|---|---|
+| SOP, CORS, `postMessage` | **Origin** (scheme + host + port) |
+| Cookies, `SameSite` | **Site** (registrable domain; scheme counts too — "schemeful same-site") |
+</script>
+
+<!-- ============================================================= -->
+<!-- MODULE 02 — COOKIES -->
+<!-- ============================================================= -->
+<script type="text/markdown" id="md-02-a">
+## The round trip
+
+A cookie is a small piece of state the **server asks the browser to store and replay**. Two headers, one contract:
+
+1. Server responds with `Set-Cookie` → browser stores it.
+2. Browser attaches `Cookie` on every *matching* future request — automatically, with no JavaScript involved.
+
+That word **automatically** is the whole story of this course. It's why cookies are convenient (the browser does auth for you) and why CSRF exists (the browser does auth for *anyone who can make your browser send a request*).
+</script>
+
+<script type="text/markdown" id="md-02-b">
+## Types of cookies
+
+**Session vs persistent** — decided by one thing: does the cookie have an expiry?
+
+- **Session cookie**: no `Expires`/`Max-Age`. Lives until the browser closes (in theory — browsers with "restore tabs" often resurrect them). Right choice for login sessions.
+- **Persistent cookie**: has `Max-Age=86400` or `Expires=<date>`. Survives restarts. Right choice for "remember this device", consent flags, refresh tokens with a deliberate lifetime.
+
+**First-party vs third-party** — decided by *context*, not by the cookie itself:
+
+- **First-party**: the cookie's site matches the site in the address bar. You're on `bank.com`, a `bank.com` cookie is sent → first-party use.
+- **Third-party**: you're on `news.example`, which embeds a widget from `tracker.example` — cookies sent to `tracker.example` are third-party in that context. This is the mechanism behind cross-site tracking, and it's why browsers now restrict or phase out third-party cookies by default.
+
+The same cookie can be first-party in one tab and third-party in another. It's a role, not a property.
+</script>
+
+<script type="text/markdown" id="md-02-c">
+## The attributes, one honest sentence each
+
+```
+Set-Cookie: SESSION=abc123; Secure; HttpOnly; SameSite=Lax; Path=/; Max-Age=28800
+```
+
+| Attribute | What it actually does |
+|---|---|
+| `Secure` | Cookie is only ever sent over HTTPS. Non-negotiable for anything sensitive. |
+| `HttpOnly` | JavaScript cannot read it via `document.cookie`. Your XSS blast-radius reducer (module 04). |
+| `SameSite` | Controls whether the cookie ships on **cross-site** requests. The CSRF lever — full treatment below. |
+| `Domain` | *Widens* the cookie to a parent domain and all subdomains (`Domain=bank.com` → sent to `app.`, `api.`, everything). Omit it and the cookie is host-only: exact host, no subdomains. Counter-intuitive: setting `Domain` makes scope *bigger*, never smaller. |
+| `Path` | Only send under this URL path. A tidiness tool, **not** a security boundary — same-origin pages can reach across paths. |
+| `Max-Age` / `Expires` | Lifetime. Present → persistent; absent → session cookie. |
+
+### Cookie name prefixes — the contract in the name
+
+- `__Host-SESSION=...` — the browser **refuses to store it** unless it has `Secure`, `Path=/`, and **no `Domain`** attribute. Result: locked to exactly one host, can't be planted by a sibling subdomain. Use this for session cookies. Always.
+- `__Secure-ID=...` — weaker sibling: just requires `Secure`.
+
+Why prefixes exist: a compromised or hostile subdomain (`blog.bank.com`) can otherwise set a `Domain=bank.com` cookie and have it sent to `app.bank.com` — *cookie tossing*, used for session fixation. The `__Host-` prefix makes that impossible by construction.
+
+### SameSite in depth
+
+Three values, and the differences only show up on **cross-site** requests (different registrable domain — remember module 01):
+
+- **`Strict`** — never sent cross-site. Not even when the user *clicks a link* to your site: the first request after arriving from an email link or Google has **no cookie**, so the user looks logged out. Great for a separate high-security cookie (approving payments), hostile to normal UX as the main session.
+- **`Lax`** (the default in modern browsers if unspecified) — sent on **top-level navigations with safe methods** (clicking a link → GET). Not sent on cross-site POSTs, images, iframes, or `fetch`. This one default quietly killed the classic auto-submitting-form CSRF.
+- **`None`** — sent everywhere, like the pre-2020 web. **Must** be paired with `Secure` or browsers reject it. Legitimate uses: cross-site SSO redirects, embedded widgets. Every `SameSite=None` cookie is a written invitation to re-check your CSRF story (module 05).
+
+> Wrinkle worth knowing: Chrome's "Lax-allowing-unsafe" grace applies Lax-by-default cookies to top-level cross-site **POSTs** for 2 minutes after creation — a compatibility patch for SSO flows, not something to design around. Set `SameSite` explicitly and the wrinkle disappears.
+
+Now drive the simulator. Pick attributes, pick a scenario, and check the verdict strip before tapping — the goal is to stop being surprised.
+</script>
+
+<script type="text/markdown" id="md-02-d">
+## Setting cookies safely in Spring
+
+`ResponseCookie` is the modern builder — it supports `SameSite`, which the old `javax.servlet.http.Cookie` never learned.
+
+```java
+// Issuing the session cookie after login
+ResponseCookie session = ResponseCookie.from("__Host-SESSION", sessionId)
+    .httpOnly(true)          // JS cannot read it
+    .secure(true)            // HTTPS only (required by __Host-)
+    .sameSite("Lax")         // link-clicks work; cross-site POSTs don't carry it
+    .path("/")               // required by __Host-
+    // no .domain(...)       // required by __Host- : host-locked
+    .maxAge(Duration.ofHours(8))
+    .build();
+
+response.addHeader(HttpHeaders.SET_COOKIE, session.toString());
+```
+
+```java
+// Clearing it on logout: same name/path, Max-Age=0
+ResponseCookie clear = ResponseCookie.from("__Host-SESSION", "")
+    .httpOnly(true).secure(true).sameSite("Lax").path("/")
+    .maxAge(Duration.ZERO)
+    .build();
+response.addHeader(HttpHeaders.SET_COOKIE, clear.toString());
+```
+
+Two production notes:
+
+- **Deletion must match name + path + domain scope** or the browser treats it as a different cookie and keeps the original. Symptom: "logout doesn't work" bugs.
+- The cookie **value** should be an opaque random ID (or, later, a refresh token — module 07). Never structured data you trust; the client can edit anything it stores.
+
+We'll reuse this exact `__Host-` + `HttpOnly` + `Lax` recipe as the foundation for the refresh-token pattern in module 07 — the recipe doesn't change, only what the value points to.
+</script>
+
+<!-- ============================================================= -->
+<!-- MODULE 03 — CORS -->
+<script type="text/markdown" id="md-03-a">
+## Relaxing the read barrier
+
+Module 01 established: SOP lets cross-origin requests *go*, but blocks scripts from *reading* the responses. CORS is the mechanism by which a **server volunteers to relax that** for specific origins.
+
+The protocol is refreshingly simple:
+
+1. The browser stamps every cross-origin request with an `Origin` header — the attacker can't remove or fake it from a page.
+2. The server answers with `Access-Control-Allow-Origin` (and friends) saying who may read.
+3. **The browser** compares and decides. The server never blocks anything; it just declares policy. Enforcement lives entirely in the browser.
+
+### Simple vs preflighted
+
+Requests the browser *could already send before CORS existed* (form posts, image loads) are **simple** — they go straight out, and only the *read* is gated. Anything the old web couldn't do — `PUT`, `DELETE`, `Content-Type: application/json`, an `Authorization` header — triggers a **preflight**: the browser first sends an `OPTIONS` request asking permission, and only sends the real request if the server approves.
+
+A request is simple when **all** of these hold:
+
+- Method is `GET`, `HEAD`, or `POST`
+- Content-Type (if any) is `application/x-www-form-urlencoded`, `multipart/form-data`, or `text/plain`
+- No custom headers
+
+That JSON detail surprises people: `POST` with `application/json` is **not** simple. Your everyday SPA-to-API call is preflighted (the browser caches the approval per `Access-Control-Max-Age`, so it's one extra round trip, not one per call).
+
+### Credentials mode
+
+By default, cross-origin `fetch()` sends **no cookies**. Opting in with `credentials: "include"` raises the bar on the server's answer: `Access-Control-Allow-Origin` must be the **exact origin** (wildcard `*` is rejected) *and* the response must carry `Access-Control-Allow-Credentials: true`. The browser refuses to expose credentialed responses to a wildcard — otherwise any site could read any user's data anywhere that lazily set `*`.
+
+Drive the exchange below — pay attention to which cases still *send* the request even when the read is blocked.
+</script>
+
+<script type="text/markdown" id="md-03-b">
+## What CORS is not
+
+Two misconceptions cause real vulnerabilities:
+
+**CORS does not protect your server.** `curl`, Postman, and any backend ignore it entirely — it's browser-enforced. CORS protects *your users' data* from being read by scripts on other origins, riding the user's own browser and cookies. If your API is "secured by CORS", it is secured by nothing.
+
+**CORS is not a CSRF defence.** Watch the simulator: with a missing `Access-Control-Allow-Origin`, a simple `POST` is still **sent and executed server-side** — only the response read fails. A CSRF attacker doesn't want the response; the damage is the request. Worse, misconfigured CORS (reflecting any `Origin` back with credentials allowed) actively *creates* a read primitive attackers otherwise lacked.
+
+> One honest sentence to keep: **CORS decides who may read; CSRF defences decide who may write.** Modules 05 and 08 build on exactly this split.
+</script>
+
+<script type="text/markdown" id="md-03-c">
+## CORS in Spring
+
+Declare it centrally — scattering `@CrossOrigin` across controllers is how one endpoint ends up with `*` in production.
+
+```java
+@Bean
+CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration cfg = new CorsConfiguration();
+    cfg.setAllowedOrigins(List.of("https://app.bank.com"));  // exact origins
+    cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+    cfg.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+    cfg.setAllowCredentials(true);   // cookies may ride along
+    cfg.setMaxAge(Duration.ofHours(1));  // cache preflight approvals
+
+    var source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/api/**", cfg);
+    return source;
+}
+```
+
+```java
+// Wire it into Spring Security so preflights clear the filter chain:
+http.cors(Customizer.withDefaults());
+```
+
+Production notes:
+
+- `setAllowCredentials(true)` + `setAllowedOrigins(List.of("*"))` throws at startup — Spring is protecting you from the wildcard-with-credentials trap. If you genuinely need patterns (`https://*.bank.com`), use `setAllowedOriginPatterns`, which sends back the *specific* requesting origin rather than a literal wildcard.
+- Preflights are `OPTIONS` requests with no cookies and no `Authorization`. If your security config demands auth on everything, preflights get 401s and every cross-origin call mysteriously dies — the `http.cors(...)` line above is what exempts them properly.
+- Never reflect arbitrary `Origin` values back. Allow-list exact origins.
+</script>
+
+<!-- MODULE 04 — XSS -->
+<script type="text/markdown" id="md-04-a">
+## When SOP switches sides
+
+Cross-Site Scripting means an attacker gets **their JavaScript running inside your origin** — because you rendered untrusted input as markup. From that moment SOP works *for* the attacker: their script is a first-class citizen of `app.bank.com`, with every right your own code has.
+
+| Type | Where the payload lives | Example |
+|---|---|---|
+| Reflected | In the request, echoed back | Search page renders `?q=<script>…<\/script>` |
+| Stored | In your database | A "customer note" containing a script tag, shown to staff |
+| DOM-based | Never reaches the server | Client JS pipes `location.hash` into `innerHTML` |
+
+The root cause is always the same category of bug — data crossed into code context without encoding:
+
+```java
+// The bug: data concatenated into markup
+out.println("<h2>Results for " + query + "</h2>");
+
+// The fix is contextual OUTPUT encoding, not input filtering.
+// In Thymeleaf you get it by default:
+//   <h2 th:text="${query}">…</h2>        ← escapes
+//   <h2 th:utext="${query}">…</h2>       ← does NOT ("u" = unescaped). Grep your codebase for th:utext.
+```
+
+Validate input for *shape* (an IBAN looks like an IBAN), but the defence that actually holds is **encode on output, for the context you're writing into** — HTML body, attribute, URL, and JS-string contexts each escape differently. The OWASP Java Encoder (`Encode.forHtml(...)`, `Encode.forJavaScript(...)`) covers the cases templates don't.
+</script>
+
+<script type="text/markdown" id="md-04-b">
+## What XSS means for your credentials
+
+This module sits here, between cookies and CSRF, for one reason: **where you store the session credential decides your XSS blast radius.**
+
+| Credential lives in… | Injected script can read it? | Consequence |
+|---|---|---|
+| `localStorage` | **Always** — that's the API | Token exfiltrated to attacker's server; replayable from anywhere until expiry |
+| Cookie, no `HttpOnly` | Yes, via `document.cookie` | Same — session stolen outright |
+| Cookie with `HttpOnly` | **No** | Attacker can still *use* the session from the page, but can't *take* it |
+
+Be honest about that last row: `HttpOnly` does not make XSS safe. The injected script can still call `fetch("/api/transfer", …)` and the browser will attach the cookie — the attacker rides the session while the tab is open. What `HttpOnly` removes is **exfiltration**: no stolen credential that works offline, from the attacker's machine, after the victim closes the tab, invisible to your session controls.
+
+Try the blast-radius widget — same payload, three storage choices.
+
+> This table is the strongest argument in the JWT storage debate (module 07): a refresh token in `localStorage` is one XSS away from long-term account takeover; the same token in an `HttpOnly` cookie is not readable, and module 07's rotation + reuse detection covers the session-riding remainder. CSP (module 09) is the backstop that makes the injection itself harder to land.
+</script>
+
+<!-- MODULE 05 — CSRF -->
+<script type="text/markdown" id="md-05-a">
+## The attack, step by step
+
+Cross-Site Request Forgery weaponises the fact you learned in module 02: **the browser attaches cookies automatically** — including to requests the user never meant to make.
+
+1. Victim logs into `app.bank.com`. Session cookie stored.
+2. Victim, in another tab, opens `evil.example` (an ad, a forum post, a phishing link).
+3. That page contains an invisible form pointed at your endpoint, submitted by script:
+
+```html
+<form action="https://app.bank.com/transfer" method="POST" id="f">
+  <input type="hidden" name="to" value="AT61…attacker">
+  <input type="hidden" name="amount" value="9000">
+</form>
+<script>document.getElementById("f").submit();<\/script>
+```
+
+4. The browser sends the POST — and attaches the `app.bank.com` session cookie, because that's what browsers do.
+5. Your server sees a well-formed, *authenticated* transfer request. Nothing distinguishes it — except the `Origin` header, and whether you check it.
+
+Note what the attacker never gets: the **response**. SOP's read barrier holds. They don't care — the damage *is the request*. That's why CORS (a read control) is irrelevant here, and why the preconditions are exactly: automatic credential attachment (cookies) + a predictable state-changing request + no server-side check.
+</script>
+
+<script type="text/markdown" id="md-05-b">
+## Mitigations, in layers
+
+**Layer 1 — `SameSite=Lax` (browser-side).** From module 02: Lax keeps the cookie home on cross-site POSTs, killing the classic form above. Necessary, not sufficient on its own:
+
+- A state-changing **GET** endpoint (`/transfer?to=…` — yes, they exist) is reachable by top-level navigation, which Lax allows.
+- Any `SameSite=None` cookie you legitimately need reopens the door.
+- "Cross-**site**" is the boundary — an attacker running script on *any subdomain* of `bank.com` (one XSS on the marketing blog) is same-site, and SameSite offers nothing.
+
+**Layer 2 — Synchronizer token (server-side, the classic).** Server generates a random token per session, embeds it in every form, requires it back in the POST. Here SOP finally works *for* you: the attacker can *send* the form, but to include the token they'd have to *read* your page first — and the read barrier stops that. No token, 403.
+
+**Layer 3 — Double-submit cookie (the stateless variant).** Token goes in a cookie *and* a header/field; server just compares the two. No server-side storage — attractive for stateless APIs. Weakness: anyone who can *set* a cookie for your site (a hostile subdomain — cookie tossing again) can forge both halves. Fixes: sign the token, and use the `__Host-` prefix from module 02 so subdomains can't plant it. The circle closes.
+
+**Layer 4 — `Origin` header validation.** Browsers stamp cross-site POSTs with `Origin: https://evil.example`, and pages can't forge it. Reject unexpected origins early in the filter chain. Cheap, effective, occasionally absent (some old browsers/proxies strip it) — treat missing-Origin per your risk appetite.
+
+**Layer 5 — Custom header requirement.** For JSON APIs: demand e.g. `X-Requested-With`. A cross-site *form* can't set headers, and a cross-site *fetch* with a custom header triggers a CORS preflight (module 03) that your server declines. CSRF and CORS finally shake hands.
+
+And the structural one: **APIs authenticated only by `Authorization: Bearer …` are immune** — nothing is attached automatically, so there is nothing to forge. The browser/app split in module 08 leans on exactly this.
+
+Run the replay below: switch mitigations on and watch where the attack dies.
+</script>
+
+<script type="text/markdown" id="md-05-c">
+## CSRF in Spring Security
+
+Spring Security enables synchronizer-token CSRF protection **by default** for state-changing methods — half your job is *not turning it off*. The config work is the SPA case:
+
+```java
+http
+  .csrf(csrf -> csrf
+      // SPA pattern: token lives in a cookie the JS CAN read…
+      .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+      .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+      // …and bearer-only endpoints don't need CSRF at all (module 08):
+      .ignoringRequestMatchers("/api/mobile/**")
+  );
+```
+
+Why `withHttpOnlyFalse` is *correct* and not a hole: the SPA must read the `XSRF-TOKEN` cookie and echo it as an `X-XSRF-TOKEN` header — that's the double-submit dance. The token isn't a secret *from your own origin*; the security property is that a **cross-origin** attacker can't read it (SOP) and can't set the header from a form. Angular does this dance automatically; for `fetch` you copy the cookie value into the header yourself.
+
+Production notes:
+
+- Spring Security 6 defers token generation (BREACH mitigation). If your SPA can't find the cookie on first load, that's why — the token materialises after the first mutating interaction or an explicit fetch of it.
+- Only exempt endpoints that **cannot** be cookie-authenticated. `ignoringRequestMatchers("/api/**")` on an API that also accepts session cookies quietly reintroduces CSRF — this exact misconfiguration is module 08's opening case study.
+- Keep state changes off GET. No token scheme rescues `/transfer?amount=…` from being a link.
+</script>
+
+<!-- MODULE 06 — SESSIONS VS JWTS -->
+<script type="text/markdown" id="md-06-a">
+## Two ways to answer "who is this?"
+
+**Server-side session** — the cookie carries an opaque random ID; all actual state lives server-side:
+
+```
+Cookie: __Host-SESSION=9f2c…e1   →   sessionStore.get("9f2c…e1")   →   { userId: 42, roles: […] }
+```
+
+Revocation is trivial: delete the entry, the session is dead *now*. The cost appears at scale — every instance needs to reach the session store (Redis, database), and every request pays a lookup.
+
+**JWT** — the credential *is* the state. A signed, self-contained document; any service holding the verification key can check it locally:
+
+```
+Authorization: Bearer eyJhbGciOi…   →   verify signature + exp locally   →   { sub: "42", roles: […] }
+```
+
+No lookup, no shared store, works beautifully across microservices. The cost is the mirror image: **the server no longer holds the thing it would need to delete.** A signed token is valid until `exp`, and nothing you do server-side changes the maths of the signature.
+
+> The trade in one line: **sessions make revocation easy and scale-out harder; JWTs make scale-out easy and revocation harder.** Module 07 is entirely about buying revocation back.
+</script>
+
+<script type="text/markdown" id="md-06-b">
+## JWT anatomy
+
+Three base64url segments joined by dots — decode one below, then tamper with it:
+
+```
+header  . payload . signature
+eyJhbG… . eyJzdW… . SflKxw…
+```
+
+Two facts people pay to learn twice:
+
+- **Signed, not encrypted.** base64url is an *encoding* — anyone who obtains the token reads every claim with zero keys. Never put secrets in a JWT payload. The signature proves *integrity and issuer*, not confidentiality.
+- **The claims are promises the verifier must actually check.** `exp` (expiry), `iss` (who minted it), `aud` (who it's for) do nothing unless your verification enforces them. Accepting a token minted for a different audience is a classic cross-service escalation.
+
+| Claim | Job |
+|---|---|
+| `sub` | Subject — the user/principal ID |
+| `exp` / `iat` | Expiry and issued-at (epoch seconds) |
+| `iss` | Issuer — must match your auth server exactly |
+| `aud` | Audience — must include *this* service |
+| `jti` | Unique token ID — the hook for denylisting (module 07) |
+
+### Algorithms, and the one rule about them
+
+`HS256` signs with a **shared secret** — every service that verifies can also *mint*, so the secret sprawls. `RS256`/`ES256` sign with a **private key** and verify with the **public** one: the auth server keeps the only minting capability, and resource servers fetch public keys from a JWKS endpoint. Default to asymmetric for anything multi-service.
+
+The rule: **the verifier decides the algorithm, never the token.** Historic libraries read `alg` from the attacker-controlled header — accepting `"none"` (no signature at all) or treating an RSA public key as an HS256 secret. Modern libraries pin the expected algorithm; make sure your config actually does.
+</script>
+
+<script type="text/markdown" id="md-06-c">
+## Verifying in Spring
+
+Resource-server config — every request verified locally, no session store anywhere:
+
+```java
+// application.yml
+// spring.security.oauth2.resourceserver.jwt.issuer-uri: https://auth.bank.com
+
+http
+  .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+  .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
+```
+
+From `issuer-uri` alone, Spring discovers the JWKS endpoint, caches the public keys, pins the algorithm, and validates signature + `exp` + `iss` on every request. Add the audience check yourself — it's the one validators forget:
+
+```java
+@Bean
+JwtDecoder jwtDecoder() {
+    NimbusJwtDecoder decoder = JwtDecoders.fromIssuerLocation("https://auth.bank.com");
+    decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
+        JwtValidators.createDefaultWithIssuer("https://auth.bank.com"),
+        new JwtClaimValidator<List<String>>("aud", aud -> aud != null && aud.contains("accounts-api"))
+    ));
+    return decoder;
+}
+```
+
+Keep access-token lifetimes short — the *why* is the entire next module.
+</script>
+
+<!-- MODULE 07 — JWT INVALIDATION -->
+<script type="text/markdown" id="md-07-a">
+## Buying revocation back
+
+Module 06 left us with a problem: a JWT can't be un-signed. Every practical answer is a version of the same idea — **make the un-revokable thing short-lived, and gate its renewal on something you CAN revoke.**
+
+The standard split:
+
+| Token | Lifetime | Lives | Revokable? |
+|---|---|---|---|
+| **Access token** (JWT) | 5–15 min | Client memory (a JS variable) | No — and short enough not to need it |
+| **Refresh token** (opaque) | Days–weeks | `__Host-` HttpOnly cookie | **Yes** — server stores it |
+
+The loop: login issues both → API calls carry `Authorization: Bearer <access>` → access expires → client calls `POST /auth/refresh` (the cookie rides automatically) → server checks its **stored record** of the refresh token → new access token + **rotated** refresh cookie.
+
+Revocation lands at the refresh boundary: delete the server-side record and the next refresh fails — the user is out within one access-token lifetime, worst case. **Your revocation window equals your access TTL.** That sentence is why "we'll just make access tokens last 24 hours for convenience" is a security decision, not a convenience one.
+
+For truly instant kills (compromised admin account), add a **denylist**: store the `jti` of revoked access tokens until their `exp`, checked on each request. Note what you just did — reintroduced a per-request lookup, the thing JWTs existed to avoid. It's a legitimate tool for rare emergencies, not the default path. Most systems: short TTL + accept the window.
+
+> Where this design comes from: the access/refresh split *is* OAuth2's token model — in a federated setup these tokens arrive via the authorization-code + PKCE flow from your IdP rather than your own `/login`. Same lifecycle, same storage rules; this course stops at the pattern and leaves the full OAuth choreography to its own course.
+</script>
+
+<script type="text/markdown" id="md-07-b">
+## Why the refresh token is a cookie — and rotation
+
+**Storage argument (module 04, cashed in).** The refresh token is the *long-lived* credential — the one worth stealing. In `localStorage`, one XSS anywhere on the origin exfiltrates it: durable, portable account takeover. In an `HttpOnly` cookie it cannot be read at all; the worst XSS can do is *use* the refresh endpoint from the page, and rotation below turns even that into a detectable event.
+
+**The attribute recipe, one last time:**
+
+```
+Set-Cookie: __Host-REFRESH=…; Secure; HttpOnly; SameSite=Strict; Path=/; Max-Age=1209600
+```
+
+Notice `Strict` finally gets its job: the refresh endpoint is only ever called by *your own* front-end via `fetch` — a same-site request. No user ever "arrives at" `/auth/refresh` from an email link, so Strict's UX penalty (module 02) doesn't exist here, and cross-site delivery is exactly what we want gone. One tension to settle honestly: you might want `Path=/auth/refresh` so the cookie rides on nothing else, but `__Host-` demands `Path=/`. Keep `__Host-` — module 02 established that `Path` is not a security boundary, while host-locking against cookie tossing is real protection. And since the endpoint is cookie-authenticated, its CSRF story is `Strict` + Origin validation (module 05, layers 1 and 4).
+
+**Rotation + reuse detection.** Every refresh call consumes the presented token and issues a new one, all linked in a *family*:
+
+1. Login creates family `F1`, token `RT-1`.
+2. Refresh: `RT-1` marked **used**, `RT-2` issued (family `F1`).
+3. A token marked used shows up again — say a stolen `RT-1` replayed by an attacker after the real client already spent it. That's not a retry; **someone has a copy**. Revoke family `F1` entirely.
+4. Next refresh from *anyone* — attacker or legitimate user — fails. Both are sent to login. The user re-authenticates and carries on; the thief hits a wall — and you got a theft signal in your logs instead of silent long-term access.
+
+Run the simulator: play the happy path first, then steal a token and replay it.
+</script>
+
+<script type="text/markdown" id="md-07-c">
+## The refresh endpoint in Spring
+
+```java
+@PostMapping("/auth/refresh")
+ResponseEntity<TokenResponse> refresh(
+        @CookieValue("__Host-REFRESH") String presented,
+        HttpServletResponse response) {
+
+    // Store hashes, never raw tokens — a leaked DB must not mint sessions
+    RefreshToken stored = refreshTokens.findByHash(sha256(presented))
+        .orElseThrow(InvalidRefreshTokenException::new);
+
+    if (stored.isUsed() || stored.isRevoked()) {
+        // A spent token replayed = someone holds a copy. Kill the family.
+        refreshTokens.revokeFamily(stored.familyId());
+        throw new InvalidRefreshTokenException();
+    }
+    if (stored.isExpired()) throw new InvalidRefreshTokenException();
+
+    stored.markUsed();                                        // consume
+    RefreshToken next = refreshTokens.issue(stored.userId(), stored.familyId());
+    String access = jwtMinter.mint(stored.userId(), Duration.ofMinutes(10));
+
+    response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie(next.rawValue()).toString());
+    return ResponseEntity.ok(new TokenResponse(access, 600));
+}
+
+private ResponseCookie refreshCookie(String value) {
+    return ResponseCookie.from("__Host-REFRESH", value)
+        .httpOnly(true).secure(true).sameSite("Strict").path("/")
+        .maxAge(Duration.ofDays(14))
+        .build();
+}
+```
+
+```java
+@PostMapping("/auth/logout")
+ResponseEntity<Void> logout(@CookieValue(value = "__Host-REFRESH", required = false) String presented,
+                            HttpServletResponse response) {
+    if (presented != null)
+        refreshTokens.findByHash(sha256(presented))
+                     .ifPresent(t -> refreshTokens.revokeFamily(t.familyId()));
+    response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie("").mutate().maxAge(Duration.ZERO).build().toString());
+    return ResponseEntity.noContent().build();               // client discards the access token from memory
+}
+```
+
+Production notes:
+
+- **Logout = revoke family + clear cookie.** The in-flight access token survives up to 10 more minutes — that's the accepted window (or the denylist's job if you carry one).
+- Mark-used and issue must be **atomic** (same transaction / conditional update), or a race between a legitimate retry and a genuine reuse becomes a coin toss. Related mercy: some implementations allow a few-seconds grace for the *immediately previous* token to absorb network retries — a deliberate, bounded exception, not a loophole.
+- The access token lives in a **JS variable**, not localStorage — module 04. Page reload loses it; the app silently calls `/auth/refresh` on boot to get a fresh one. That "silent login on reload" is the pattern working, not a bug.
+</script>
+
+<!-- MODULE 08 — DUAL AUTH -->
+<script type="text/markdown" id="md-08-a">
+## The foot-gun, as promised
+
+Module 05 flagged this line; here's the incident it causes:
+
+```java
+.csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))   // "it's an API, APIs don't need CSRF"
+```
+
+True — **if** `/api/**` only ever authenticates via `Authorization: Bearer`. But this system, like most real ones, also accepts the session cookie there, because the web SPA calls the same endpoints. Result: a cookie-authenticated, state-changing endpoint with CSRF switched off. The attacker's form from module 05 works again, and the config *looks* deliberate in review.
+
+The root cause is exempting by **URL** when the risk lives in the **credential**. CSRF is an automatic-attachment problem: cookies have it, Bearer headers don't. So:
+
+> **Exempt CSRF by how *this request* authenticated, never by where it's going.**
+
+## One API, both credentials
+
+The realistic requirement: browsers should use cookies (modules 04 and 07 made that case), while mobile apps and services use Bearer — same endpoints. The resolution rule must be deterministic:
+
+1. `Authorization: Bearer` present → **token path**: verify the JWT locally (module 06), skip CSRF. Safe to skip because no attacker context can *set* that header — forms can't carry headers, and a cross-site `fetch` with one triggers a CORS preflight your server declines (module 05, layer 5).
+2. Otherwise, cookie present → **session path**: CSRF token required, SameSite doing its work.
+3. Both present → Bearer wins, cookie ignored. Pick the rule once and enforce it; ambiguity here is how auth bypasses are born.
+4. Neither → 401.
+
+```java
+http
+  .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))  // Bearer path
+  .csrf(csrf -> csrf.ignoringRequestMatchers(this::isBearerRequest));     // exempt by credential, not URL
+
+private boolean isBearerRequest(HttpServletRequest request) {
+    String auth = request.getHeader(HttpHeaders.AUTHORIZATION);
+    return auth != null && auth.startsWith("Bearer ");
+}
+```
+
+Route requests through the decision table below — the "both credentials" and "cookie to an exempted path" rows are where designs go wrong.
+</script>
+
+<script type="text/markdown" id="md-08-b">
+## The BFF pattern — the clean cut
+
+If the dual-mode API feels like two security models sharing one door, the Backend-for-Frontend pattern is the structural answer: **the browser never touches a token at all.**
+
+```
+Browser ── __Host-SESSION cookie ──▶ BFF ── Bearer (client credentials / user's tokens) ──▶ APIs
+Mobile app ───────────── Bearer ─────────────────────────────────────────────────────────▶ APIs
+```
+
+- The BFF holds the user's access/refresh tokens **server-side**, keyed by the session. The browser gets exactly one credential: the `__Host-` HttpOnly session cookie from module 02.
+- XSS story becomes as good as it gets: there is no token in the browser to steal — not in localStorage, not in memory. Module 04's blast-radius table has no bad row left.
+- The browser-facing surface is a plain cookie-authenticated app: SameSite + CSRF token, exactly modules 02 and 05, no exceptions to reason about.
+- Mobile and third parties talk Bearer to the APIs directly and never meet the cookie machinery.
+
+The cost is honest: another deployable, token storage keyed to sessions inside it, and every browser call takes the extra hop. For a small estate the dual-mode API above is fine; the moment you have several SPAs, an IdP, and public APIs, the BFF's "one credential type per channel" simplicity tends to win the argument. Either way, the invariant is the same one this module opened with: **each request authenticates by exactly one deterministic rule, and CSRF applies wherever cookies do.**
+</script>
+
+<!-- MODULE 09 — HARDENING -->
+<script type="text/markdown" id="md-09-a">
+## CSP — the backstop
+
+Module 04's defence was output encoding. Content-Security-Policy is the layer for the day someone misses a spot: even if an injection lands in your HTML, the browser refuses to execute scripts the policy doesn't sanction.
+
+```
+Content-Security-Policy: default-src 'self';
+                         script-src 'self' 'nonce-R4nd0mPerResponse';
+                         frame-ancestors 'none';
+                         base-uri 'self'; form-action 'self'
+```
+
+- **`script-src` with nonces** is the heart: only script tags carrying this response's random nonce run. An injected `<script>alert(1)<\/script>` has no nonce → dead on arrival. Avoid `'unsafe-inline'` — it re-opens exactly the hole CSP exists to close.
+- **`form-action 'self'`** stops injected forms posting your users' input to attacker domains — a phishing primitive people forget CSP covers.
+- **Roll out with `Content-Security-Policy-Report-Only`** first: same policy, violations reported (not blocked), so you find your inline-script debt before breaking production.
+
+## Clickjacking — the invisible overlay
+
+The attack needs no code on your origin at all: `evil.example` frames your app in an iframe at `opacity: 0`, positions it so your **Confirm transfer** button sits exactly under their **Claim your prize** button, and lets the victim's own click do authenticated work — cookies attach, because a framed page is still your page in their session. Try it below, then flip the defence on.
+
+The defence is one directive: **`frame-ancestors 'none'`** (or an allow-list of framing origins) — the browser refuses to render your page in anyone else's frame. `X-Frame-Options: DENY` is the legacy spelling; send both, let modern browsers prefer the CSP directive.
+</script>
+
+<script type="text/markdown" id="md-09-b">
+## The header checklist
+
+| Header | One honest sentence |
+|---|---|
+| `Strict-Transport-Security: max-age=31536000; includeSubDomains` | After first contact, the browser refuses plain HTTP to you entirely — no downgrade, no stripped redirects. Every `Secure` cookie in this course assumes it. |
+| `Content-Security-Policy` | The XSS and clickjacking backstop above — `script-src` + `frame-ancestors` earn their keep. |
+| `X-Content-Type-Options: nosniff` | Browsers must trust your declared Content-Type — stops an uploaded "image" being sniffed into executable script. |
+| `Referrer-Policy: strict-origin-when-cross-origin` | Cross-site requests learn your origin, never your full URLs — path and query stay home (tokens in URLs shouldn't exist, but this catches the day they do). |
+| `Cache-Control: no-store` on authenticated responses | Shared caches and back-buttons don't serve one user's data to the next. |
+| `Permissions-Policy: camera=(), geolocation=(), …` | Features you don't use can't be abused in your name — including by anything you embed. |
+
+```java
+http.headers(h -> h
+    .httpStrictTransportSecurity(hsts -> hsts.maxAgeInSeconds(31536000).includeSubDomains(true))
+    .contentSecurityPolicy(csp -> csp.policyDirectives(
+        "default-src 'self'; script-src 'self' 'nonce-" + nonce + "'; " +
+        "frame-ancestors 'none'; base-uri 'self'; form-action 'self'"))
+    .contentTypeOptions(Customizer.withDefaults())
+    .referrerPolicy(r -> r.policy(ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+);
+```
+
+(Spring sends `X-Content-Type-Options` and a cache-control set on secured responses by default — the config above is you *keeping* them while adding the rest. The nonce needs a per-response filter; Spring doesn't generate it for you.)
+
+## The whole course in nine sentences
+
+1. **SOP** is a read barrier, not a send barrier — requests fly, responses are guarded.
+2. **Cookies** attach automatically: the entire convenience and the entire attack surface, in one behaviour.
+3. **CORS** decides who may *read*, protects users rather than servers, and therefore never defends against CSRF.
+4. **XSS** blast radius is decided by where the credential lives — `HttpOnly` removes exfiltration, nothing removes session-riding except fixing the injection.
+5. **CSRF** is the automatic-attachment gap: defend in layers, because every single layer fails somewhere.
+6. **Sessions** buy easy revocation at the cost of shared state; **JWTs** buy local verification at the cost of revocation.
+7. Your **revocation window equals your access-token TTL**; rotate refresh tokens and treat reuse as theft, not noise.
+8. Exempt CSRF **by credential, never by URL** — or adopt the BFF and keep tokens out of the browser entirely.
+9. **Headers** are the backstop for the day one of the above fails — and one of them will.
+
+That's the course. Progress and quiz scores are in your browser's localStorage; push the file to GitHub Pages next to its siblings and it's live.
+</script>
+
+<!-- ENGINE -->
+<!-- ============================================================= -->
+<script>
+const COURSE = {
+  storageKey: "websec-progress-v1",
+  modules: [
+    { id:"m00", code:"00", title:"Overview", sub:"What this course covers and how the wire view works",
+      sections:[{md:"md-00-a"}], quiz:[] },
+
+    { id:"m01", code:"01", title:"Same-Origin Policy", sub:"The default rule everything else modifies",
+      sections:[{md:"md-01-a"},{widget:"origin-check"},{md:"md-01-b"}],
+      quiz:[
+        { t:"Which pair is SAME-ORIGIN?", c:[
+          { x:"https://app.bank.com and https://app.bank.com/settings", ok:true, why:"Paths differ but origin is only scheme + host + port. Path is irrelevant to origin." },
+          { x:"https://bank.com and http://bank.com", why:"Scheme differs (https vs http) — different origin. This is also why 'schemeful same-site' now treats them as cross-site for cookies." },
+          { x:"https://bank.com and https://bank.com:8443", why:"Port differs. 443 vs 8443 is a different origin." },
+          { x:"https://app.bank.com and https://api.bank.com", why:"Host differs — different origin (though same *site*, which matters for cookies, not for SOP)." }
+        ]},
+        { t:"SOP is best described as…", c:[
+          { x:"A send barrier: browsers refuse to make cross-origin requests", why:"Cross-origin requests are sent constantly — images, scripts, form posts. SOP doesn't stop sending." },
+          { x:"A read barrier: scripts can't read cross-origin responses or state", ok:true, why:"Exactly. Requests fly; reading the response (or the other site's DOM/cookies) is what's blocked." },
+          { x:"A server-side firewall rule", why:"SOP is enforced entirely by the browser. The server never sees it." },
+          { x:"An encryption requirement", why:"Nothing to do with TLS — SOP applies over plain HTTP too." }
+        ]},
+        { t:"app.bank.com and api.bank.com are…", c:[
+          { x:"Same origin, same site", why:"Hosts differ, so not same origin." },
+          { x:"Different origin, same site", ok:true, why:"Origin compares full host; site compares registrable domain (bank.com). This split is why CORS and SameSite give different answers for the same pair." },
+          { x:"Different origin, different site", why:"Both resolve to registrable domain bank.com — same site." },
+          { x:"Same origin, different site", why:"Impossible combination — same origin implies same site." }
+        ]}
+      ]},
+
+    { id:"m02", code:"02", title:"Cookies", sub:"Types, every attribute, SameSite in depth, and the safe Spring recipe",
+      sections:[{md:"md-02-a"},{widget:"wire-roundtrip"},{md:"md-02-b"},{md:"md-02-c"},{widget:"cookie-anatomy"},{widget:"samesite-sim"},{md:"md-02-d"}],
+      quiz:[
+        { t:"A cookie set with no Expires and no Max-Age is…", c:[
+          { x:"Rejected by the browser", why:"Perfectly valid — it just becomes a session cookie." },
+          { x:"A session cookie: gone when the browser closes", ok:true, why:"No lifetime attribute → session cookie. (Browsers that restore tabs may resurrect them, so don't rely on closure as a security event.)" },
+          { x:"Persistent for 30 days by default", why:"There is no default lifetime; absence of one is what defines a session cookie." },
+          { x:"Sent only over HTTPS", why:"That's the Secure attribute — unrelated to lifetime." }
+        ]},
+        { t:"Your session cookie has SameSite=Strict. A user clicks a link to your app from an email. What happens?", c:[
+          { x:"Cookie is sent; user lands logged in", why:"Strict blocks the cookie even on top-level link clicks — that's the difference from Lax." },
+          { x:"Cookie is not sent; user appears logged out on arrival", ok:true, why:"Strict = never cross-site, including navigations. This UX cost is why Lax is the usual choice for the main session, with Strict reserved for a secondary high-security cookie." },
+          { x:"The browser shows a warning", why:"No warning — the cookie is just silently omitted." },
+          { x:"The request is blocked entirely", why:"The request goes through fine; only the cookie stays home." }
+        ]},
+        { t:"Which set of requirements does the __Host- prefix enforce?", c:[
+          { x:"Secure only", why:"That's __Secure-. __Host- demands more." },
+          { x:"Secure + Path=/ + no Domain attribute", ok:true, why:"Which locks the cookie to exactly one host and defeats cookie tossing from sibling subdomains." },
+          { x:"HttpOnly + SameSite=Strict", why:"Neither is required by the prefix (both are still good ideas for sessions)." },
+          { x:"Nothing — it's a naming convention", why:"Browsers actively refuse to store a __Host- cookie that violates the rules. It's enforced, not advisory." }
+        ]},
+        { t:"Setting Domain=bank.com on a cookie…", c:[
+          { x:"Restricts it to the apex domain only", why:"Backwards — Domain widens scope to all subdomains." },
+          { x:"Widens it to bank.com and every subdomain", ok:true, why:"Domain never narrows. Omitting it gives the tightest scope: host-only." },
+          { x:"Has no effect if Path is set", why:"Domain and Path are independent axes." },
+          { x:"Requires SameSite=None", why:"No relationship between Domain and SameSite." }
+        ]},
+        { t:"Why is Path=/admin NOT a security boundary?", c:[
+          { x:"Browsers ignore Path", why:"Browsers honour Path for sending — it's just not a defence." },
+          { x:"Any same-origin page can still read/act across paths; Path only affects when the cookie is attached", ok:true, why:"A script on /public shares the origin with /admin, so path-scoping stops nothing an attacker on the same origin could do. Use separate origins for real isolation." },
+          { x:"Path forces the cookie to be sent everywhere", why:"It genuinely limits attachment — that part works. It's the isolation claim that fails." },
+          { x:"Path requires the Domain attribute", why:"They're independent." }
+        ]}
+      ]},
+
+    { id:"m03", code:"03", title:"CORS", sub:"How servers relax SOP — preflights, credentials, and what CORS is not",
+      sections:[{md:"md-03-a"},{widget:"cors-preflight"},{md:"md-03-b"},{md:"md-03-c"}],
+      quiz:[
+        { t:"Which request triggers a CORS preflight?", c:[
+          { x:"GET with no custom headers", why:"Simple — GET/HEAD/POST with safelisted content types go straight out." },
+          { x:"POST with Content-Type: application/x-www-form-urlencoded", why:"That's a form post — the old web could do it, so it's simple." },
+          { x:"POST with Content-Type: application/json", ok:true, why:"JSON is not on the safelist, so the everyday SPA-to-API call is preflighted. The approval is cached per Access-Control-Max-Age." },
+          { x:"An <img> tag loading a cross-origin image", why:"Embeds aren't CORS-gated at all — they predate it." }
+        ]},
+        { t:"A cross-origin simple POST gets a response with no CORS headers. What actually happened?", c:[
+          { x:"The browser never sent the request", why:"Simple requests are always sent — that's what makes them 'simple'." },
+          { x:"The request was sent and executed; the script just can't read the response", ok:true, why:"CORS gates the read, not the send. This is exactly why CORS is not a CSRF defence — the damage is the request." },
+          { x:"The server rejected it with 403", why:"The server processed it normally; it never even knows the read was blocked." },
+          { x:"The browser retried with a preflight", why:"No retry mechanism exists — the response is simply withheld from the script." }
+        ]},
+        { t:"fetch(…, {credentials:'include'}) and the server answers Access-Control-Allow-Origin: * — result?", c:[
+          { x:"Works — wildcard allows everyone", why:"Wildcard is explicitly rejected in credentials mode." },
+          { x:"Blocked — credentialed responses require the exact origin plus Allow-Credentials: true", ok:true, why:"Otherwise any site could read any user's data from any lazily-configured API, riding the user's own cookies." },
+          { x:"Works, but cookies are stripped", why:"The browser blocks the read entirely rather than silently degrading." },
+          { x:"Depends on SameSite", why:"SameSite decides whether cookies attach; the wildcard rule fails this exchange regardless." }
+        ]},
+        { t:"'Our internal API is protected because CORS only allows our frontend origin.' What's wrong?", c:[
+          { x:"Nothing — that's what CORS is for", why:"CORS is enforced by browsers only." },
+          { x:"CORS should also allow localhost", why:"That would weaken it further, not fix the reasoning." },
+          { x:"curl and any non-browser client ignore CORS entirely; it protects users' data in browsers, not the server", ok:true, why:"CORS decides who may read from a browser context. Server protection is authentication's job." },
+          { x:"The wildcard is missing", why:"Adding * would make it worse." }
+        ]}
+      ]},
+    { id:"m04", code:"04", title:"XSS", sub:"Why HttpOnly exists, and the case against tokens in localStorage",
+      sections:[{md:"md-04-a"},{md:"md-04-b"},{widget:"xss-blast"}],
+      quiz:[
+        { t:"HttpOnly on the session cookie protects against…", c:[
+          { x:"XSS entirely", why:"Injected script can still make authenticated requests from the page — the browser attaches the cookie as always." },
+          { x:"Exfiltration: injected script can't read the cookie, so there's no stolen credential that works offline", ok:true, why:"The attacker is limited to riding the session while the tab is open — bad, but bounded, visible to session controls, and gone when the session ends." },
+          { x:"CSRF", why:"CSRF never needed to read the cookie — the browser attaches it. Different attack, different defences (module 05)." },
+          { x:"SQL injection", why:"Unrelated layer entirely." }
+        ]},
+        { t:"The core problem with storing tokens in localStorage:", c:[
+          { x:"It's too small", why:"5MB is plenty for a token — capacity isn't the issue." },
+          { x:"Any successfully injected script can read it by API design, and a stolen token replays from anywhere until expiry", ok:true, why:"There is no HttpOnly equivalent for localStorage. One XSS anywhere on the origin equals credential theft." },
+          { x:"It's cleared when the browser closes", why:"localStorage persists — that's sessionStorage." },
+          { x:"It's sent automatically like cookies", why:"Backwards: it's never sent automatically, which is its one genuine advantage (no CSRF)." }
+        ]},
+        { t:"The defence against XSS that actually holds is…", c:[
+          { x:"Input validation on every field", why:"Useful for data shape, but valid-looking data can still be an injection in the wrong output context ('O'Brien' breaks a JS string)." },
+          { x:"Context-aware output encoding — escape at the point data enters markup, per context", ok:true, why:"HTML body, attribute, URL and JS-string contexts each escape differently; template engines like Thymeleaf do the default case for you (th:text, not th:utext)." },
+          { x:"Storing sessions in HttpOnly cookies", why:"That bounds the blast radius of a successful XSS; it doesn't prevent one." },
+          { x:"HTTPS everywhere", why:"Transport encryption doesn't touch injection." }
+        ]}
+      ]},
+    { id:"m05", code:"05", title:"CSRF", sub:"The attack step-by-step, then mitigations in layers",
+      sections:[{md:"md-05-a"},{widget:"csrf-replay"},{md:"md-05-b"},{md:"md-05-c"}],
+      quiz:[
+        { t:"The precondition that makes classic CSRF possible at all:", c:[
+          { x:"The attacker knows the victim's password", why:"No credentials are stolen — that's the point of the attack." },
+          { x:"The browser attaches session cookies automatically, even to requests initiated by another site", ok:true, why:"Automatic attachment + a predictable state-changing endpoint + no server-side check = CSRF. Remove any one and the attack dies." },
+          { x:"The server has an XSS vulnerability", why:"CSRF requires no script execution on the target origin — a plain HTML form suffices." },
+          { x:"CORS is misconfigured", why:"CORS gates reads; CSRF only needs the send." }
+        ]},
+        { t:"Why does a synchronizer token stop an attacker who can clearly send the form?", c:[
+          { x:"It encrypts the request", why:"Nothing is encrypted — the token is plain." },
+          { x:"To include the token they'd have to read your page first, and SOP's read barrier blocks exactly that", ok:true, why:"CSRF exists because SOP isn't a send barrier; the token defence works because SOP is a read barrier. The two halves of module 01, meeting." },
+          { x:"Browsers refuse to submit forms containing hidden tokens cross-site", why:"Browsers submit them happily — the server does the checking." },
+          { x:"The token proves the user's identity", why:"The cookie does identity; the token proves the request originated from a page you served." }
+        ]},
+        { t:"SameSite=Lax is set on the session cookie. Which attack still works?", c:[
+          { x:"Auto-submitted cross-site POST form", why:"Lax keeps the cookie home on cross-site POSTs — this is the one it kills." },
+          { x:"Cross-site fetch() with credentials:'include'", why:"Not a top-level navigation; Lax blocks the cookie." },
+          { x:"A state-changing GET endpoint reached by a link the victim clicks", ok:true, why:"Top-level GET navigation is Lax's deliberate exception. If /transfer works via GET, a link is an attack. Keep state changes off GET." },
+          { x:"An <img> tag pointing at a POST endpoint", why:"Images send GETs without cookies under Lax, and can't POST at all." }
+        ]},
+        { t:"The known weakness of the naive double-submit cookie pattern:", c:[
+          { x:"It requires server-side session storage", why:"Statelessness is its selling point — the server just compares cookie and header." },
+          { x:"Anyone who can set cookies for the site — e.g. via a hostile subdomain — can plant both halves", ok:true, why:"Cookie tossing again. Mitigations: sign the token, and use the __Host- prefix so subdomains can't set it. Module 02's prefix earns its keep." },
+          { x:"It doesn't work with SPAs", why:"SPAs are its main use case — read cookie, echo header." },
+          { x:"Browsers block double cookies", why:"No such rule exists." }
+        ]},
+        { t:"Why is an API authenticated only via Authorization: Bearer immune to CSRF?", c:[
+          { x:"Bearer tokens are encrypted", why:"Irrelevant — and typically they're just signed, not encrypted." },
+          { x:"Nothing is attached automatically: the attacker's page can't add the header, and a form can't either", ok:true, why:"CSRF is an automatic-credential problem. Remove the automatic part and there is nothing to forge — the structural fact module 08 builds on." },
+          { x:"CORS blocks all Bearer requests", why:"CORS may preflight them, but that's incidental — the immunity comes from non-automatic attachment." },
+          { x:"Bearer APIs don't change state", why:"They change state constantly; they just require explicit credential attachment." }
+        ]}
+      ]},
+    { id:"m06", code:"06", title:"Sessions vs JWTs", sub:"Anatomy, statelessness, and why logout gets hard",
+      sections:[{md:"md-06-a"},{md:"md-06-b"},{widget:"jwt-anatomy"},{md:"md-06-c"}],
+      quiz:[
+        { t:"A JWT payload contains {\"salary\": 185000}. Who can read it?", c:[
+          { x:"Only services holding the signing key", why:"Signing keys verify integrity; they're not needed to read. base64url-decode and it's plain JSON." },
+          { x:"Anyone who obtains the token — it's encoded, not encrypted", ok:true, why:"Signatures prove who minted it and that it's unmodified. Confidentiality was never on offer. Secrets don't belong in JWT payloads." },
+          { x:"Only the browser that received it", why:"Any holder — proxies, logs, an attacker — decodes it identically." },
+          { x:"Nobody until exp passes", why:"exp gates validity, not readability." }
+        ]},
+        { t:"Why is 'logout' structurally hard with plain JWTs?", c:[
+          { x:"Browsers cache JWTs aggressively", why:"Storage isn't the issue — validity is." },
+          { x:"Verification is local and stateless: the server holds nothing to delete, and the signature stays valid until exp", ok:true, why:"The exact mirror of the session model, where logout is 'delete the row'. Buying revocation back is module 07." },
+          { x:"JWTs auto-renew themselves", why:"They don't — renewal is the refresh token's job, and that IS revokable." },
+          { x:"Logout endpoints can't clear cookies", why:"They can (module 02); it just doesn't invalidate an already-issued bearer token." }
+        ]},
+        { t:"Main advantage of RS256 over HS256 in a multi-service estate:", c:[
+          { x:"RS256 tokens are shorter", why:"Longer, actually — RSA signatures are big." },
+          { x:"Verification uses a public key, so only the auth server can mint; the secret doesn't sprawl across every verifying service", ok:true, why:"With HS256, every verifier holds the minting secret — one compromised service can forge tokens for the whole estate." },
+          { x:"RS256 encrypts the payload", why:"Still signed-not-encrypted, regardless of algorithm." },
+          { x:"HS256 is deprecated", why:"It's fine for single-service setups where minter and verifier are the same party." }
+        ]},
+        { t:"Why must the verifier pin the expected algorithm rather than reading alg from the token header?", c:[
+          { x:"Performance — header parsing is slow", why:"Negligible either way." },
+          { x:"The header is attacker-controlled: honouring it enabled alg:none and RSA-key-as-HMAC-secret forgeries", ok:true, why:"The verifier decides the algorithm, never the token. Modern libraries pin it — confirm your config actually does." },
+          { x:"Tokens don't include an alg field", why:"They do — that's precisely the problem." },
+          { x:"Browsers reject unknown algorithms", why:"Browsers never look inside JWTs; verification is your server's job." }
+        ]}
+      ]},
+    { id:"m07", code:"07", title:"JWT invalidation", sub:"Access/refresh split, refresh token as httpOnly cookie, rotation",
+      sections:[{md:"md-07-a"},{md:"md-07-b"},{widget:"refresh-rotate"},{md:"md-07-c"}],
+      quiz:[
+        { t:"In the access/refresh pattern, what does the access-token TTL actually set?", c:[
+          { x:"How often users must re-enter passwords", why:"That's the refresh token's lifetime — access renewal is silent." },
+          { x:"Your worst-case revocation window: after revoking the refresh token, in-flight access tokens survive up to this long", ok:true, why:"Which is why access TTL is a security decision. Revocation lands at the refresh boundary; the access TTL is the lag." },
+          { x:"Nothing security-relevant — it's a caching hint", why:"It's the single most security-relevant number in the pattern." },
+          { x:"The CORS preflight cache duration", why:"Unrelated — that's Access-Control-Max-Age." }
+        ]},
+        { t:"Why does the refresh token live in an HttpOnly cookie rather than localStorage?", c:[
+          { x:"Cookies hold more data", why:"Other way around, and irrelevant." },
+          { x:"It's the long-lived credential worth stealing, and HttpOnly makes it unreadable to any injected script — module 04's table, applied", ok:true, why:"localStorage would make one XSS equal durable account takeover. In the cookie, XSS is limited to on-page use — which rotation then turns into a detectable event." },
+          { x:"localStorage doesn't persist", why:"It persists fine — that's part of the danger." },
+          { x:"Cookies are immune to XSS", why:"No — HttpOnly bounds what XSS can do; it doesn't prevent it." }
+        ]},
+        { t:"With rotation in place, an already-used refresh token is presented. The correct response:", c:[
+          { x:"Issue a fresh token — it was valid once", why:"That converts theft into indefinite silent access." },
+          { x:"Treat it as a theft signal: revoke the entire family, forcing re-authentication for whoever's legitimate", ok:true, why:"A spent token replayed means two parties hold copies. Killing the family costs the real user one login and costs the attacker everything — plus you get a signal in the logs." },
+          { x:"Return the same access token as last time", why:"Caching credentials for replayed tokens helps only the attacker." },
+          { x:"Block the IP address", why:"IPs are weak identity; the family is the reliable unit of revocation." }
+        ]},
+        { t:"Why can the refresh cookie use SameSite=Strict when module 02 warned Strict hurts UX?", c:[
+          { x:"It can't — Lax is required", why:"Strict is the right choice here." },
+          { x:"The UX cost only bites on cross-site arrivals, and nobody ever arrives at /auth/refresh from a link — it's only called by your own front-end, same-site", ok:true, why:"Strict's penalty (logged-out-looking arrivals) doesn't apply to a fetch-only endpoint, and blocking every cross-site delivery is exactly what a cookie-authenticated endpoint wants. Pair with Origin validation per module 05." },
+          { x:"Strict encrypts the cookie", why:"SameSite controls attachment, nothing else." },
+          { x:"Refresh tokens are immune to CSRF", why:"The endpoint is cookie-authenticated, so it needs a CSRF story — Strict is most of it." }
+        ]},
+        { t:"A complete logout implementation is…", c:[
+          { x:"Clear the refresh cookie client-side", why:"The server-side record survives — anyone holding a copy of the token can still refresh." },
+          { x:"Revoke the refresh-token family server-side, clear the cookie, discard the in-memory access token — accepting the in-flight access TTL window", ok:true, why:"All three, and honesty about the window: the current access token rides out its few minutes unless you also run a jti denylist for emergencies." },
+          { x:"Delete the JWT from the auth server", why:"The auth server doesn't store issued JWTs — that's the whole stateless point (module 06)." },
+          { x:"Rotate the signing keys", why:"That logs out every user in the estate. An incident response tool, not a logout button." }
+        ]}
+      ]},
+    { id:"m08", code:"08", title:"Dual auth", sub:"Cookies for browsers, Bearer for apps — one API, both accepted; BFF",
+      sections:[{md:"md-08-a"},{widget:"dual-auth-router"},{md:"md-08-b"}],
+      quiz:[
+        { t:"Why is csrf.ignoringRequestMatchers(\"/api/**\") dangerous on an API that also accepts session cookies?", c:[
+          { x:"It breaks CORS preflights", why:"Preflights don't carry CSRF tokens anyway — different mechanism." },
+          { x:"It exempts by URL while the risk lives in the credential: cookie-authenticated requests to /api/** now have CSRF switched off", ok:true, why:"The module 05 attack works again on any state-changing endpoint the SPA uses — and the config looks deliberate in review." },
+          { x:"Bearer requests will be rejected", why:"They sail through — that's not the problem." },
+          { x:"Spring forbids the pattern", why:"Spring happily accepts it; the framework can't know which credentials a path serves." }
+        ]},
+        { t:"Skipping CSRF checks when Authorization: Bearer is present is safe because…", c:[
+          { x:"Bearer tokens are cryptographically signed", why:"Signatures don't matter here — the question is who can attach the credential." },
+          { x:"No cross-site attacker context can set that header: forms can't carry headers, and a fetch with one triggers a preflight your server declines", ok:true, why:"CSRF is an automatic-attachment problem; a header that must be explicitly attached by code on your origin is outside it. Modules 03 and 05, combining." },
+          { x:"CSRF only affects GET requests", why:"CSRF chiefly targets state-changing methods — and GETs shouldn't change state at all." },
+          { x:"Bearer requests can't change state", why:"They change state constantly; they just can't be forged from a cross-site page." }
+        ]},
+        { t:"In the BFF pattern, where do the user's access and refresh tokens live?", c:[
+          { x:"In the browser's localStorage, managed by the BFF's JS", why:"That would resurrect module 04's worst row — the pattern exists to avoid it." },
+          { x:"Server-side in the BFF, keyed by the session; the browser holds only a __Host- HttpOnly session cookie", ok:true, why:"No token in the browser means no token to steal — the strongest XSS posture available, at the cost of an extra deployable and hop." },
+          { x:"In the mobile app", why:"Mobile clients bypass the BFF's browser channel and hold their own Bearer tokens — separate channel." },
+          { x:"In the JWT payload", why:"Tokens inside tokens isn't a storage location." }
+        ]},
+        { t:"A request arrives carrying BOTH a valid session cookie and a valid Bearer token. The right design:", c:[
+          { x:"Reject it as suspicious", why:"It's routine — an SPA holding an access token still sends cookies automatically. Rejecting breaks legitimate clients." },
+          { x:"One deterministic rule, decided once: typically Authorization wins and the cookie is ignored — never let the combination create a third behaviour", ok:true, why:"Ambiguous credential resolution is how auth bypasses are born: e.g. authenticating via cookie but skipping CSRF because a (stale, invalid) Bearer header was present." },
+          { x:"Use whichever authenticates successfully first", why:"Order-dependent behaviour across filter changes is exactly the ambiguity to design out." },
+          { x:"Require both to match the same user", why:"Adds coupling without adding safety; the credentials come from different lifecycles (module 07)." }
+        ]}
+      ]},
+    { id:"m09", code:"09", title:"Hardening", sub:"CSP, clickjacking, and the security header checklist",
+      sections:[{md:"md-09-a"},{widget:"clickjack-demo"},{md:"md-09-b"}],
+      quiz:[
+        { t:"With script-src 'self' 'nonce-abc123' in force, an injected &lt;script&gt;alert(1)&lt;/script&gt;…", c:[
+          { x:"Runs — it's inline on the same origin", why:"'self' covers script *files* from your origin; inline scripts need the nonce." },
+          { x:"Is refused: it carries no valid nonce, so the browser won't execute it even though the injection landed", ok:true, why:"That's CSP as backstop — the encoding bug still exists and still needs fixing, but the payload is dead on arrival." },
+          { x:"Runs after a preflight", why:"Preflights are a CORS mechanism — unrelated to script execution policy." },
+          { x:"Is sent to the report endpoint and then runs", why:"Report-Only mode does that; the enforcing header blocks." }
+        ]},
+        { t:"The defence against clickjacking is…", c:[
+          { x:"A CSRF token", why:"The click happens on your real, token-bearing page — CSRF tokens are present and correct. Different attack." },
+          { x:"frame-ancestors 'none' (with X-Frame-Options: DENY for legacy) — the browser refuses to render your page in another site's frame", ok:true, why:"No frame, no overlay, no hijacked click. Allow-list specific origins if you have a legitimate embedding case." },
+          { x:"SameSite=Strict cookies", why:"Framed pages are a grey zone you don't want to rely on — and the attack pattern predates SameSite. Kill the framing itself." },
+          { x:"HttpOnly", why:"Nothing is being read — the victim's genuine click is being redirected." }
+        ]},
+        { t:"What does HSTS actually change?", c:[
+          { x:"It encrypts cookies", why:"TLS encrypts transport; HSTS is about whether plain HTTP is ever attempted." },
+          { x:"After first contact, the browser refuses plain-HTTP connections to your domain outright — no downgrade window, no strippable redirect", ok:true, why:"Without it, the http:// → https:// redirect hop is intercept-able (SSL stripping) and Secure cookies sit one downgrade away from irrelevance." },
+          { x:"It forces TLS 1.3", why:"Version negotiation is separate; HSTS only mandates *that* HTTPS is used." },
+          { x:"It enables HTTP/2", why:"Unrelated protocol feature." }
+        ]},
+        { t:"X-Content-Type-Options: nosniff exists because…", c:[
+          { x:"It compresses responses", why:"Nothing to do with encoding or size." },
+          { x:"Browsers historically second-guessed Content-Type — letting an uploaded 'image' be sniffed into executable script; nosniff makes your declared type binding", ok:true, why:"One line, closes a whole class of upload-based XSS. Spring Security sends it by default — don't turn it off." },
+          { x:"It blocks third-party cookies", why:"Cookie policy lives elsewhere entirely." },
+          { x:"It validates JWTs", why:"No relation." }
+        ]}
+      ]}
+  ]
+};
+
+/* ---------- state ---------- */
+let state = { done:{}, quiz:{} };
+try { state = Object.assign(state, JSON.parse(localStorage.getItem(COURSE.storageKey) || "{}")); } catch(e){}
+function saveState(){ try{ localStorage.setItem(COURSE.storageKey, JSON.stringify(state)); }catch(e){} }
+
+let current = 0;
+
+/* ---------- widgets ---------- */
+const WIDGETS = {
+
+  "wire-roundtrip": function(el){
+    el.innerHTML =
+      '<h4>The round trip on the wire</h4>' +
+      '<p class="hint">Login response sets the cookie; every later request replays it automatically.</p>' +
+      wire("res", "response — after POST /login",
+        'HTTP/1.1 200 OK\n' +
+        '<span class="hl-cookie">Set-Cookie: __Host-SESSION=9f2c…e1; Secure; HttpOnly; SameSite=Lax; Path=/</span>\n' +
+        '<span class="hl-dim">Content-Type: application/json</span>',
+        null) +
+      wire("req", "every subsequent request — no JS involved",
+        'GET /api/accounts HTTP/1.1\n' +
+        'Host: app.bank.com\n' +
+        '<span class="hl-cookie">Cookie: __Host-SESSION=9f2c…e1</span>',
+        {ok:true, text:"Cookie ships automatically on every matching request"});
+  },
+
+  "origin-check": function(el){
+    const pairs = [
+      { a:"https://app.bank.com", b:"https://app.bank.com/settings", same:true,  why:"Path is not part of the origin. Scheme, host and port all match." },
+      { a:"https://bank.com",     b:"http://bank.com",               same:false, why:"Scheme differs. https and http are different origins even on the same host." },
+      { a:"https://bank.com",     b:"https://bank.com:8443",         same:false, why:"Port differs — 443 (implied) vs 8443." },
+      { a:"https://app.bank.com", b:"https://api.bank.com",          same:false, why:"Host differs. Different origin — but same *site* (bank.com), which is why cookies may still flow between them." },
+      { a:"https://bank.com",     b:"https://bank.com.evil.example", same:false, why:"Classic phish shape: the registrable domain here is evil.example. Read hostnames right-to-left." }
+    ];
+    let i = 0, answered = false;
+    el.innerHTML = '<h4>Origin comparator</h4><p class="hint">Same origin or not? Decide, then tap.</p><div id="oc-body"></div>';
+    const body = el.querySelector("#oc-body");
+    function render(){
+      const p = pairs[i];
+      answered = false;
+      body.innerHTML =
+        '<div class="anatomy" style="white-space:normal;line-height:1.8">A: ' + p.a + '<br>B: ' + p.b + '</div>' +
+        '<div class="opt-row"><button data-v="same">Same origin</button><button data-v="diff">Different origin</button></div>' +
+        '<div class="sim-result" id="oc-res"></div>' +
+        '<div class="opt-row" style="margin-top:10px"><button id="oc-next" style="display:none">Next pair →</button></div>';
+      body.querySelectorAll("[data-v]").forEach(function(btn){
+        btn.addEventListener("click", function(){
+          if(answered) return;
+          answered = true;
+          const guessedSame = btn.getAttribute("data-v") === "same";
+          const right = guessedSame === p.same;
+          document.getElementById("oc-res").innerHTML = verdict(right,
+            (right ? "Correct — " : "Not quite — ") + (p.same ? "same origin. " : "different origin. ") + p.why);
+          const next = document.getElementById("oc-next");
+          if(i < pairs.length - 1){ next.style.display = "inline-block"; next.onclick = function(){ i++; render(); }; }
+          else { next.style.display = "inline-block"; next.textContent = "Start over"; next.onclick = function(){ i = 0; render(); }; }
+        });
+      });
+    }
+    render();
+  },
+
+  "cookie-anatomy": function(el){
+    const parts = {
+      name:  "<strong>__Host-SESSION</strong> — the name. The __Host- prefix is an enforced contract: Secure + Path=/ + no Domain, or the browser refuses to store it.",
+      value: "<strong>9f2c…e1</strong> — the value. Opaque random ID; the client can edit anything it stores, so never put trusted data here.",
+      sec:   "<strong>Secure</strong> — HTTPS only. Without it the cookie leaks on any plain-HTTP request.",
+      http:  "<strong>HttpOnly</strong> — invisible to document.cookie. An XSS payload can still *use* the session by making requests, but can no longer *exfiltrate* the cookie itself.",
+      ss:    "<strong>SameSite=Lax</strong> — ships on top-level link-click navigations, stays home on cross-site POSTs, images, iframes and fetch.",
+      path:  "<strong>Path=/</strong> — attach on every path of this host. Required by __Host-.",
+      age:   "<strong>Max-Age=28800</strong> — persistent for 8 hours. Remove it and this becomes a session cookie."
+    };
+    el.innerHTML =
+      '<h4>Anatomy of a Set-Cookie header</h4>' +
+      '<p class="hint">Tap each part.</p>' +
+      '<div class="anatomy">Set-Cookie: ' +
+      '<span data-part="name">__Host-SESSION</span>=<span data-part="value">9f2c…e1</span>; ' +
+      '<span data-part="sec">Secure</span>; ' +
+      '<span data-part="http">HttpOnly</span>; ' +
+      '<span data-part="ss">SameSite=Lax</span>; ' +
+      '<span data-part="path">Path=/</span>; ' +
+      '<span data-part="age">Max-Age=28800</span></div>' +
+      '<div class="anatomy-note" id="an-note">Tap an underlined part of the header above.</div>';
+    el.querySelectorAll("[data-part]").forEach(function(sp){
+      sp.addEventListener("click", function(){
+        el.querySelectorAll("[data-part]").forEach(function(s){ s.classList.remove("active"); });
+        sp.classList.add("active");
+        document.getElementById("an-note").innerHTML = parts[sp.getAttribute("data-part")];
+      });
+    });
+  },
+
+  "samesite-sim": function(el){
+    const scenarios = [
+      { id:"nav",   label:"Link click → your site",       desc:"Top-level GET navigation from another site (email link, search result)", crossSite:true,  topLevelGet:true },
+      { id:"post",  label:"Cross-site form POST",         desc:"evil.example auto-submits a form to your site — the classic CSRF shape", crossSite:true,  topLevelGet:false },
+      { id:"img",   label:"Image / iframe embed",         desc:"Another site embeds <img src=\"https://app.bank.com/…\">",              crossSite:true,  topLevelGet:false },
+      { id:"fetch", label:"Cross-site fetch()",           desc:"Script on another site calls fetch(…, {credentials:'include'})",         crossSite:true,  topLevelGet:false },
+      { id:"same",  label:"Same-site request",            desc:"app.bank.com calling api.bank.com — same registrable domain",           crossSite:false, topLevelGet:false }
+    ];
+    let ss = "Lax", secure = true, scen = "post";
+    el.innerHTML =
+      '<h4>SameSite simulator</h4>' +
+      '<p class="hint">Configure the cookie, pick the request, predict the verdict before you look.</p>' +
+      '<div class="opt-row"><span class="opt-label">SameSite</span>' +
+        ['Strict','Lax','None'].map(function(v){ return '<button data-ss="'+v+'">'+v+'</button>'; }).join('') + '</div>' +
+      '<div class="opt-row"><span class="opt-label">Secure</span>' +
+        '<button data-sec="1">Secure ✓</button><button data-sec="0">no Secure</button></div>' +
+      '<div class="opt-row"><span class="opt-label">Scenario</span>' +
+        scenarios.map(function(s){ return '<button data-scen="'+s.id+'">'+s.label+'</button>'; }).join('') + '</div>' +
+      '<div id="ss-out"></div>';
+
+    function update(){
+      el.querySelectorAll("[data-ss]").forEach(function(b){ b.classList.toggle("sel", b.getAttribute("data-ss")===ss); });
+      el.querySelectorAll("[data-sec]").forEach(function(b){ b.classList.toggle("sel", (b.getAttribute("data-sec")==="1")===secure); });
+      el.querySelectorAll("[data-scen]").forEach(function(b){ b.classList.toggle("sel", b.getAttribute("data-scen")===scen); });
+
+      const s = scenarios.find(function(x){ return x.id===scen; });
+      let sent, why;
+      if(ss==="None" && !secure){
+        sent = false;
+        why = "SameSite=None without Secure: the browser rejects the cookie at Set-Cookie time — it was never stored, so there is nothing to send anywhere.";
+      } else if(!s.crossSite){
+        sent = true;
+        why = "Same-site request — SameSite never blocks these. app.bank.com → api.bank.com share the registrable domain bank.com.";
+      } else if(ss==="None"){
+        sent = true;
+        why = "SameSite=None ships everywhere, like the pre-2020 web. Your CSRF defences (module 05) are now the only thing standing.";
+      } else if(ss==="Strict"){
+        sent = false;
+        why = "Strict never crosses a site boundary — " + (s.topLevelGet ? "not even on a link click, which is why arriving users look logged out." : "this request goes out with no cookie.");
+      } else { // Lax
+        sent = s.topLevelGet;
+        why = s.topLevelGet
+          ? "Lax's one exception: top-level navigation with a safe method (GET). The user lands logged in."
+          : "Lax stays home on cross-site " + (scen==="post" ? "POSTs — this default alone defeats the classic auto-submit CSRF form." : (scen==="img" ? "subresource loads (images, iframes)." : "fetch/XHR calls."));
+      }
+
+      const cookieLine = '__Host-SESSION=9f2c…e1' + (secure ? '; Secure' : '') + '; HttpOnly; SameSite=' + ss + '; Path=/';
+      document.getElementById("ss-out").innerHTML =
+        wire("res", "cookie as stored", '<span class="hl-cookie">Set-Cookie: ' + cookieLine + '</span>', null) +
+        wire("req", s.desc,
+          (scen==="post" ? "POST /transfer HTTP/1.1" : "GET /api/… HTTP/1.1") + "\nHost: app.bank.com\n" +
+          (sent ? '<span class="hl-cookie">Cookie: __Host-SESSION=9f2c…e1</span>' : '<span class="hl-dim">(no Cookie header)</span>'),
+          {ok:sent, text: sent ? "Cookie ships" : "Cookie stays home"}) +
+        '<div class="callout" style="border-left-color:' + (sent ? 'var(--ok)' : 'var(--no)') + ';background:var(--panel)">' + why + '</div>';
+    }
+    el.addEventListener("click", function(e){
+      const b = e.target.closest("button"); if(!b) return;
+      if(b.hasAttribute("data-ss")) ss = b.getAttribute("data-ss");
+      else if(b.hasAttribute("data-sec")) secure = b.getAttribute("data-sec")==="1";
+      else if(b.hasAttribute("data-scen")) scen = b.getAttribute("data-scen");
+      else return;
+      update();
+    });
+    update();
+  },
+
+  "cors-preflight": function(el){
+    let method="POST", ctype="json", auth=false, creds=true, acao="exact";
+    el.innerHTML =
+      '<h4>CORS exchange simulator</h4>' +
+      '<p class="hint">Page on <code style="font-family:var(--mono)">app.bank.com</code> calls <code style="font-family:var(--mono)">api.bank.com</code>. Configure both sides; predict the exchange.</p>' +
+      '<div class="opt-row"><span class="opt-label">Method</span><button data-m="GET">GET</button><button data-m="POST">POST</button><button data-m="PUT">PUT</button></div>' +
+      '<div class="opt-row"><span class="opt-label">Content-Type</span><button data-c="none">none</button><button data-c="form">form-urlencoded</button><button data-c="json">application/json</button></div>' +
+      '<div class="opt-row"><span class="opt-label">Extras</span><button data-a="1">Authorization header</button><button data-cr="1">credentials: include</button></div>' +
+      '<div class="opt-row"><span class="opt-label">Server: Access-Control-Allow-Origin</span><button data-o="exact">https://app.bank.com</button><button data-o="star">*</button><button data-o="none">(absent)</button></div>' +
+      '<div id="cp-out"></div>';
+
+    function isSimple(){
+      return (method==="GET" || (method==="POST" && (ctype==="none" || ctype==="form"))) && !auth;
+    }
+    function update(){
+      el.querySelectorAll("[data-m]").forEach(function(b){ b.classList.toggle("sel", b.getAttribute("data-m")===method); });
+      el.querySelectorAll("[data-c]").forEach(function(b){ b.classList.toggle("sel", b.getAttribute("data-c")===ctype); });
+      el.querySelectorAll("[data-a]").forEach(function(b){ b.classList.toggle("sel", auth); });
+      el.querySelectorAll("[data-cr]").forEach(function(b){ b.classList.toggle("sel", creds); });
+      el.querySelectorAll("[data-o]").forEach(function(b){ b.classList.toggle("sel", b.getAttribute("data-o")===acao); });
+
+      const simple = isSimple();
+      const acaoLine = acao==="exact" ? "Access-Control-Allow-Origin: https://app.bank.com\nAccess-Control-Allow-Credentials: true"
+                     : acao==="star" ? "Access-Control-Allow-Origin: *" : '<span class="hl-dim">(no CORS headers)</span>';
+      const readable = acao==="exact" || (acao==="star" && !creds);
+      let out = "", why = "";
+
+      const reqHeaders = "Origin: https://app.bank.com" +
+        (ctype!=="none" ? "\nContent-Type: " + (ctype==="json" ? "application/json" : "application/x-www-form-urlencoded") : "") +
+        (auth ? "\nAuthorization: Bearer eyJ…" : "") +
+        (creds ? '\n<span class="hl-cookie">Cookie: __Host-SESSION=9f2c…e1</span>' : "");
+
+      if(!simple){
+        out += wire("req", "preflight — browser asks permission first",
+          "OPTIONS /api/transfer HTTP/1.1\nHost: api.bank.com\nOrigin: https://app.bank.com\nAccess-Control-Request-Method: " + method +
+          (auth || ctype==="json" ? "\nAccess-Control-Request-Headers: " + [ctype==="json"?"content-type":null, auth?"authorization":null].filter(Boolean).join(", ") : ""), null);
+        if(!readable){
+          out += wire("res", "preflight response", acaoLine, {ok:false, text: acao==="none" ? "No approval → real request is NEVER sent" : "Wildcard rejected in credentials mode → real request never sent"});
+          why = acao==="none"
+            ? "Preflighted requests fail closed: without server approval, the actual request doesn't go out at all. Compare that with the simple-request case, which is always sent."
+            : "With credentials: include, the browser demands the exact origin plus Allow-Credentials: true. A wildcard answer fails the preflight.";
+        } else {
+          out += wire("res", "preflight response", acaoLine + "\nAccess-Control-Allow-Methods: GET, POST, PUT\nAccess-Control-Allow-Headers: authorization, content-type\nAccess-Control-Max-Age: 3600", {ok:true, text:"Approved — cached for 1 hour"});
+          out += wire("req", "actual request", method + " /api/transfer HTTP/1.1\nHost: api.bank.com\n" + reqHeaders, {ok:true, text:"Sent — and response readable by the script"});
+          why = "One extra round trip, then Access-Control-Max-Age caches the approval. This is the everyday SPA-to-API pattern: JSON POSTs and Authorization headers always preflight.";
+        }
+      } else {
+        out += wire("req", "simple request — sent immediately, no preflight",
+          method + " /api/transfer HTTP/1.1\nHost: api.bank.com\n" + reqHeaders, {ok:true, text:"Sent — simple requests always go out"});
+        out += wire("res", "response", acaoLine, {ok:readable, text: readable ? "Script may read the response" : "Executed server-side — but the READ is blocked"});
+        why = readable
+          ? (acao==="star" ? "Wildcard works here only because no credentials rode along." : "Exact origin match — full access.")
+          : "The request was processed. The server did the work, state changed if it was going to. Only the script's view of the response is withheld — which is why CORS is not a CSRF defence.";
+      }
+      document.getElementById("cp-out").innerHTML = out + '<div class="callout" style="background:var(--panel)">' + why + '</div>';
+    }
+    el.addEventListener("click", function(e){
+      const b = e.target.closest("button"); if(!b) return;
+      if(b.hasAttribute("data-m")) method = b.getAttribute("data-m");
+      else if(b.hasAttribute("data-c")) ctype = b.getAttribute("data-c");
+      else if(b.hasAttribute("data-a")) auth = !auth;
+      else if(b.hasAttribute("data-cr")) creds = !creds;
+      else if(b.hasAttribute("data-o")) acao = b.getAttribute("data-o");
+      else return;
+      update();
+    });
+    update();
+  },
+
+  "xss-blast": function(el){
+    let store = "local";
+    el.innerHTML =
+      '<h4>XSS blast radius</h4>' +
+      '<p class="hint">Same injected payload, three places to keep the session credential. What does the attacker\'s script get?</p>' +
+      '<div class="opt-row"><span class="opt-label">Credential stored in</span>' +
+      '<button data-st="local">localStorage</button><button data-st="cookie">Cookie (no HttpOnly)</button><button data-st="httponly">Cookie + HttpOnly</button></div>' +
+      '<div id="xb-out"></div>';
+    function update(){
+      el.querySelectorAll("[data-st]").forEach(function(b){ b.classList.toggle("sel", b.getAttribute("data-st")===store); });
+      const stolen = store !== "httponly";
+      const lines =
+        '<span class="hl-dim">// attacker\'s injected script, running inside app.bank.com:</span>\n' +
+        'localStorage.getItem("token")\n' +
+        '<span class="' + (store==="local" ? 'hl-cookie' : 'hl-dim') + '">  → ' + (store==="local" ? '"eyJhbGciOi…"   // exfiltrated' : 'null') + '</span>\n' +
+        'document.cookie\n' +
+        '<span class="' + (store==="cookie" ? 'hl-cookie' : 'hl-dim') + '">  → ' + (store==="cookie" ? '"SESSION=9f2c…e1"   // exfiltrated' : '""   (HttpOnly cookies are invisible here)') + '</span>\n' +
+        'fetch("/api/transfer", {method:"POST", …})\n' +
+        '<span class="hl-cookie">  → 200 OK   // session-riding works in ALL three cases</span>';
+      document.getElementById("xb-out").innerHTML =
+        '<div class="wire"><div class="wire-head"><span class="wire-dir req">▲ PAYLOAD</span><span>what the injected script can reach</span></div><pre>' + lines + '</pre>' +
+        '<div class="verdict ' + (stolen ? "no" : "ok") + '"><span class="dot"></span>' +
+        (stolen ? "Credential exfiltrated — replayable from the attacker's machine until expiry" : "No exfiltration — attacker limited to riding the session while the tab is open") +
+        '</div></div>' +
+        '<div class="callout" style="background:var(--panel)">' +
+        (store==="local" ? "localStorage has no HttpOnly equivalent — readability is the API. A stolen refresh token here means long-term account takeover from anywhere."
+         : store==="cookie" ? "One missing attribute and document.cookie hands the session over. HttpOnly costs nothing; there is no reason to omit it on a session cookie."
+         : "The bounded outcome: still an incident, but no portable stolen credential, visible to your session controls, and over when the session ends. Module 07 pairs this with rotation + reuse detection.") +
+        '</div>';
+    }
+    el.addEventListener("click", function(e){
+      const b = e.target.closest("button"); if(!b || !b.hasAttribute("data-st")) return;
+      store = b.getAttribute("data-st"); update();
+    });
+    update();
+  },
+
+  "csrf-replay": function(el){
+    let ss = "None", token = false, origin = false;
+    el.innerHTML =
+      '<h4>CSRF attack replay</h4>' +
+      '<p class="hint">evil.example auto-submits a transfer form at app.bank.com. Toggle defences; find every configuration that stops it.</p>' +
+      '<div class="opt-row"><span class="opt-label">Session cookie SameSite</span><button data-ss="None">None</button><button data-ss="Lax">Lax</button></div>' +
+      '<div class="opt-row"><span class="opt-label">Server-side checks</span><button data-tk="1">CSRF token required</button><button data-or="1">Origin header validated</button></div>' +
+      '<div id="cr-out"></div>';
+    function update(){
+      el.querySelectorAll("[data-ss]").forEach(function(b){ b.classList.toggle("sel", b.getAttribute("data-ss")===ss); });
+      el.querySelectorAll("[data-tk]").forEach(function(b){ b.classList.toggle("sel", token); });
+      el.querySelectorAll("[data-or]").forEach(function(b){ b.classList.toggle("sel", origin); });
+
+      const steps = [];
+      steps.push({ ok:true, t:"Victim logs into app.bank.com — session cookie stored" });
+      steps.push({ ok:true, t:"Victim opens evil.example; hidden form auto-submits POST /transfer" });
+      let dead = false, endText = "";
+      if(ss === "Lax"){
+        steps.push({ ok:false, t:"Browser withholds the cookie: SameSite=Lax blocks cross-site POSTs" });
+        steps.push({ ok:false, t:"Request arrives anonymous → 401. Attack dead in the browser." });
+        dead = true; endText = "Stopped client-side — the cookie never left home.";
+      } else {
+        steps.push({ ok:true, t:"Browser attaches the session cookie (SameSite=None) — request arrives authenticated" });
+        if(origin && !dead){
+          steps.push({ ok:false, t:"Server checks Origin: https://evil.example — not on the allow-list → 403" });
+          dead = true; endText = "Stopped by Origin validation. The browser stamped the header; pages can't forge it.";
+        }
+        if(token && !dead){
+          steps.push({ ok:false, t:"Server expects the CSRF token — the attacker could send the form but never read your page to obtain it (SOP) → 403" });
+          dead = true; endText = "Stopped by the synchronizer token — SOP's read barrier, working for you.";
+        }
+        if(!dead){
+          steps.push({ ok:true, t:"Well-formed, authenticated request, no further checks — transfer executes" });
+          endText = "€9,000 to the attacker. The server had no way to tell this request from a real one.";
+        }
+      }
+      document.getElementById("cr-out").innerHTML =
+        '<div class="wire"><div class="wire-head"><span class="wire-dir req">▲ REPLAY</span><span>step by step</span></div>' +
+        '<div style="padding:12px 14px;font-size:14px;line-height:1.9">' +
+        steps.map(function(s, i){
+          return '<div style="display:flex;gap:10px"><span style="font-family:var(--mono);color:' + (s.ok ? 'var(--ink-soft)' : 'var(--no)') + '">' + (i+1) + '.</span><span style="color:' + (s.ok ? 'inherit' : 'var(--no)') + '">' + s.t + '</span></div>';
+        }).join('') +
+        '</div><div class="verdict ' + (dead ? "ok" : "no") + '"><span class="dot"></span>' + (dead ? "Attack blocked" : "Attack succeeds") + '</div></div>' +
+        '<div class="callout" style="background:var(--panel)">' + endText + (dead ? " Defence in depth means not relying on this layer alone — every toggle here fails somewhere (see the layers below)." : "") + '</div>';
+    }
+    el.addEventListener("click", function(e){
+      const b = e.target.closest("button"); if(!b) return;
+      if(b.hasAttribute("data-ss")) ss = b.getAttribute("data-ss");
+      else if(b.hasAttribute("data-tk")) token = !token;
+      else if(b.hasAttribute("data-or")) origin = !origin;
+      else return;
+      update();
+    });
+    update();
+  },
+
+  "jwt-anatomy": function(el){
+    let part = "payload", tampered = false;
+    const decoded = {
+      header: '{\n  "alg": "RS256",\n  "typ": "JWT",\n  "kid": "2026-07-key1"\n}',
+      payload: '{\n  "sub": "42",\n  "iss": "https://auth.bank.com",\n  "aud": ["accounts-api"],\n  "roles": ["<span id="ja-role">customer</span>"],\n  "iat": 1753142400,\n  "exp": 1753143000\n}',
+      signature: '<span class="hl-dim">RSASSA-PKCS1-v1_5( SHA-256( header + "." + payload ), privateKey )\n\nVerified with the PUBLIC key from the JWKS endpoint —\nonly the auth server can produce it; anyone can check it.</span>'
+    };
+    const notes = {
+      header:  "<strong>Header</strong> — algorithm and key ID. Attacker-controlled bytes: the verifier must pin the expected algorithm, never honour this field.",
+      payload: "<strong>Payload</strong> — the claims. Plain JSON behind base64url: anyone holding the token reads it. The signature makes it tamper-<em>evident</em>, not secret.",
+      signature: "<strong>Signature</strong> — covers header + payload exactly as encoded. Change one character anywhere and verification fails."
+    };
+    el.innerHTML =
+      '<h4>JWT anatomy</h4>' +
+      '<p class="hint">Tap a segment to decode it. Then promote yourself and see what the signature thinks.</p>' +
+      '<div class="anatomy" style="white-space:normal;word-break:break-all">' +
+      '<span data-p="header" style="color:#F87171">eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9</span>' +
+      '<span style="color:#8A90AD">.</span>' +
+      '<span data-p="payload" style="color:#A78BFA">eyJzdWIiOiI0MiIsInJvbGVzIjpbImN1c3RvbWVyIl19</span>' +
+      '<span style="color:#8A90AD">.</span>' +
+      '<span data-p="signature" style="color:#34D399">SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV…</span></div>' +
+      '<div class="opt-row"><button id="ja-tamper">Tamper: roles → ["admin"]</button></div>' +
+      '<div id="ja-body"></div>';
+    function render(){
+      const body = decoded[part].replace('>customer<', tampered ? ' style="color:#F87171">admin<' : '>customer<');
+      document.getElementById("ja-body").innerHTML =
+        '<div class="wire"><div class="wire-head"><span class="wire-dir res">▼ DECODED</span><span>' + part + '</span></div><pre>' + body + '</pre>' +
+        (tampered
+          ? '<div class="verdict no"><span class="dot"></span>Signature check FAILS — payload no longer matches what was signed. Token rejected.</div>'
+          : '<div class="verdict ok"><span class="dot"></span>Signature valid — claims are exactly as the auth server minted them.</div>') +
+        '</div><div class="anatomy-note">' + notes[part] +
+        (tampered ? " <strong>The edit was trivial to make — and useless.</strong> Forging requires the private key, which never leaves the auth server." : "") + '</div>';
+      el.querySelectorAll("[data-p]").forEach(function(s){ s.classList.toggle("active", s.getAttribute("data-p")===part); });
+      document.getElementById("ja-tamper").textContent = tampered ? "Restore: roles → [\"customer\"]" : "Tamper: roles → [\"admin\"]";
+    }
+    el.addEventListener("click", function(e){
+      const p = e.target.closest("[data-p]");
+      if(p){ part = p.getAttribute("data-p"); render(); return; }
+      if(e.target.closest("#ja-tamper")){ tampered = !tampered; part = "payload"; render(); }
+    });
+    render();
+  },
+
+  "refresh-rotate": function(el){
+    let sim;
+    el.innerHTML =
+      '<h4>Rotation &amp; reuse detection</h4>' +
+      '<p class="hint">Play the happy path, then steal a token and replay it.</p>' +
+      '<div class="opt-row">' +
+      '<button data-act="api">Call API</button>' +
+      '<button data-act="expire">10 min pass</button>' +
+      '<button data-act="refresh">Refresh</button>' +
+      '<button data-act="steal">Attacker steals current RT</button>' +
+      '<button data-act="replay">Attacker replays it</button>' +
+      '<button data-act="reset">Reset</button></div>' +
+      '<div id="rr-state" class="anatomy" style="white-space:normal"></div>' +
+      '<div class="wire"><div class="wire-head"><span class="wire-dir res">▼ EVENT LOG</span><span>server\'s view</span></div>' +
+      '<div id="rr-log" style="padding:12px 14px;font-size:13.5px;line-height:1.9;font-family:var(--mono)"></div></div>';
+
+    function reset(){
+      sim = { current:1, userRT:1, attackerRT:null, accessValid:true, familyAlive:true, log:[] };
+      log("ok", "Login → family F1 created, RT-1 issued to user, access token minted (TTL 10 min)");
+      render();
+    }
+    function log(kind, text){ sim.log.push({kind:kind, text:text}); }
+    function render(){
+      document.getElementById("rr-state").innerHTML =
+        "Access token: " + (sim.accessValid ? '<span style="color:#34D399">valid</span>' : '<span style="color:#F87171">expired</span>') +
+        " &nbsp;·&nbsp; User holds: RT-" + sim.userRT +
+        " &nbsp;·&nbsp; Server's live token: RT-" + sim.current +
+        " &nbsp;·&nbsp; Family F1: " + (sim.familyAlive ? '<span style="color:#34D399">alive</span>' : '<span style="color:#F87171">REVOKED</span>') +
+        (sim.attackerRT ? " &nbsp;·&nbsp; Attacker holds: RT-" + sim.attackerRT : "");
+      document.getElementById("rr-log").innerHTML = sim.log.map(function(e){
+        const c = e.kind==="ok" ? "#34D399" : e.kind==="warn" ? "#FBBF24" : "#F87171";
+        return '<div style="color:' + c + '">› ' + e.text + '</div>';
+      }).join("");
+    }
+    el.addEventListener("click", function(e){
+      const b = e.target.closest("[data-act]"); if(!b) return;
+      const act = b.getAttribute("data-act");
+      if(act==="reset"){ reset(); return; }
+      if(act==="api"){
+        if(sim.accessValid) log("ok", "GET /api/accounts + Bearer access → 200 (verified locally, no lookup)");
+        else log("bad", "GET /api/accounts → 401 token expired. Client should refresh.");
+      }
+      if(act==="expire"){ sim.accessValid = false; log("warn", "Access token TTL elapsed"); }
+      if(act==="refresh"){
+        if(!sim.familyAlive){ log("bad", "User: POST /auth/refresh (cookie: RT-" + sim.userRT + ") → 401. Family F1 revoked — full login required."); }
+        else if(sim.userRT === sim.current){
+          sim.current++; sim.userRT = sim.current; sim.accessValid = true;
+          log("ok", "User: POST /auth/refresh (cookie: RT-" + (sim.current-1) + ") → marked USED, RT-" + sim.current + " issued, new access token");
+        } else {
+          sim.familyAlive = false;
+          log("bad", "User presents RT-" + sim.userRT + " — already USED (the attacker spent it first). Reuse detected → FAMILY F1 REVOKED");
+          log("warn", "The attacker's stolen session dies with the family. User re-authenticates and carries on — theft detected, not silent.");
+        }
+      }
+      if(act==="steal"){
+        sim.attackerRT = sim.userRT;
+        log("warn", "(off the wire) attacker obtains a copy of RT-" + sim.userRT + " — server sees nothing yet");
+      }
+      if(act==="replay"){
+        if(sim.attackerRT === null){ log("warn", "Attacker holds nothing — steal a token first"); }
+        else if(!sim.familyAlive){ log("bad", "Attacker replays RT-" + sim.attackerRT + " → 401. Family already revoked."); }
+        else if(sim.attackerRT === sim.current){
+          sim.current++; sim.attackerRT = sim.current;
+          log("bad", "Attacker replays RT-" + (sim.current-1) + " FIRST — still unused, server can't tell → rotated to RT-" + sim.current + ", attacker gets an access token");
+          log("warn", "But the real user still holds RT-" + sim.userRT + ". Their next Refresh presents a spent token → reuse detection. Try it.");
+        } else {
+          sim.familyAlive = false;
+          log("bad", "Attacker replays RT-" + sim.attackerRT + " — token already USED. Reuse = two parties hold copies → FAMILY F1 REVOKED");
+          log("warn", "Next refresh from anyone fails: user re-logs in and carries on; attacker is out. Theft detected, not silent.");
+        }
+      }
+      render();
+    });
+    reset();
+  },
+
+  "dual-auth-router": function(el){
+    let cred = "cookie";
+    el.innerHTML =
+      '<h4>Credential router</h4>' +
+      '<p class="hint">POST /api/transfer arrives. What\'s attached decides everything downstream.</p>' +
+      '<div class="opt-row"><span class="opt-label">Request carries</span>' +
+      '<button data-cr="cookie">Session cookie</button>' +
+      '<button data-cr="bearer">Bearer token</button>' +
+      '<button data-cr="both">Both</button>' +
+      '<button data-cr="none">Neither</button></div>' +
+      '<div id="da-out"></div>';
+    function update(){
+      el.querySelectorAll("[data-cr]").forEach(function(b){ b.classList.toggle("sel", b.getAttribute("data-cr")===cred); });
+      const hdrs = {
+        cookie: '<span class="hl-cookie">Cookie: __Host-SESSION=9f2c…e1</span>\nX-XSRF-TOKEN: 7d41…',
+        bearer: 'Authorization: Bearer eyJhbGciOi…',
+        both:   'Authorization: Bearer eyJhbGciOi…\n<span class="hl-cookie">Cookie: __Host-SESSION=9f2c…e1</span>',
+        none:   '<span class="hl-dim">(no credentials)</span>'
+      }[cred];
+      let steps, verdictOk, verdictText, why;
+      if(cred==="bearer" || cred==="both"){
+        steps = [
+          {ok:true, t:"Authorization: Bearer present → token path selected" + (cred==="both" ? " — cookie deliberately IGNORED (deterministic rule, decided once)" : "")},
+          {ok:true, t:"JWT verified locally: signature, exp, iss, aud (module 06) — no session lookup"},
+          {ok:true, t:"CSRF check SKIPPED — safe: no cross-site page can set this header (forms can't; fetch would preflight)"}
+        ];
+        verdictOk = true; verdictText = "200 — token path, stateless";
+        why = cred==="both"
+          ? "The combination must never create a third behaviour. Bearer wins, cookie ignored — never 'authenticate via cookie but skip CSRF because a Bearer header existed'. That mixed reading is a real bypass class."
+          : "The mobile/service path: explicit credential, CSRF structurally impossible, verified without shared state.";
+      } else if(cred==="cookie"){
+        steps = [
+          {ok:true, t:"No Authorization header → session path selected"},
+          {ok:true, t:"Session cookie resolves server-side session (module 06's session model)"},
+          {ok:true, t:"State-changing method + cookie auth → CSRF token REQUIRED and validated (module 05)"},
+          {ok:true, t:"SameSite=Lax already filtered cross-site delivery in the browser (module 02)"}
+        ];
+        verdictOk = true; verdictText = "200 — session path, CSRF enforced";
+        why = "The browser path: automatic credential, therefore the full CSRF machinery applies. This is the row the /api/** exemption foot-gun silently breaks.";
+      } else {
+        steps = [
+          {ok:true, t:"No Authorization header, no session cookie"},
+          {ok:false, t:"No credential path matches → reject before any handler runs"}
+        ];
+        verdictOk = false; verdictText = "401 — unauthenticated";
+        why = "Fail closed and early. An unauthenticated request should never reach business logic wondering which model applies.";
+      }
+      document.getElementById("da-out").innerHTML =
+        wire("req", "as received", "POST /api/transfer HTTP/1.1\nHost: api.bank.com\n" + hdrs, null) +
+        '<div class="wire"><div class="wire-head"><span class="wire-dir res">▼ FILTER CHAIN</span><span>decision</span></div>' +
+        '<div style="padding:12px 14px;font-size:14px;line-height:1.9">' +
+        steps.map(function(s,i){ return '<div style="display:flex;gap:10px"><span style="font-family:var(--mono);color:' + (s.ok ? 'var(--ink-soft)' : 'var(--no)') + '">' + (i+1) + '.</span><span style="color:' + (s.ok ? 'inherit' : 'var(--no)') + '">' + s.t + '</span></div>'; }).join('') +
+        '</div><div class="verdict ' + (verdictOk ? "ok" : "no") + '"><span class="dot"></span>' + verdictText + '</div></div>' +
+        '<div class="callout" style="background:var(--panel)">' + why + '</div>';
+    }
+    el.addEventListener("click", function(e){
+      const b = e.target.closest("[data-cr]"); if(!b) return;
+      cred = b.getAttribute("data-cr"); update();
+    });
+    update();
+  },
+
+  "clickjack-demo": function(el){
+    let opacity = 0, blocked = false, msg = "";
+    el.innerHTML =
+      '<h4>Clickjacking, live</h4>' +
+      '<p class="hint">You are the victim on evil.example. The slider reveals what\'s really under your cursor; the attacker ships it at 0%.</p>' +
+      '<div class="opt-row"><span class="opt-label">Bank layer opacity (attacker sets 0%)</span>' +
+      '<input type="range" id="cj-op" min="0" max="100" value="0" style="width:200px"></div>' +
+      '<div class="opt-row"><button id="cj-fa">Bank sends frame-ancestors \'none\'</button></div>' +
+      '<div id="cj-stage" style="position:relative;height:230px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:#fff"></div>' +
+      '<div class="sim-result" id="cj-res" style="margin-top:10px"></div>';
+    const stage = el.querySelector("#cj-stage");
+    function render(){
+      const evilLayer =
+        '<div style="position:absolute;inset:0;padding:20px;background:linear-gradient(135deg,#FFF7E0,#FFE9EC)">' +
+        '<div style="font-family:var(--disp);font-weight:700;font-size:18px">🎁 evil.example — CONGRATULATIONS!</div>' +
+        '<div style="font-size:13px;color:var(--ink-soft);margin:6px 0 18px">You are visitor 1,000,000. Claim your free toaster:</div>' +
+        '<button id="cj-prize" style="padding:12px 22px;border-radius:8px;border:none;background:#E0447C;color:#fff;font-family:var(--disp);font-weight:700;font-size:15px;cursor:pointer">CLAIM PRIZE →</button>' +
+        '</div>';
+      const bankLayer = blocked
+        ? '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:repeating-linear-gradient(45deg,#F2F3F8,#F2F3F8 10px,#E9EBF3 10px,#E9EBF3 20px);font-family:var(--mono);font-size:13px;color:var(--ink-soft);text-align:center;padding:20px">app.bank.com refused to connect<br>— frame-ancestors \'none\' —<br>(iframe left empty; the prize button below is now just a prize button)</div>'
+        : '<div id="cj-bank" style="position:absolute;inset:0;opacity:' + (opacity/100) + ';background:#fff;padding:20px;border-left:4px solid var(--indigo)">' +
+          '<div style="font-family:var(--disp);font-weight:700;font-size:16px">app.bank.com — confirm payment</div>' +
+          '<div style="font-size:13px;color:var(--ink-soft);margin:6px 0 14px">Transfer <strong>$9,000.00</strong> to AT61…4471 (attacker)?<br>Session: authenticated ✓ (your cookies attach — a framed page is still your page)</div>' +
+          '<button id="cj-confirm" style="padding:12px 22px;border-radius:8px;border:none;background:var(--indigo);color:#fff;font-family:var(--disp);font-weight:700;font-size:15px;cursor:pointer">CONFIRM →</button>' +
+          '</div>';
+      // bank iframe layer sits ON TOP: invisible but clickable — that's the attack
+      stage.innerHTML = blocked ? (bankLayer.replace('position:absolute;inset:0', 'position:absolute;inset:0;z-index:2;pointer-events:none') + evilLayer) : (evilLayer + bankLayer);
+      el.querySelector("#cj-fa").classList.toggle("sel", blocked);
+      const prize = stage.querySelector("#cj-prize");
+      if(prize) prize.addEventListener("click", function(){
+        msg = verdict(true, "Nothing happens — an actual toaster button. With framing refused, there is no invisible bank page to click through to.");
+        document.getElementById("cj-res").innerHTML = msg;
+      });
+      const confirm = stage.querySelector("#cj-confirm");
+      if(confirm) confirm.addEventListener("click", function(){
+        msg = verdict(false, "You just confirmed a $9,000 transfer. You aimed at CLAIM PRIZE — but the bank's Confirm button was layered invisibly on top, and your click, cookies and all, went to it. " + (opacity>0 ? "" : "Drag the slider to see what you actually clicked."));
+        document.getElementById("cj-res").innerHTML = msg;
+      });
+      document.getElementById("cj-res").innerHTML = msg;
+    }
+    el.querySelector("#cj-op").addEventListener("input", function(e){
+      opacity = parseInt(e.target.value, 10);
+      const bank = stage.querySelector("#cj-bank");
+      if(bank) bank.style.opacity = opacity/100;
+    });
+    el.querySelector("#cj-fa").addEventListener("click", function(){
+      blocked = !blocked; msg = ""; render();
+    });
+    render();
+  }
+};
+
+/* ---------- shared render helpers ---------- */
+function wire(dir, label, body, v){
+  return '<div class="wire">' +
+    '<div class="wire-head"><span class="wire-dir ' + dir + '">' + (dir==="req" ? "▲ REQUEST" : "▼ RESPONSE") + '</span><span>' + label + '</span></div>' +
+    '<pre>' + body + '</pre>' +
+    (v ? '<div class="verdict ' + (v.ok ? "ok" : "no") + '"><span class="dot"></span>' + v.text + '</div>' : '') +
+    '</div>';
+}
+function verdict(ok, text){
+  return '<div class="verdict ' + (ok ? "ok" : "no") + '" style="border:1px solid var(--line);border-radius:8px"><span class="dot"></span>' + text + '</div>';
+}
+
+/* ---------- nav + module rendering ---------- */
+function renderNav(){
+  const nav = document.getElementById("modNav");
+  nav.innerHTML = "";
+  COURSE.modules.forEach(function(m, idx){
+    const b = document.createElement("button");
+    b.textContent = m.code + " " + m.title;
+    b.className = (idx===current ? "active " : "") + (state.done[m.id] ? "done" : "");
+    b.addEventListener("click", function(){ current = idx; renderModule(); window.scrollTo({top:0}); });
+    nav.appendChild(b);
+  });
+  const doneCount = COURSE.modules.filter(function(m){ return state.done[m.id]; }).length;
+  document.getElementById("progressPill").textContent = doneCount + " / " + COURSE.modules.length + " modules";
+}
+
+function renderModule(){
+  const m = COURSE.modules[current];
+  const root = document.getElementById("content");
+  root.innerHTML = "";
+
+  const head = document.createElement("div");
+  head.className = "mod-head";
+  head.innerHTML = '<div class="mod-code">MODULE ' + m.code + '</div><h1 class="mod-title">' + m.title + '</h1><div class="mod-sub">' + m.sub + '</div>';
+  root.appendChild(head);
+
+  if(m.placeholder){
+    const ph = document.createElement("div");
+    ph.className = "placeholder-note";
+    ph.textContent = "Module " + m.code + " — coming in the next build session.";
+    root.appendChild(ph);
+  } else {
+    (m.sections || []).forEach(function(sec){
+      if(sec.md){
+        const src = document.getElementById(sec.md);
+        const div = document.createElement("div");
+        div.className = "md";
+        div.innerHTML = marked.parse(src ? src.textContent.replace(/<\\\//g, "</") : "_missing block: " + sec.md + "_");
+        root.appendChild(div);
+      } else if(sec.widget){
+        const div = document.createElement("div");
+        div.className = "widget";
+        root.appendChild(div);
+        if(WIDGETS[sec.widget]) WIDGETS[sec.widget](div);
+        else div.textContent = "missing widget: " + sec.widget;
+      }
+    });
+    if(m.quiz && m.quiz.length) renderQuiz(m, root);
+  }
+
+  const foot = document.createElement("div");
+  foot.className = "mod-footer";
+  const prev = document.createElement("button");
+  prev.textContent = "← Previous";
+  prev.disabled = current === 0;
+  prev.addEventListener("click", function(){ current--; renderModule(); window.scrollTo({top:0}); });
+  const doneBtn = document.createElement("button");
+  doneBtn.className = "primary";
+  doneBtn.textContent = state.done[m.id] ? "Completed ✓ — next module →" : "Mark complete & continue →";
+  doneBtn.addEventListener("click", function(){
+    state.done[m.id] = true; saveState();
+    if(current < COURSE.modules.length - 1) current++;
+    renderNav(); renderModule(); window.scrollTo({top:0});
+  });
+  foot.appendChild(prev); foot.appendChild(doneBtn);
+  root.appendChild(foot);
+  renderNav();
+}
+
+function renderQuiz(m, root){
+  const wrap = document.createElement("div");
+  wrap.className = "quiz";
+  wrap.innerHTML = '<h2>Quick check</h2><div class="qmeta">' + m.quiz.length + ' questions · answers reveal explanations</div>';
+  let score = 0, answeredCount = 0;
+  m.quiz.forEach(function(q, qi){
+    const qd = document.createElement("div");
+    qd.className = "q";
+    qd.innerHTML = '<div class="q-text">' + (qi+1) + '. ' + q.t + '</div>';
+    const ch = document.createElement("div");
+    ch.className = "choices";
+    const why = document.createElement("div");
+    why.className = "why";
+    q.c.forEach(function(opt){
+      const b = document.createElement("button");
+      b.textContent = opt.x;
+      b.addEventListener("click", function(){
+        if(qd.classList.contains("answered")) return;
+        qd.classList.add("answered");
+        answeredCount++;
+        if(opt.ok){ b.classList.add("picked-ok"); score++; }
+        else {
+          b.classList.add("picked-no");
+          ch.querySelectorAll("button").forEach(function(bb, bi){ if(q.c[bi].ok) bb.classList.add("reveal-ok"); });
+        }
+        why.textContent = opt.why;
+        if(answeredCount === m.quiz.length){
+          const sc = wrap.querySelector(".quiz-score");
+          sc.style.display = "block";
+          sc.textContent = "Score: " + score + " / " + m.quiz.length;
+          state.quiz[m.id] = score; saveState();
+        }
+      });
+      ch.appendChild(b);
+    });
+    qd.appendChild(ch); qd.appendChild(why); wrap.appendChild(qd);
+  });
+  const sc = document.createElement("div");
+  sc.className = "quiz-score";
+  wrap.appendChild(sc);
+  root.appendChild(wrap);
+}
+
+marked.setOptions({ mangle:false, headerIds:false });
+renderNav();
+renderModule();
+</script>
+</body>
+</html>
