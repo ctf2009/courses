@@ -7,14 +7,16 @@ Progress is saved locally in the browser (`localStorage`).
 
 Live (planned): `courses.chrisflaherty.au`
 
+The served site lives in `public/`; everything else is repo tooling.
+
 ## The courses
 
 | File | Title | Modules | Progress key |
 |------|-------|---------|--------------|
-| `index.html` | Hub — "How It Actually Works" | — | reads the three below |
-| `llm-course.html` | How Does an LLM Work? | 12 + bonus | `llm-course-done` (flat) |
-| `rag-course.html` | How RAG Actually Works | 18 | `rag-course-done` (flat) |
-| `websec-course.html` | Web Security — Cookies, CORS, CSRF & Token Auth | 10 | `websec-progress-v1` (`.done`) |
+| `public/index.html` | Hub — "How It Actually Works" | — | reads the three below |
+| `public/llm-course.html` | How Does an LLM Work? | 12 + bonus | `llm-course-done` (flat) |
+| `public/rag-course.html` | How RAG Actually Works | 18 | `rag-course-done` (flat) |
+| `public/websec-course.html` | Web Security — Cookies, CORS, CSRF & Token Auth | 10 | `websec-progress-v1` (`.done`) |
 
 ## The invariant (please keep it)
 
@@ -30,11 +32,11 @@ for display, IBM Plex Sans/Mono for body/code. Each course carries an accent col
 
 ## Adding a course
 
-1. Create `your-course.html` as a single self-contained page following the shared
-   design system. Vendor any library inline (see below).
+1. Create `public/your-course.html` as a single self-contained page following the
+   shared design system. Vendor any library inline (see below).
 2. Give it a stable `localStorage` progress key.
-3. Add a card to `index.html` (topic label, title, one-line arc, module count, and
-   wire its progress bar).
+3. Add a card to `public/index.html` (topic label, title, one-line arc, module count,
+   and wire its progress bar).
 
 ## Curation log
 
@@ -47,5 +49,13 @@ for display, IBM Plex Sans/Mono for body/code. Each course carries an accent col
 
 ## Hosting
 
-Static site. Deploy mechanism TBD (Cloudflare — matching `chrisflaherty.au` — or
-GitHub Pages, matching `togaf-10`). Nothing here needs a build step.
+Cloudflare Workers static site (mirrors `chrisflaherty-site`): `worker.js` serves
+`public/` via `@cloudflare/kv-asset-handler`. `wrangler.toml` declares the
+`courses.chrisflaherty.au` custom domain, so a single `wrangler deploy` provisions
+the DNS + cert (the `chrisflaherty.au` zone must be in the same Cloudflare account).
+
+```
+npm install
+npm run dev      # local preview
+npm run deploy   # publish to courses.chrisflaherty.au
+```

@@ -1,0 +1,14 @@
+name = "courses-chrisflaherty"
+main = "worker.js"
+compatibility_date = "2026-02-26"
+workers_dev = false
+preview_urls = false
+
+# Provisions courses.chrisflaherty.au (DNS + cert) on `wrangler deploy`.
+# Requires the chrisflaherty.au zone to be in the same Cloudflare account.
+routes = [
+  { pattern = "courses.chrisflaherty.au", custom_domain = true }
+]
+
+[site]
+bucket = "./public"
