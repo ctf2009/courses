@@ -1,11 +1,11 @@
 # How It Actually Works — courses
 
-A small, growing set of **self-contained, interactive, build-from-zero** technical
-courses. Each course is a single HTML page you can open in a browser (or email to
-someone) and it just works — no server, no build step, no accounts, no tracking.
-Progress is saved locally in the browser (`localStorage`).
+A small, growing set of **interactive, build-from-zero** courses — mostly "how does
+this actually work under the bonnet", plus one professional certification course. No
+server, no build step, no accounts, no tracking. Progress is saved locally in the
+browser (`localStorage`).
 
-Live (planned): `courses.chrisflaherty.au`
+Live: <https://courses.chrisflaherty.au>
 
 The served site lives in `public/`; everything else is repo tooling.
 
@@ -13,33 +13,60 @@ The served site lives in `public/`; everything else is repo tooling.
 
 | File | Title | Modules | Progress key |
 |------|-------|---------|--------------|
-| `public/index.html` | Hub — "How It Actually Works" | — | reads the three below |
+| `public/index.html` | Hub — "How It Actually Works" | — | reads the four below |
 | `public/llm-course.html` | How Does an LLM Work? | 12 + bonus | `llm-course-done` (flat) |
 | `public/rag-course.html` | How RAG Actually Works | 18 | `rag-course-done` (flat) |
 | `public/websec-course.html` | Web Security — Cookies, CORS, CSRF & Token Auth | 10 | `websec-progress-v1` (`.done`) |
+| `public/togaf-course.html` | TOGAF 10 — Certification Course | 17 | `togaf10:v1` (`.progress[id].passed`) |
+
+Supporting assets: `public/vendor/` (shared libraries) and `public/artifacts/`
+(downloadable worked deliverables, currently TOGAF's two `.docx` files).
 
 ## The invariant (please keep it)
 
-**Every course must be a single, self-contained HTML file with no external runtime
-dependencies.** The only outbound request any course makes is the shared Google Fonts
-stylesheet (part of the design system). No script/style CDNs, no bundlers, no imports.
-This is what makes the courses portable and durable — vendor anything you need
-*inline* instead of linking a CDN.
+**No course may depend on a third-party host at runtime.** The only outbound request
+any course makes is the shared Google Fonts stylesheet. No CDNs, no bundlers, no
+imports — a course must still work years from now when cdnjs has moved on.
 
-Shared design system: CSS variables (`--ink`, `--bg`, `--accent`, …), Space Grotesk
-for display, IBM Plex Sans/Mono for body/code. Each course carries an accent colour
-(LLM = indigo, RAG = green, Web Security = red).
+Libraries are satisfied one of two ways:
+
+- **Inline** — paste it into the page. Right for small ones; `websec-course.html`
+  carries `marked@12.0.2` this way.
+- **Shared, in `public/vendor/`** — a same-origin `<script src="vendor/…">`. Right for
+  anything large or wanted by more than one course. `mermaid@10.9.0` (3.3MB) and
+  `marked@12.0.2` live here; `togaf-course.html` uses both, and any course is free to.
+
+> Superseded 2026-07-24: the original rule also required each course to be a *single
+> file you could email to someone*. TOGAF broke that regardless — it links downloadable
+> `.docx` artifacts — and inlining 3.3MB of mermaid per course to preserve it was the
+> worse trade. Courses are now same-origin-portable rather than single-file-portable.
+
+Design system: the three how-it-works courses share CSS variables (`--ink`, `--bg`,
+`--accent`, …), Space Grotesk for display and IBM Plex Sans/Mono for body/code. TOGAF
+deliberately keeps its own drafting-vellum identity (Archivo / Source Serif 4 /
+JetBrains Mono) and is tied into the set through the hub card and a shared back-link
+rather than a reskin. Each course carries an accent colour used on its hub card:
+LLM = indigo, RAG = green, Web Security = red, TOGAF = ink blue.
 
 ## Adding a course
 
-1. Create `public/your-course.html` as a single self-contained page following the
-   shared design system. Vendor any library inline (see below).
+1. Create `public/your-course.html` following the shared design system (or a
+   deliberate one of its own, as TOGAF does). Satisfy any library inline or via
+   `public/vendor/` — never from a CDN.
 2. Give it a stable `localStorage` progress key.
 3. Add a card to `public/index.html` (topic label, title, one-line arc, module count,
-   and wire its progress bar).
+   and wire its progress bar). Note the hub's two counting helpers: `count()` for flat
+   `{id: true}` keys, `countPassed()` for TOGAF-style `{id: {score, max, passed}}`.
 
 ## Curation log
 
+- **2026-07-24 — absorbed the TOGAF 10 course.** It previously lived in its own repo
+  (`ctf2009/togaf-10`) on GitHub Pages; that Pages site has been taken down and the
+  course now serves from here. Brought its two `.docx` artifacts across, moved its
+  `marked` + `mermaid` off cdnjs into `public/vendor/`, and amended the invariant above
+  to allow shared vendored assets. Widened the hub umbrella to admit a certification
+  course alongside the three how-it-works ones. TOGAF's own visual identity was kept
+  intentionally — see Design system.
 - **2026-07-23 — first manual curation pass** (the pattern the Zora "Curate Domain"
   will later automate): promoted the hub from a hardcoded "two-course set" to a
   count-free, extensible "How It Actually Works" umbrella; un-orphaned

@@ -10,7 +10,7 @@
 <style>
   :root{
     --ink:#1A1B2E;--bg:#F6F7FB;--surface:#FFFFFF;--muted:#6B6E87;--line:#E4E6F0;
-    --accent:#5B5BD6;--accent-deep:#4A45B8;--accent-soft:#ECECFB;--win:#D98A1F;--win-soft:#FBEFD8;--sparse:#2E8B6F;--sparse-soft:#E7F4EF;--sec:#C0453F;--sec-soft:#F6E4E3;
+    --accent:#5B5BD6;--accent-deep:#4A45B8;--accent-soft:#ECECFB;--win:#D98A1F;--win-soft:#FBEFD8;--sparse:#2E8B6F;--sparse-soft:#E7F4EF;--sec:#C0453F;--sec-soft:#F6E4E3;--arch:#1F5C9E;--arch-soft:#E2EBF4;
     --display:'Space Grotesk',system-ui,sans-serif;--body:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace;
     --shadow:0 1px 2px rgba(26,27,46,.04),0 10px 34px rgba(26,27,46,.07);
   }
@@ -26,26 +26,32 @@
   h1{font-family:var(--display);font-weight:700;font-size:clamp(34px,6vw,52px);line-height:1.04;letter-spacing:-.03em;margin:0 0 18px}
   .lede{font-size:20px;color:var(--ink);max-width:60ch;margin:0 0 12px}
   .sub{font-size:15px;color:var(--muted);max-width:62ch;margin:0 0 44px}
-  .courses{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:20px}
+  /* 340px floor settles the current four courses into a balanced 2x2 rather than 3+1;
+     revisit the floor when a fifth course lands. */
+  .courses{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px}
   .course{background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:26px;display:flex;flex-direction:column;text-decoration:none;color:inherit;transition:transform .15s,box-shadow .15s}
   .course:hover{transform:translateY(-3px);box-shadow:0 4px 8px rgba(26,27,46,.06),0 18px 44px rgba(26,27,46,.12)}
   .course .step{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:8px}
   .course .step .n{width:8px;height:8px;border-radius:2px;background:var(--accent)}
   .course.rag .step{color:var(--sparse)}.course.rag .step .n{background:var(--sparse)}
   .course.sec .step{color:var(--sec)}.course.sec .step .n{background:var(--sec)}
+  .course.arch .step{color:var(--arch)}.course.arch .step .n{background:var(--arch)}
   .course h2{font-family:var(--display);font-weight:700;font-size:24px;letter-spacing:-.02em;margin:14px 0 8px;line-height:1.1}
   .course p{font-size:14.5px;color:var(--muted);margin:0 0 18px;flex:1}
   .course .arc{font-family:var(--mono);font-size:12px;color:var(--ink);background:var(--bg);border-radius:9px;padding:11px 13px;line-height:1.7;margin-bottom:18px}
   .pbar{height:6px;background:var(--accent-soft);border-radius:4px;overflow:hidden;margin-bottom:6px}
   .course.rag .pbar{background:var(--sparse-soft)}
   .course.sec .pbar{background:var(--sec-soft)}
+  .course.arch .pbar{background:var(--arch-soft)}
   .pbar i{display:block;height:100%;width:0;background:var(--accent);border-radius:4px;transition:width .6s}
   .course.rag .pbar i{background:var(--sparse)}
   .course.sec .pbar i{background:var(--sec)}
+  .course.arch .pbar i{background:var(--arch)}
   .pmeta{font-family:var(--mono);font-size:11px;color:var(--muted);display:flex;justify-content:space-between;margin-bottom:18px}
   .go{display:inline-flex;align-items:center;gap:7px;font-family:var(--body);font-weight:600;font-size:14.5px;color:#fff;background:var(--accent);border-radius:10px;padding:11px 18px;align-self:flex-start}
   .course.rag .go{background:var(--sparse)}
   .course.sec .go{background:var(--sec)}
+  .course.arch .go{background:var(--arch)}
   .order{margin-top:36px;font-size:14px;color:var(--muted);background:var(--accent-soft);border-radius:12px;padding:16px 18px}
   .order b{color:var(--accent-deep);font-weight:600}
   .foot{margin-top:40px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:20px}
@@ -57,9 +63,9 @@
   <a class="home-link" href="https://chrisflaherty.au">← chrisflaherty.au</a>
   <div class="brand"><span class="dot"></span><b>How It Actually Works</b></div>
   <p class="eyebrow">A growing set of build-from-zero courses</p>
-  <h1>Understand the systems you use, from the inside.</h1>
+  <h1>Understand the systems and methods you use, from the inside.</h1>
   <p class="lede">Self-contained, interactive courses that build up from zero — plain words first, the maths and the wire-level detail only when you reach for it.</p>
-  <p class="sub">No lectures, no jargon walls. Every concept comes with something you can poke at: sample a probability distribution, fuse two search rankings, watch a CSRF attack fire and then get blocked.</p>
+  <p class="sub">No lectures, no jargon walls. Every concept comes with something you can poke at: sample a probability distribution, fuse two search rankings, watch a CSRF attack fire and then get blocked, walk a full ADM cycle on a bank in the middle of an acquisition.</p>
 
   <div class="courses">
     <a class="course llm" href="llm-course.html">
@@ -91,9 +97,19 @@
       <div class="pmeta"><span>10 modules</span><span id="websecMeta">not started</span></div>
       <span class="go">Start course →</span>
     </a>
+
+    <a class="course arch" href="togaf-course.html">
+      <div class="step"><span class="n"></span> Architecture · Certification</div>
+      <h2>TOGAF 10</h2>
+      <p>The ADM walked end to end on one running case study, with quizzes, exam technique and worked deliverables you can download. Built for passing the exam, not skimming it.</p>
+      <div class="arc">EA concepts → the ADM → Preliminary → Phase A–H → requirements management → techniques → exam technique → two mock exams</div>
+      <div class="pbar"><i id="togafBar"></i></div>
+      <div class="pmeta"><span>17 modules</span><span id="togafMeta">not started</span></div>
+      <span class="go">Start course →</span>
+    </a>
   </div>
 
-  <div class="order">New here? The two AI courses read best in order — start with <b>How Does an LLM Work?</b>; its closing idea (a model predicts what's <i>plausible</i>, not what's <i>true</i>) is exactly what <b>How RAG Actually Works</b> sets out to fix. <b>Web Security</b> stands on its own — take it whenever.</div>
+  <div class="order">New here? The two AI courses read best in order — start with <b>How Does an LLM Work?</b>; its closing idea (a model predicts what's <i>plausible</i>, not what's <i>true</i>) is exactly what <b>How RAG Actually Works</b> sets out to fix. <b>Web Security</b> and <b>TOGAF 10</b> each stand alone — take them whenever. TOGAF is the odd one out by design: it's exam preparation rather than a look under the bonnet, so it comes with scored quizzes, mock exams and downloadable worked artifacts.</div>
 
   <p class="foot">Every course runs entirely in your browser and saves progress locally. No accounts, no tracking, no build step — one page, open it and go.</p>
 </div>
@@ -102,6 +118,8 @@
 (function(){
   function load(key){try{return JSON.parse(localStorage.getItem(key)||'{}');}catch(e){return {};}}
   function count(o){return Object.keys(o).filter(function(k){return o[k];}).length;}
+  /* togaf stores {score,max,passed} per module, so a truthy value isn't enough — only count passes */
+  function countPassed(o){return Object.keys(o).filter(function(k){return o[k]&&o[k].passed;}).length;}
   function paint(barId,metaId,n,total){
     var pct=total?n/total*100:0;
     var bar=document.getElementById(barId),meta=document.getElementById(metaId);
@@ -112,6 +130,8 @@
   paint('ragBar','ragMeta',Math.min(count(load('rag-course-done')),18),18);
   var ws=load('websec-progress-v1');
   paint('websecBar','websecMeta',Math.min(count(ws.done||{}),10),10);
+  var tg=load('togaf10:v1');
+  paint('togafBar','togafMeta',Math.min(countPassed(tg.progress||{}),17),17);
 })();
 </script>
 </body>
