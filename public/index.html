@@ -17,6 +17,8 @@
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
   .wrap{max-width:920px;margin:0 auto;padding:64px clamp(20px,6vw,48px) 90px}
+  .home-link{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--muted);text-decoration:none;margin-bottom:26px;transition:color .15s,gap .15s}
+  .home-link:hover{color:var(--accent);gap:10px}
   .brand{display:flex;align-items:center;gap:11px;margin-bottom:30px}
   .brand .dot{width:13px;height:13px;border-radius:4px;background:var(--accent);box-shadow:0 0 0 5px var(--accent-soft)}
   .brand b{font-family:var(--display);font-weight:700;font-size:16px;letter-spacing:-.01em}
@@ -52,6 +54,7 @@
 </head>
 <body>
 <div class="wrap">
+  <a class="home-link" href="https://chrisflaherty.au">← chrisflaherty.au</a>
   <div class="brand"><span class="dot"></span><b>How It Actually Works</b></div>
   <p class="eyebrow">A growing set of build-from-zero courses</p>
   <h1>Understand the systems you use, from the inside.</h1>
