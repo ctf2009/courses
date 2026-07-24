@@ -3651,7 +3651,7 @@ function openModule(id){
 function buildQuiz(m){
   const wrap=document.createElement("section"); wrap.className="quiz";
   const head=document.createElement("div"); head.className="quiz-head";
-  head.innerHTML=`<h2>Module quiz</h2><span class="note">${m.quiz.length} questions · Practitioner questions score 5 / 3 / 1 / 0</span>`;
+  head.innerHTML=`<h2>Module quiz</h2><span class="note">${m.quiz.length} questions · Practitioner questions score 5 / 3 / 1 / 0 · answers and rationales unlock at 60%</span>`;
   wrap.appendChild(head);
 
   const picks=new Array(m.quiz.length).fill(null);
@@ -3692,33 +3692,51 @@ function buildQuiz(m){
 
   function grade(){
     submitted=true;
+    /* Score first: a fail keeps the answers and rationales back, so a retake still
+       costs something. Everything unlocks on a pass. */
     let score=0, max=0;
+    m.quiz.forEach((q,qi)=>{
+      if(q.type==="single"){ max+=1; if(picks[qi]===q.answer) score+=1; }
+      else { max+=5; score+=q.options[picks[qi]].pts; }
+    });
+    const pct=Math.round(100*score/max), pass=pct>=60;
+
     m.quiz.forEach((q,qi)=>{
       const card=wrap.querySelectorAll(".qcard")[qi];
       const optEls=card.querySelectorAll(".opt");
       const rat=card.querySelector(".rationale");
       optEls.forEach(o=>o.disabled=true);
       if(q.type==="single"){
-        max+=1;
         const ok=picks[qi]===q.answer;
-        if(ok) score+=1;
-        optEls[q.answer].classList.add("correct");
-        if(!ok) optEls[picks[qi]].classList.add("wrong");
-        rat.innerHTML=marked.parseInline(q.rationale); rat.style.display="block";
+        if(pass){
+          optEls[q.answer].classList.add("correct");
+          if(!ok) optEls[picks[qi]].classList.add("wrong");
+          rat.innerHTML=marked.parseInline(q.rationale); rat.style.display="block";
+        } else {
+          optEls[picks[qi]].classList.add(ok?"correct":"wrong");
+          if(!ok){ rat.textContent="Not right — the answer stays hidden until you pass."; rat.style.display="block"; }
+        }
       } else {
-        max+=5;
-        const got=q.options[picks[qi]].pts; score+=got;
-        q.options.forEach((o,oi)=>{
-          const span=document.createElement("span"); span.className="pts"; span.textContent=o.pts+" pts";
-          optEls[oi].appendChild(span);
-          if(o.pts===5) optEls[oi].classList.add("correct");
-          if(oi===picks[qi] && o.pts<5) optEls[oi].classList.add(o.pts>=3?"sel":"wrong");
-        });
-        rat.innerHTML=q.options.map((o,oi)=>`<strong>${"abcd"[oi]} (${o.pts}):</strong> ${o.why}`).join("<br>");
-        rat.style.display="block";
+        const got=q.options[picks[qi]].pts;
+        if(pass){
+          q.options.forEach((o,oi)=>{
+            const span=document.createElement("span"); span.className="pts"; span.textContent=o.pts+" pts";
+            optEls[oi].appendChild(span);
+            if(o.pts===5) optEls[oi].classList.add("correct");
+            if(oi===picks[qi] && o.pts<5) optEls[oi].classList.add(o.pts>=3?"sel":"wrong");
+          });
+          rat.innerHTML=q.options.map((o,oi)=>`<strong>${"abcd"[oi]} (${o.pts}):</strong> ${o.why}`).join("<br>");
+          rat.style.display="block";
+        } else {
+          /* Show only what their own pick scored — not the whole 5/3/1/0 spread,
+             which would give the ranking away. */
+          const span=document.createElement("span"); span.className="pts"; span.textContent=got+" pts";
+          optEls[picks[qi]].appendChild(span);
+          optEls[picks[qi]].classList.add(got===5?"correct":(got>=3?"sel":"wrong"));
+          if(got<5){ rat.textContent="Not the best answer — the full ranking stays hidden until you pass."; rat.style.display="block"; }
+        }
       }
     });
-    const pct=Math.round(100*score/max), pass=pct>=60;
     result.textContent=`${score}/${max} (${pct}%) — ${pass?"pass — the wheel approves":"below 60% — the wheel demands another lap"}`;
     result.className="result "+(pass?"pass":"fail");
     submit.style.display="none"; reset.style.display="inline-block";

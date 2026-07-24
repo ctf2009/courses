@@ -1744,7 +1744,7 @@ function renderModule(){
 function renderQuiz(m, root){
   const wrap = document.createElement("div");
   wrap.className = "quiz";
-  wrap.innerHTML = '<h2>Quick check</h2><div class="qmeta">' + m.quiz.length + ' questions · answer them all, then submit. Pass to complete the module — retake as often as you like.</div>';
+  wrap.innerHTML = '<h2>Quick check</h2><div class="qmeta">' + m.quiz.length + ' questions · answer them all, then submit. Pass to complete the module — answers unlock when you pass. Retake as often as you like.</div>';
 
   const picks = new Array(m.quiz.length).fill(-1);
   let graded = false;
@@ -1786,22 +1786,31 @@ function renderQuiz(m, root){
   root.appendChild(wrap);
 
   function grade(){
-    let score = 0;
+    /* Score first: what gets revealed depends on whether they passed. */
+    const marks = m.quiz.map(function(q, qi){ return !!(q.c[picks[qi]] && q.c[picks[qi]].ok); });
+    const score = marks.filter(Boolean).length;
+    const max = m.quiz.length, passed = score / max >= 0.6;
     m.quiz.forEach(function(q, qi){
       const el = qEls[qi];
       el.qd.classList.add("answered");
       const btns = el.ch.querySelectorAll("button");
       btns.forEach(function(bb){ bb.disabled = true; bb.classList.remove("picked"); });
       const chosen = picks[qi];
-      if(q.c[chosen] && q.c[chosen].ok){ btns[chosen].classList.add("picked-ok"); score++; }
-      else {
+      if(marks[qi]){
+        btns[chosen].classList.add("picked-ok");
+        el.why.textContent = q.c[chosen].why;                 // safe: they got it right
+      } else if(passed){
         if(btns[chosen]) btns[chosen].classList.add("picked-no");
         btns.forEach(function(bb, bi){ if(q.c[bi].ok) bb.classList.add("reveal-ok"); });
+        el.why.textContent = q.c[chosen] ? q.c[chosen].why : "";
+      } else {
+        /* Failed: flag the miss but keep the answer and its rationale back,
+           so a retake still costs something. */
+        if(btns[chosen]) btns[chosen].classList.add("picked-no");
+        el.why.textContent = "Not right — the answer stays hidden until you pass.";
       }
-      el.why.textContent = q.c[chosen] ? q.c[chosen].why : "";
     });
     graded = true;
-    const max = m.quiz.length, passed = score / max >= 0.6;
     result.textContent = "Score: " + score + " / " + max + (passed ? " — passed ✓" : " — not passed yet");
     result.className = "quiz-result " + (passed ? "pass" : "fail");
     submit.hidden = true; retake.hidden = false;

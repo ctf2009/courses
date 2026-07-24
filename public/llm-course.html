@@ -667,7 +667,7 @@ var MODS = [
 function mathPanel(inner){return `<details class="math"><summary><span class="ic">&#9656;</span> Peek at the notation <span class="hint">optional · no maths genius required</span></summary><div class="math-body">${inner}</div></details>`;}
 function decoder(rows){return `<div class="decoder">${rows.map(function(r){return `<div class="d"><span class="sym">${r[0]}</span><span>${r[1]}</span></div>`;}).join("")}</div>`;}
 function quiz(id,qs){
-  return `<div class="quiz" id="${id}quiz" data-quiz="${id}"><h3>Quick check</h3><p class="caption" style="margin:0">Answer every question, then submit. Pass this to complete the module — you can retake it as often as you like.</p>${
+  return `<div class="quiz" id="${id}quiz" data-quiz="${id}"><h3>Quick check</h3><p class="caption" style="margin:0">Answer every question, then submit. Pass to complete the module — answers and explanations unlock when you pass. Retake as often as you like.</p>${
     qs.map(function(q,i){return `<div class="q" data-c="${q.correct}" data-ok="${esc(q.ok)}" data-no="${esc(q.no)}">
       <p class="stem">${i+1}. ${q.stem}</p>
       ${q.opts.map(function(o,oi){return `<button class="opt" data-o="${oi+1}">${o}</button>`;}).join("")}
@@ -1171,20 +1171,27 @@ function wireQuiz(){
     });
 
     function grade(){
-      var score=0;
+      /* Score first: what gets revealed depends on whether they passed. */
+      var marks=qs.map(function(q,qi){return picks[qi]===+q.dataset.c;});
+      var score=marks.filter(Boolean).length;
+      var max=qs.length,passed=score/max>=PASS_MARK;
       qs.forEach(function(q,qi){
         var c=+q.dataset.c,fb=q.querySelector('.fb');
         var opts=[].slice.call(q.querySelectorAll('.opt'));
         opts.forEach(function(o){o.disabled=true;o.classList.remove('sel');});
-        var ok=picks[qi]===c;
-        if(ok)score++;
-        opts[c-1].classList.add('right');
-        if(!ok&&picks[qi])opts[picks[qi]-1].classList.add('wrong');
-        fb.innerHTML=ok?('✓ '+q.dataset.ok):q.dataset.no;
+        if(passed){
+          opts[c-1].classList.add('right');
+          if(!marks[qi]&&picks[qi])opts[picks[qi]-1].classList.add('wrong');
+          fb.innerHTML=marks[qi]?('✓ '+q.dataset.ok):q.dataset.no;
+        } else {
+          /* Failed: say WHICH ones were missed, but keep the answers back so a retake
+             still costs something. Explanations for the ones they got right are safe. */
+          if(picks[qi])opts[picks[qi]-1].classList.add(marks[qi]?'right':'wrong');
+          fb.innerHTML=marks[qi]?('✓ '+q.dataset.ok):'Not right — the answer stays hidden until you pass.';
+        }
         fb.classList.add('show');
       });
       graded=true;
-      var max=qs.length,passed=score/max>=PASS_MARK;
       result.textContent=score+' / '+max+(passed?' — passed ✓':' — not passed yet');
       result.className='qresult '+(passed?'pass':'fail');
       submit.hidden=true;retake.hidden=false;

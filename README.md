@@ -54,10 +54,18 @@ LLM = indigo, RAG = green, Web Security = red, TOGAF = ink blue.
 courses use the same model:
 
 1. Select an answer to every question. Nothing is revealed while you choose.
-2. Submit. Everything grades at once, correct answers and rationales reveal, and the
-   attempt is **saved** — `{picks, score, max, passed}`.
+2. Submit. Everything grades at once and the attempt is **saved** —
+   `{picks, score, max, passed}`.
 3. Pass mark is **60%**. Passing ticks the module and advances the progress bar.
-4. Retake is unlimited and explicit.
+4. **Answers stay hidden until you pass.** A failed attempt tells you *which* questions
+   you missed, and explains the ones you got right, but withholds the correct option and
+   its rationale. Passing unlocks everything. TOGAF's ranked questions show only the
+   score of the option *you* picked on a fail — printing the whole 5/3/1/0 spread would
+   give the ranking away.
+5. Retake is unlimited and explicit.
+
+Step 4 is what stops unlimited retakes from being free: revealing the answer on a failed
+submit made a retake trivially passable, so completion meant nothing.
 
 Saving the picks is the point of step 2: previously a wrong answer lived only in the
 DOM, so reloading the page silently wiped it and you could re-answer as if nothing had
@@ -85,6 +93,10 @@ Two things to be careful of when adding or editing a course:
 
 ## Curation log
 
+- **2026-07-24 — answers withheld until pass.** Follow-up to the same reader feedback:
+  revealing the correct answer on a failed submit meant a retake was free, so the 60%
+  gate wasn't really a gate. A fail now flags which questions were missed without giving
+  the answers away. See step 4 of "How completion works".
 - **2026-07-24 — earned completion + a way back to the hub** (both from reader feedback).
   Every course now has an "← All courses" back-link; there was previously no way home
   from inside a course. And the honour-system "Mark module complete" button is gone from
