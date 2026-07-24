@@ -35,6 +35,8 @@ body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16p
 a{color:var(--indigo)}
 header.top{position:sticky;top:0;z-index:40;background:rgba(246,247,251,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
 .top-inner{max-width:1100px;margin:0 auto;padding:12px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.home-link{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11.5px;letter-spacing:.04em;color:var(--ink-soft);text-decoration:none;transition:color .15s,gap .15s}
+.home-link:hover{color:var(--indigo);gap:9px}
 .brand{font-family:var(--disp);font-weight:700;font-size:17px;letter-spacing:.2px}
 .brand .tag{color:var(--indigo)}
 .progress-pill{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--ink-soft);border:1px solid var(--line);border-radius:99px;padding:4px 12px;background:var(--panel)}
@@ -104,7 +106,15 @@ h1.mod-title{font-family:var(--disp);font-size:clamp(26px,5vw,36px);font-weight:
 .q .choices button.reveal-ok{border-color:var(--amber)}
 .q .why{margin-top:8px;font-size:13.5px;color:var(--ink-soft);border-left:3px solid var(--line);padding-left:10px;display:none}
 .q.answered .why{display:block}
-.quiz-score{font-family:var(--disp);font-weight:600;margin-top:8px;display:none}
+.q .choices button.picked{background:var(--indigo-soft);border-color:var(--indigo);color:var(--indigo);font-weight:600}
+.q .choices button:disabled{cursor:default}
+.quiz-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:18px}
+.quiz-actions button{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:9px 15px;font-family:var(--disp);font-weight:500;font-size:14px;cursor:pointer;color:var(--ink)}
+.quiz-actions button.primary{background:var(--indigo);border-color:var(--indigo);color:#fff}
+.quiz-actions button:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
+.quiz-result{font-family:var(--disp);font-weight:600;font-size:14px}
+.quiz-result.pass{color:var(--ok)}
+.quiz-result.fail{color:var(--no)}
 .mod-footer{display:flex;justify-content:space-between;gap:10px;margin-top:40px}
 .mod-footer button{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:10px 16px;font-family:var(--disp);font-weight:500;font-size:14px;cursor:pointer}
 .mod-footer button.primary{background:var(--indigo);border-color:var(--indigo);color:#fff}
@@ -118,6 +128,7 @@ h1.mod-title{font-family:var(--disp);font-size:clamp(26px,5vw,36px);font-weight:
 
 <header class="top">
   <div class="top-inner">
+    <a class="home-link" href="index.html">← All courses</a>
     <div class="brand">Web Security <span class="tag">// wire-level</span></div>
     <div class="progress-pill" id="progressPill">0 / 10 modules</div>
   </div>
@@ -1703,6 +1714,11 @@ function renderModule(){
       }
     });
     if(m.quiz && m.quiz.length) renderQuiz(m, root);
+    else if(!state.done[m.id]){
+      /* Nothing to test (the overview), so reading it is completing it —
+         otherwise this module could never tick and progress would cap at 9/10. */
+      state.done[m.id] = true; saveState();
+    }
   }
 
   const foot = document.createElement("div");
@@ -1711,15 +1727,16 @@ function renderModule(){
   prev.textContent = "← Previous";
   prev.disabled = current === 0;
   prev.addEventListener("click", function(){ current--; renderModule(); window.scrollTo({top:0}); });
-  const doneBtn = document.createElement("button");
-  doneBtn.className = "primary";
-  doneBtn.textContent = state.done[m.id] ? "Completed ✓ — next module →" : "Mark complete & continue →";
-  doneBtn.addEventListener("click", function(){
-    state.done[m.id] = true; saveState();
-    if(current < COURSE.modules.length - 1) current++;
+  /* Completion is earned by passing the quiz, not self-declared — this is plain navigation. */
+  const nextBtn = document.createElement("button");
+  nextBtn.className = "primary";
+  const last = current === COURSE.modules.length - 1;
+  nextBtn.textContent = last ? "Back to the top ↑" : (state.done[m.id] ? "Completed ✓ — next module →" : "Next module →");
+  nextBtn.addEventListener("click", function(){
+    if(!last) current++;
     renderNav(); renderModule(); window.scrollTo({top:0});
   });
-  foot.appendChild(prev); foot.appendChild(doneBtn);
+  foot.appendChild(prev); foot.appendChild(nextBtn);
   root.appendChild(foot);
   renderNav();
 }
@@ -1727,8 +1744,12 @@ function renderModule(){
 function renderQuiz(m, root){
   const wrap = document.createElement("div");
   wrap.className = "quiz";
-  wrap.innerHTML = '<h2>Quick check</h2><div class="qmeta">' + m.quiz.length + ' questions · answers reveal explanations</div>';
-  let score = 0, answeredCount = 0;
+  wrap.innerHTML = '<h2>Quick check</h2><div class="qmeta">' + m.quiz.length + ' questions · answer them all, then submit. Pass to complete the module — retake as often as you like.</div>';
+
+  const picks = new Array(m.quiz.length).fill(-1);
+  let graded = false;
+  const qEls = [];
+
   m.quiz.forEach(function(q, qi){
     const qd = document.createElement("div");
     qd.className = "q";
@@ -1737,34 +1758,89 @@ function renderQuiz(m, root){
     ch.className = "choices";
     const why = document.createElement("div");
     why.className = "why";
-    q.c.forEach(function(opt){
+    q.c.forEach(function(opt, oi){
       const b = document.createElement("button");
       b.textContent = opt.x;
       b.addEventListener("click", function(){
-        if(qd.classList.contains("answered")) return;
-        qd.classList.add("answered");
-        answeredCount++;
-        if(opt.ok){ b.classList.add("picked-ok"); score++; }
-        else {
-          b.classList.add("picked-no");
-          ch.querySelectorAll("button").forEach(function(bb, bi){ if(q.c[bi].ok) bb.classList.add("reveal-ok"); });
-        }
-        why.textContent = opt.why;
-        if(answeredCount === m.quiz.length){
-          const sc = wrap.querySelector(".quiz-score");
-          sc.style.display = "block";
-          sc.textContent = "Score: " + score + " / " + m.quiz.length;
-          state.quiz[m.id] = score; saveState();
-        }
+        if(graded) return;
+        picks[qi] = oi;
+        ch.querySelectorAll("button").forEach(function(bb){ bb.classList.toggle("picked", bb === b); });
+        result.textContent = ""; result.className = "quiz-result";
       });
       ch.appendChild(b);
     });
     qd.appendChild(ch); qd.appendChild(why); wrap.appendChild(qd);
+    qEls.push({qd: qd, ch: ch, why: why});
   });
-  const sc = document.createElement("div");
-  sc.className = "quiz-score";
-  wrap.appendChild(sc);
+
+  const actions = document.createElement("div");
+  actions.className = "quiz-actions";
+  const submit = document.createElement("button");
+  submit.className = "primary"; submit.textContent = "Submit answers";
+  const retake = document.createElement("button");
+  retake.textContent = "Retake"; retake.hidden = true;
+  const result = document.createElement("span");
+  result.className = "quiz-result";
+  actions.appendChild(submit); actions.appendChild(retake); actions.appendChild(result);
+  wrap.appendChild(actions);
   root.appendChild(wrap);
+
+  function grade(){
+    let score = 0;
+    m.quiz.forEach(function(q, qi){
+      const el = qEls[qi];
+      el.qd.classList.add("answered");
+      const btns = el.ch.querySelectorAll("button");
+      btns.forEach(function(bb){ bb.disabled = true; bb.classList.remove("picked"); });
+      const chosen = picks[qi];
+      if(q.c[chosen] && q.c[chosen].ok){ btns[chosen].classList.add("picked-ok"); score++; }
+      else {
+        if(btns[chosen]) btns[chosen].classList.add("picked-no");
+        btns.forEach(function(bb, bi){ if(q.c[bi].ok) bb.classList.add("reveal-ok"); });
+      }
+      el.why.textContent = q.c[chosen] ? q.c[chosen].why : "";
+    });
+    graded = true;
+    const max = m.quiz.length, passed = score / max >= 0.6;
+    result.textContent = "Score: " + score + " / " + max + (passed ? " — passed ✓" : " — not passed yet");
+    result.className = "quiz-result " + (passed ? "pass" : "fail");
+    submit.hidden = true; retake.hidden = false;
+    state.quiz[m.id] = {picks: picks.slice(), score: score, max: max, passed: passed};
+    if(passed) state.done[m.id] = true;
+    saveState();
+    renderNav();
+  }
+
+  submit.addEventListener("click", function(){
+    if(picks.some(function(p){ return p < 0; })){
+      result.textContent = "Answer every question first.";
+      result.className = "quiz-result fail";
+      return;
+    }
+    grade();
+  });
+
+  retake.addEventListener("click", function(){
+    picks.fill(-1); graded = false;
+    qEls.forEach(function(el){
+      el.qd.classList.remove("answered");
+      el.ch.querySelectorAll("button").forEach(function(bb){
+        bb.disabled = false;
+        bb.classList.remove("picked", "picked-ok", "picked-no", "reveal-ok");
+      });
+      el.why.textContent = "";
+    });
+    result.textContent = ""; result.className = "quiz-result";
+    submit.hidden = false; retake.hidden = true;
+  });
+
+  /* Replay a saved attempt so a refresh no longer wipes a wrong answer.
+     Legacy entries were a bare score with no picks — nothing to replay, so skip them. */
+  const saved = state.quiz[m.id];
+  if(saved && typeof saved === "object" && Array.isArray(saved.picks) && saved.picks.length === m.quiz.length){
+    for(let i = 0; i < picks.length; i++) picks[i] = saved.picks[i];
+    grade();
+  }
 }
 
 marked.setOptions({ mangle:false, headerIds:false });

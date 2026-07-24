@@ -20,6 +20,8 @@
   body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased}
   .shell{display:grid;grid-template-columns:292px minmax(0,1fr);max-width:1260px;margin:0 auto}
   .rail{border-right:1px solid var(--line);padding:28px 20px 60px;position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto}
+  .home-link{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11.5px;letter-spacing:.04em;color:var(--muted);text-decoration:none;margin-bottom:16px;transition:color .15s,gap .15s}
+  .home-link:hover{color:var(--accent);gap:10px}
   .brandmark{display:flex;align-items:center;gap:10px}
   .brandmark .dot{width:11px;height:11px;border-radius:3px;background:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
   .brandmark b{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:-.01em}
@@ -143,6 +145,13 @@
   .opt:hover{border-color:var(--accent);background:var(--accent-soft)}
   .opt.right{border-color:var(--sparse);background:var(--sparse-soft);color:#1d5e4a;font-weight:500}.opt.wrong{border-color:#d98a8a;background:#fbecec;color:#8a3232}.opt:disabled{cursor:default}
   .fb{font-size:13.5px;color:var(--muted);margin:10px 0 0;min-height:16px}.fb.show{color:var(--ink)}
+  .opt.sel{border-color:var(--accent);background:var(--accent-soft);font-weight:500}
+  .quiz-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:20px}
+  button.btn.ghost{background:transparent;color:var(--accent);border-color:var(--line)}
+  button.btn.ghost:hover{background:var(--accent-soft)}
+  .qresult{font-size:14px;font-weight:600}
+  .qresult.pass{color:var(--sparse)}
+  .qresult.fail{color:var(--danger)}
 
   .mnav{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;border-top:1px solid var(--line);margin-top:44px;padding-top:24px}
   .mnav .left{display:flex;align-items:center;gap:12px}
@@ -168,6 +177,7 @@
 <body>
 <div class="shell">
 <aside class="rail">
+  <a class="home-link" href="index.html">← All courses</a>
   <div class="brandmark"><span class="dot"></span><b>How RAG Actually Works</b></div>
   <p class="sub">From "why ground a model at all" to GraphRAG and agentic retrieval — built up, but not dumbed down.</p>
   <div class="progress-wrap"><div class="pl"><span>Progress</span><span id="progTxt">0 / 18</span></div><div class="pbar"><i id="progBar"></i></div></div>
@@ -209,7 +219,7 @@ function paintDocs(el,arr,colour,badgeFn){
 /* ============================ CONTENT HELPERS ============================ */
 function underHood(inner){return `<details class="uh"><summary><span class="ic">&#9656;</span> Under the hood <span class="hint">optional · the gist, not the algebra</span></summary><div class="uh-body">${inner}</div></details>`;}
 function decoder(rows){return `<div class="decoder">${rows.map(function(r){return `<div class="d"><span class="sym">${r[0]}</span><span>${r[1]}</span></div>`;}).join("")}</div>`;}
-function quiz(id,qs){return `<div class="quiz"><h3>Quick check</h3><p class="caption" style="margin:0">Pick an answer to see why.</p>${qs.map(function(q,i){return `<div class="q" data-c="${q.correct}" data-ok="${esc(q.ok)}" data-no="${esc(q.no)}"><p class="stem">${i+1}. ${q.stem}</p>${q.opts.map(function(o){return `<button class="opt">${o}</button>`;}).join("")}<p class="fb"></p></div>`;}).join("")}</div>`;}
+function quiz(id,qs){return `<div class="quiz" data-quiz="${id}"><h3>Quick check</h3><p class="caption" style="margin:0">Answer every question, then submit. Pass this to complete the module — you can retake it as often as you like.</p>${qs.map(function(q,i){return `<div class="q" data-c="${q.correct}" data-ok="${esc(q.ok)}" data-no="${esc(q.no)}"><p class="stem">${i+1}. ${q.stem}</p>${q.opts.map(function(o,oi){return `<button class="opt" data-o="${oi+1}">${o}</button>`;}).join("")}<p class="fb"></p></div>`;}).join("")}<div class="quiz-actions"><button class="btn qsubmit">Submit answers</button><button class="btn ghost qretake" hidden>Retake</button><span class="qresult"></span></div></div>`;}
 function esc(s){return s.replace(/"/g,"&quot;");}
 
 /* ============================ MODULES ============================ */
@@ -1272,7 +1282,7 @@ function homeHTML(){return `
     <li><b>Read the plain explanation first.</b> No RAG background assumed — each idea is built up from scratch.</li>
     <li><b>Play with the widget.</b> Most modules have a live demo — the interaction is the lesson.</li>
     <li><b>Open "Under the hood" only if you want the gist of the maths.</b> It's the intuition, never the algebra.</li>
-    <li><b>Take the quick check and mark the module complete.</b> Progress saves automatically.</li>
+    <li><b>Pass the quick check to complete the module.</b> Answer every question, submit, and score 60% or better. Retake it as often as you like — your answers and progress save automatically.</li>
   </ol></div>
   <p style="font-size:13.5px;color:var(--muted)">A running corpus — six short documents about dogs, noise and neighbours — carries through the retrieval modules, so you watch the <i>same</i> six documents get retrieved different ways.</p>
   <div style="margin-top:24px"><button class="btn" id="startBtn">Start Module 1 →</button></div>`;}
@@ -1281,6 +1291,15 @@ function homeHTML(){return `
 var DONE=loadDone();
 function loadDone(){try{return JSON.parse(localStorage.getItem('rag-course-done')||'{}');}catch(e){return {};}}
 function saveDone(){try{localStorage.setItem('rag-course-done',JSON.stringify(DONE));}catch(e){}}
+
+/* Quiz attempts live in their own key so `rag-course-done` keeps the flat {id:true}
+   shape the hub already reads, and anyone who self-marked modules under the old
+   honour-system button keeps their ticks. */
+var ATT=loadAtt();
+function loadAtt(){try{return JSON.parse(localStorage.getItem('rag-course-quiz')||'{}');}catch(e){return {};}}
+function saveAtt(){try{localStorage.setItem('rag-course-quiz',JSON.stringify(ATT));}catch(e){}}
+var PASS_MARK=0.6;
+function isDone(id){var a=ATT[id];return !!(a&&a.passed)||!!DONE[id];}
 
 var railMap=document.getElementById('railMap');var lastPart=null;
 MODS.forEach(function(m){
@@ -1293,21 +1312,81 @@ MODS.forEach(function(m){
 function moduleHTML(m){var idx=MODS.indexOf(m),next=MODS[idx+1];
   return `<section class="module" id="${m.id}"><p class="eyebrow">Module ${m.num} · ${m.part.split('·')[0].trim()}</p>
     <h1>${m.title}<span class="lede">${m.thesis}</span></h1>${m.render()}
-    <div class="mnav"><div class="left"><button class="btn" data-done="${m.id}">Mark module complete</button><span class="done-badge" id="${m.id}badge">&#10003; Completed</span></div>
+    <div class="mnav"><div class="left"><span class="done-badge" id="${m.id}badge">&#10003; Completed</span></div>
     ${next?`<div class="nextlink" data-go="${next.id}">Next up<b>${next.num} · ${next.title}</b></div>`:`<div class="nextlink" data-go="home"><b>Back to start ↺</b></div>`}</div></section>`;}
 
 var main=document.getElementById('main');
 function show(id){
   if(id==='home'){main.innerHTML='<section class="module show" id="home">'+homeHTML()+'</section>';document.getElementById('startBtn').onclick=function(){show('m1');};refreshProgress();}
-  else{var m=MODS.filter(function(x){return x.id===id;})[0];if(!m)return;main.innerHTML=moduleHTML(m);document.getElementById(id).classList.add('show');if(m.init)try{m.init();}catch(e){console.error('widget error in '+id,e);}wireQuiz();wireFooter(id);if(DONE[id])markBadge(id,true);}
+  else{var m=MODS.filter(function(x){return x.id===id;})[0];if(!m)return;main.innerHTML=moduleHTML(m);document.getElementById(id).classList.add('show');if(m.init)try{m.init();}catch(e){console.error('widget error in '+id,e);}wireQuiz();wireFooter(id);markBadge(id,isDone(id));}
   setActive(id);window.scrollTo(0,0);
   try{if(history&&history.replaceState)history.replaceState(null,'','#'+id);}catch(e){}
 }
 function setActive(id){[].forEach.call(document.querySelectorAll('.mod'),function(b){b.classList.toggle('active',b.dataset.go===id);});}
-function markBadge(id,on){var b=document.getElementById(id+'badge');if(b)b.classList.toggle('show',on);var btn=document.querySelector('[data-done="'+id+'"]');if(btn)btn.textContent=on?'Mark incomplete':'Mark module complete';var nav=document.querySelector('.mod[data-go="'+id+'"]');if(nav)nav.classList.toggle('done',on);}
-function refreshProgress(){var n=MODS.filter(function(m){return DONE[m.id];}).length,total=MODS.length;var pt=document.getElementById('progTxt');if(pt)pt.textContent=n+' / '+total;var pb=document.getElementById('progBar');if(pb)pb.style.width=(n/total*100)+'%';MODS.forEach(function(m){var nav=document.querySelector('.mod[data-go="'+m.id+'"]');if(nav)nav.classList.toggle('done',!!DONE[m.id]);});var banner=document.getElementById('completeBanner');if(banner)banner.classList.toggle('show',n===total);}
-function wireFooter(id){var btn=document.querySelector('[data-done="'+id+'"]');btn.onclick=function(){DONE[id]=!DONE[id];saveDone();markBadge(id,DONE[id]);refreshProgress();};[].forEach.call(document.querySelectorAll('.nextlink'),function(n){n.onclick=function(){show(n.dataset.go);};});}
-function wireQuiz(){[].forEach.call(document.querySelectorAll('.q'),function(q){var c=+q.dataset.c,ok=q.dataset.ok,no=q.dataset.no,opts=q.querySelectorAll('.opt'),fb=q.querySelector('.fb');opts.forEach(function(opt,idx){opt.addEventListener('click',function(){opts.forEach(function(o){o.disabled=true;});if(idx+1===c){opt.classList.add('right');fb.innerHTML='✓ '+ok;}else{opt.classList.add('wrong');opts[c-1].classList.add('right');fb.innerHTML=no;}fb.classList.add('show');});});});}
+function markBadge(id,on){var b=document.getElementById(id+'badge');if(b)b.classList.toggle('show',on);var nav=document.querySelector('.mod[data-go="'+id+'"]');if(nav)nav.classList.toggle('done',on);}
+function refreshProgress(){var n=MODS.filter(function(m){return isDone(m.id);}).length,total=MODS.length;var pt=document.getElementById('progTxt');if(pt)pt.textContent=n+' / '+total;var pb=document.getElementById('progBar');if(pb)pb.style.width=(n/total*100)+'%';MODS.forEach(function(m){var nav=document.querySelector('.mod[data-go="'+m.id+'"]');if(nav)nav.classList.toggle('done',isDone(m.id));});var banner=document.getElementById('completeBanner');if(banner)banner.classList.toggle('show',n===total);}
+function wireFooter(id){[].forEach.call(document.querySelectorAll('.nextlink'),function(n){n.onclick=function(){show(n.dataset.go);};});}
+function wireQuiz(){
+  [].forEach.call(document.querySelectorAll('.quiz[data-quiz]'),function(root){
+    var qid=root.dataset.quiz;
+    var qs=[].slice.call(root.querySelectorAll('.q'));
+    var submit=root.querySelector('.qsubmit'),retake=root.querySelector('.qretake'),result=root.querySelector('.qresult');
+    var picks=new Array(qs.length).fill(0),graded=false;
+
+    qs.forEach(function(q,qi){
+      [].forEach.call(q.querySelectorAll('.opt'),function(opt){
+        opt.addEventListener('click',function(){
+          if(graded)return;
+          picks[qi]=+opt.dataset.o;
+          [].forEach.call(q.querySelectorAll('.opt'),function(o){o.classList.toggle('sel',o===opt);});
+          result.textContent='';result.className='qresult';
+        });
+      });
+    });
+
+    function grade(){
+      var score=0;
+      qs.forEach(function(q,qi){
+        var c=+q.dataset.c,fb=q.querySelector('.fb');
+        var opts=[].slice.call(q.querySelectorAll('.opt'));
+        opts.forEach(function(o){o.disabled=true;o.classList.remove('sel');});
+        var ok=picks[qi]===c;
+        if(ok)score++;
+        opts[c-1].classList.add('right');
+        if(!ok&&picks[qi])opts[picks[qi]-1].classList.add('wrong');
+        fb.innerHTML=ok?('✓ '+q.dataset.ok):q.dataset.no;
+        fb.classList.add('show');
+      });
+      graded=true;
+      var max=qs.length,passed=score/max>=PASS_MARK;
+      result.textContent=score+' / '+max+(passed?' — passed ✓':' — not passed yet');
+      result.className='qresult '+(passed?'pass':'fail');
+      submit.hidden=true;retake.hidden=false;
+      ATT[qid]={picks:picks.slice(),score:score,max:max,passed:passed};saveAtt();
+      if(passed&&!DONE[qid]){DONE[qid]=true;saveDone();}
+      markBadge(qid,isDone(qid));refreshProgress();
+    }
+
+    submit.addEventListener('click',function(){
+      if(picks.some(function(p){return !p;})){result.textContent='Answer every question first.';result.className='qresult fail';return;}
+      grade();
+    });
+
+    retake.addEventListener('click',function(){
+      picks=new Array(qs.length).fill(0);graded=false;
+      qs.forEach(function(q){
+        [].forEach.call(q.querySelectorAll('.opt'),function(o){o.disabled=false;o.classList.remove('right','wrong','sel');});
+        var fb=q.querySelector('.fb');fb.textContent='';fb.classList.remove('show');
+      });
+      result.textContent='';result.className='qresult';
+      submit.hidden=false;retake.hidden=true;
+    });
+
+    /* Replay a saved attempt, so refreshing the page no longer wipes a wrong answer. */
+    var saved=ATT[qid];
+    if(saved&&saved.picks&&saved.picks.length===qs.length){picks=saved.picks.slice();grade();}
+  });
+}
 
 document.addEventListener('click',function(e){var go=e.target.closest('[data-go]');if(go){show(go.dataset.go);}});
 var mt=document.getElementById('mapToggle');mt.onclick=function(){var open=railMap.classList.toggle('open');mt.setAttribute('aria-expanded',open);};

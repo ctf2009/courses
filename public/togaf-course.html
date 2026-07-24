@@ -2200,7 +2200,7 @@ Every artifact named on the syllabus, with where its **worked Meridian example**
 
 <div class="app">
   <aside class="side">
-    <a class="home-link" href="index.html">← How It Actually Works</a>
+    <a class="home-link" href="index.html">← All courses</a>
     <div class="brand">TOGAF 10<small>Certification course</small></div>
     <div class="wheelwrap" id="wheel"></div>
     <div class="wheel-caption">The ADM — click a phase</div>
@@ -3486,13 +3486,15 @@ const COURSE = {
 
 /* ============ STATE (persisted to localStorage so nobody loses their place) ============ */
 const STORE_KEY = "togaf10:v1";
-// Shape: { progress: { moduleId -> {score, max, passed} }, lastModule: id }
+// Shape: { progress: { moduleId -> {score, max, passed, picks} }, lastModule: id }
+// `picks` was added later — entries saved before it are replayed as un-attempted.
 function loadStore(){
   try{ return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; }
   catch(e){ return {}; } // private-mode / disabled storage — degrade to in-memory
 }
 const _store = loadStore();
-const progress = (_store.progress && typeof _store.progress==="object") ? _store.progress : {}; // moduleId -> {score, max, passed}
+const progress = (_store.progress && typeof _store.progress==="object") ? _store.progress : {}; // moduleId -> {score, max, passed, picks}
+const RETAKING = new Set(); // transient: suppresses attempt-replay for one rebuild after Retake
 function saveStore(){
   try{ localStorage.setItem(STORE_KEY, JSON.stringify({ progress, lastModule:_store.lastModule })); }
   catch(e){ /* storage unavailable/full — stay in-memory for this session */ }
@@ -3577,7 +3579,8 @@ function buildNav(){
     const b=document.createElement("button");
     b.innerHTML=`<span class="code">${m.code}</span><span>${m.title}</span>`;
     if(progress[m.id] && progress[m.id].passed){
-      const t=document.createElement("span"); t.className="tick"; t.textContent="✓ "+progress[m.id].score+"/"+progress[m.id].max;
+      const t=document.createElement("span"); t.className="tick";
+      t.textContent=progress[m.id].max>0 ? "✓ "+progress[m.id].score+"/"+progress[m.id].max : "✓";
       b.appendChild(t);
     }
     b.dataset.mod=m.id;
@@ -3589,7 +3592,7 @@ function refreshNav(activeId){
   document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.mod===activeId));
 }
 function refreshScorechip(){
-  const done=Object.values(progress);
+  const done=Object.values(progress).filter(p=>p.max>0); // skip quiz-less modules marked done on read
   const chip=document.getElementById("scorechip");
   if(!done.length){ chip.textContent="No quizzes attempted yet"; return; }
   const s=done.reduce((a,p)=>a+p.score,0), m=done.reduce((a,p)=>a+p.max,0);
@@ -3634,6 +3637,13 @@ function openModule(id){
   showSection(0);
 
   if(m.quiz && m.quiz.length) main.appendChild(buildQuiz(m));
+  else if(!progress[m.id]){
+    /* The overview carries no quiz, so reading it is completing it — otherwise it could
+       never be marked done and the course could never reach 17/17. max:0 keeps it out of
+       the score averages (see refreshScorechip). */
+    progress[m.id]={score:0,max:0,passed:true};
+    saveStore(); buildNav(); refreshNav(m.id); refreshWheel(m.id); refreshScorechip();
+  }
   window.scrollTo({top:0});
 }
 
@@ -3680,8 +3690,7 @@ function buildQuiz(m){
   const result=document.createElement("span"); result.className="result";
   actions.append(submit,reset,result); wrap.appendChild(actions);
 
-  submit.addEventListener("click",()=>{
-    if(picks.some(p=>p===null)){ result.textContent="Answer every question first."; result.className="result fail"; return; }
+  function grade(){
     submitted=true;
     let score=0, max=0;
     m.quiz.forEach((q,qi)=>{
@@ -3713,11 +3722,29 @@ function buildQuiz(m){
     result.textContent=`${score}/${max} (${pct}%) — ${pass?"pass — the wheel approves":"below 60% — the wheel demands another lap"}`;
     result.className="result "+(pass?"pass":"fail");
     submit.style.display="none"; reset.style.display="inline-block";
-    progress[m.id]={score,max,passed:pass};
+    progress[m.id]={score,max,passed:pass,picks:picks.slice()};
     saveStore();
     buildNav(); refreshNav(m.id); refreshWheel(m.id); refreshScorechip();
+  }
+
+  submit.addEventListener("click",()=>{
+    if(picks.some(p=>p===null)){ result.textContent="Answer every question first."; result.className="result fail"; return; }
+    grade();
   });
-  reset.addEventListener("click",()=>openModule(m.id));
+  reset.addEventListener("click",()=>{ RETAKING.add(m.id); openModule(m.id); });
+
+  /* Replay a saved attempt so refreshing the page no longer clears a wrong answer.
+     Skipped straight after Retake, which deliberately wants a blank sheet. */
+  const prior=progress[m.id];
+  if(RETAKING.has(m.id)){
+    RETAKING.delete(m.id);
+  } else if(prior && Array.isArray(prior.picks) && prior.picks.length===m.quiz.length && prior.picks.every(p=>p!==null)){
+    prior.picks.forEach((p,qi)=>{
+      picks[qi]=p;
+      wrap.querySelectorAll(".qcard")[qi].querySelectorAll(".opt").forEach((x,j)=>x.classList.toggle("sel",j===p));
+    });
+    grade();
+  }
   return wrap;
 }
 
