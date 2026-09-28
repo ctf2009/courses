@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as wait } from 'node:timers/promises';
 import { handleRequest } from './handler.mjs';
+import { probeFreshReviewRuntime } from './archi-browser-review.mjs';
 
 const domain = 'curator-courses';
 const safeId = /^[A-Za-z0-9_-]+$/;
@@ -95,7 +96,7 @@ export async function runOnce({ inbox, repository, recoverDeadOwner = false }) {
           request = { ...request, status: 'started', startedAt: request.startedAt ?? Date.now() };
           await writeAtomic(started, request);
           let payload;
-          try { payload = await handleRequest(request, repository); }
+          try { payload = await handleRequest(request, repository, { inbox }); }
           catch (error) { payload = { outcome: 'failed', error: error.message, summary: 'Curator could not complete this request. No course was edited or published.' }; }
           report = {
             id: reportId, requestId: request.id, domainName: domain,
@@ -120,13 +121,14 @@ export async function runOnce({ inbox, repository, recoverDeadOwner = false }) {
 export async function runWatch({ inbox, repository, signal, intervalMs = 15_000, recoverDeadOwner = false, onBatch = () => {} }) {
   if (!path.isAbsolute(inbox)) throw new Error('Inbox must be an explicit absolute path');
   const heartbeatFile = path.join(inbox, 'workers', 'curator-courses.json');
+  const freshReviewRuntime = await probeFreshReviewRuntime();
   try {
     while (!signal?.aborted) {
       // A heartbeat is evidence of a successful worker pass and readable catalogue.
       await handleRequest({ requestType: 'catalogue', payload: {} }, repository);
       const results = await runOnce({ inbox, repository, recoverDeadOwner });
       await writeAtomic(heartbeatFile, {
-        domainName: domain, ready: true, pid: process.pid, checkedAt: Date.now(), version: '1.1.0',
+        domainName: domain, ready: true, pid: process.pid, checkedAt: Date.now(), version: '1.2.0', ...freshReviewRuntime,
       });
       onBatch(results);
       try { await wait(intervalMs, undefined, { signal }); }

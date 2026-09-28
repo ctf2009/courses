@@ -1,8 +1,9 @@
 import { readFile, realpath } from 'node:fs/promises';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
+import { createFreshReview } from './fresh-review.mjs';
 
-export async function handleRequest(request, repository) {
+export async function handleRequest(request, repository, { inbox } = {}) {
   const root = await realpath(repository);
   async function read(relative) {
     const filename = await realpath(path.resolve(root, relative));
@@ -20,9 +21,13 @@ export async function handleRequest(request, repository) {
       summary: `Curator returned ${catalogue.courses.length} catalogue entries. Placement is recorded inventory, not a verified live deployment.`,
     };
   }
-  if (request.requestType !== 'review_course') throw new Error('Unsupported Curator request type');
+  if (!['review_course', 'fresh_review_course'].includes(request.requestType)) throw new Error('Unsupported Curator request type');
   const course = catalogue.courses.find(item => item.id === request.payload?.courseId);
   if (!course) throw new Error('Unknown course ID');
+  if (request.requestType === 'fresh_review_course') {
+    if (request.origin !== 'owner-request') throw new Error('Fresh review requires an authenticated owner request');
+    return createFreshReview(request, root, course, inbox);
+  }
   const html = await read(course.path);
   const sourceSha256 = createHash('sha256').update(html).digest('hex');
   if (!course.review) {

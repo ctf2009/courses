@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { mkdtemp, mkdir, writeFile, readFile, readdir, rm, rename } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -45,6 +46,15 @@ test('course with no recorded review requests review work', async () => {
   const result = await handleRequest({ requestType: 'review_course', payload: { courseId: 'llm' } }, repository);
   assert.equal(result.outcome, 'review-needed');
 });
+
+test('fresh review refuses unstamped and unsupported course requests', async t => {
+  const f = await fixture(t, { requestType: 'fresh_review_course', payload: { courseId: 'archi' } });
+  assert.equal((await runOnce(f))[0].outcome, 'failed');
+  const report = JSON.parse(await readFile(reportFile(f)));
+  assert.match(report.payload.error, /authenticated owner request/);
+  await assert.rejects(handleRequest({ ...f.request, origin: 'owner-request', payload: { courseId: 'istio' } }, repository, { inbox: f.inbox }), /only the Archi profile/);
+  await assert.rejects(readFile(path.join(f.inbox, 'evidence/curator-courses/req_test/source.html')), { code: 'ENOENT' });
+});
 test('unknown course emits failure and retires request', async t => {
   const f = await fixture(t, { requestType: 'review_course', payload: { courseId: '../private' } });
   assert.equal((await runOnce(f))[0].outcome, 'failed');
@@ -86,11 +96,33 @@ test('watch heartbeat proves a successful pass and is removed on shutdown', asyn
   let sawReady = false;
   await runWatch({ ...f, signal: controller.signal, onBatch(results) {
     assert.equal(results[0].outcome, 'catalogue');
+    const heartbeat = JSON.parse(readFileSync(path.join(f.inbox, 'workers/curator-courses.json'), 'utf8'));
+    assert.equal(heartbeat.version, '1.2.0');
+    assert.ok(Array.isArray(heartbeat.reviewProfiles));
     sawReady = true;
     controller.abort();
   } });
   assert.equal(sawReady, true);
   await assert.rejects(readFile(path.join(f.inbox, 'workers/curator-courses.json')), { code: 'ENOENT' });
+});
+
+test('missing browser keeps catalogue ready without advertising fresh review', async t => {
+  const f = await fixture(t);
+  const previous = process.env.CURATOR_CHROMIUM_EXECUTABLE;
+  process.env.CURATOR_CHROMIUM_EXECUTABLE = path.join(f.inbox, 'missing-chromium');
+  t.after(() => {
+    if (previous === undefined) delete process.env.CURATOR_CHROMIUM_EXECUTABLE;
+    else process.env.CURATOR_CHROMIUM_EXECUTABLE = previous;
+  });
+  const controller = new AbortController();
+  await runWatch({ ...f, signal: controller.signal, onBatch(results) {
+    assert.equal(results[0].outcome, 'catalogue');
+    const heartbeat = JSON.parse(readFileSync(path.join(f.inbox, 'workers/curator-courses.json'), 'utf8'));
+    assert.equal(heartbeat.ready, true);
+    assert.deepEqual(heartbeat.reviewProfiles, []);
+    assert.match(heartbeat.freshReviewUnavailable, /could not start/);
+    controller.abort();
+  } });
 });
 
 test('unreadable catalogue cannot advertise a ready worker', async t => {

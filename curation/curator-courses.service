@@ -1,5 +1,5 @@
 [Unit]
-Description=Curator course catalogue and saved-review worker
+Description=Curator catalogue and bounded course review worker
 After=network.target
 
 [Service]
@@ -12,6 +12,8 @@ Restart=on-failure
 RestartSec=15
 UMask=0077
 NoNewPrivileges=true
+PrivateNetwork=true
+PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=read-only
 ReadWritePaths=/home/chris/zora/data/domain-inbox
