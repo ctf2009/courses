@@ -35,6 +35,10 @@ agent's completion statement alone is not verification evidence.
 
 ## Deployment and execution direction agreed 2026-09-10
 
+Updated 2026-09-28: the standalone authoring lane described below does not depend
+on Ralph. The earlier remote-Ralph notes remain historical direction, not a
+prerequisite for requesting bounded candidate work.
+
 - Curator runs on the Zora box. Zora and Curator continue using the existing local
   file inbox/report bridge until a future discovery service is ready.
 - Ralph will run on its own server once its execution lifecycle is mature enough.
@@ -148,7 +152,7 @@ There is no filesystem HTTP server. External fonts are blocked, so screenshots u
 fallback fonts. Browser startup is bounded at 15 seconds and checks at 60 seconds;
 at most 30 modules and a 2 MB source are accepted. No download or publication is allowed.
 
-Worker heartbeat version **1.2.0** includes `reviewProfiles: ["archi-browser-v1"]`
+Worker heartbeat version **1.3.0** includes `reviewProfiles: ["archi-browser-v1"]`
 only after sandboxed Chromium successfully starts. If it cannot start, catalogue
 and saved reviews still work, while the host refuses fresh requests without queuing
 them. A later browser failure produces a failed report, never a successful review.
@@ -162,6 +166,14 @@ checks. The latter requires the installed matching Chromium. Both operate on tem
 inboxes and leave learner course sources unchanged.
 
 ## Follow-on implementation
+
+Standalone draft creation and behaviour-only Archi revision now use the
+[course work contract](course-work-contract.md). Zora's host owns model calls,
+durable task state and continuation; this worker renders and verifies candidates
+under the existing inbox. It never edits the original course or publishes.
+Heartbeat 1.3.0 advertises `workProfiles: ["course-work-v1"]` once its fixed source
+API and browser are ready. Candidate inputs and all resulting evidence stay in
+`course-work/jobs/<requestId>/candidates/<version>/` across upgrades.
 
 After installing the worker and host tools, verify a real request/report. Do not
 mark Curator available until a worker can actually accept its requests.
