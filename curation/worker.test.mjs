@@ -104,6 +104,25 @@ test('existing worker lock refuses concurrent processing', async t => {
   await assert.rejects(runOnce(f), /worker locked/);
 });
 
+test('supervised restart recovers a proven dead same-user batch owner', async t => {
+  const f = await fixture(t);
+  const lock = path.join(f.inbox, '.curator-courses.lock');
+  await mkdir(lock);
+  await writeFile(path.join(lock, 'owner.json'), JSON.stringify({ pid: 2147483647 }));
+  t.mock.method(process, 'kill', () => { throw Object.assign(new Error('No process'), { code: 'ESRCH' }); });
+  assert.equal((await runOnce({ ...f, recoverDeadOwner: true }))[0].outcome, 'catalogue');
+  await assert.rejects(readFile(path.join(lock, 'owner.json')), { code: 'ENOENT' });
+});
+
+test('supervised recovery refuses live and unidentified lock owners', async t => {
+  const f = await fixture(t);
+  const lock = path.join(f.inbox, '.curator-courses.lock');
+  await mkdir(lock);
+  await assert.rejects(runOnce({ ...f, recoverDeadOwner: true }), /manual recovery/);
+  await writeFile(path.join(lock, 'owner.json'), JSON.stringify({ pid: process.pid }));
+  await assert.rejects(runOnce({ ...f, recoverDeadOwner: true }), /live process/);
+});
+
 test('changed source makes saved review stale', async t => {
   const f = await fixture(t);
   const repo = path.join(f.inbox, 'repository');

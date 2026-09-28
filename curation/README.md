@@ -62,11 +62,9 @@ Ralph submission or publishing capability. This repository contains the worker;
 deployment and authenticated Zora tool registration remain separate work.
 
 Completed reports have deterministic IDs. Interrupted read-only requests in `started`
-can resume without re-enqueuing a report already pending, delivered or rejected.
-A directory lock prevents concurrent workers. After an abrupt process termination,
-an operator must confirm no worker is running before removing
-`DOMAIN_INBOX_DIR/.curator-courses.lock` and restarting. The inbox is a trusted local
-directory shared with the host, not an unauthenticated upload endpoint.
+can resume without re-enqueuing a report already pending, delivered, rejected or
+retained. A directory lock prevents concurrent batches. The inbox is a trusted
+local directory shared with the host, not an unauthenticated upload endpoint.
 
 ## Supervised local worker
 
@@ -84,16 +82,18 @@ absolute `DOMAIN_INBOX_DIR`. Enable `builtin:curator` in Zora's tool manifest;
 the owner-only tools additionally require `curator.read`. No website deployment
 or course publication is part of worker installation.
 
-If an abrupt termination leaves `.curator-courses.lock`, stop the service,
-verify no worker is running, remove that one lock directory, and restart. Existing
-pending, delivered, rejected **and retained** reports suppress replay during
-request recovery. Reports contain saved evidence, not authority to execute code.
+The service holds a kernel `flock` for its lifetime and enables `--recover-stale-lock`.
+On restart it can recover a batch lock only if the same user's recorded process
+has disappeared. A live PID, uncertain permissions or an older unlabelled lock
+fails closed. For those cases, stop the service, verify no worker is running,
+remove that one `.curator-courses.lock` directory, and restart. Never use the
+recovery flag outside the supplied exclusive `flock` wrapper. Reports contain
+saved evidence, not authority to execute code.
 
 ## Follow-on implementation
 
-Wire authenticated Zora tools to the local handler using the existing domain
-envelopes, then deploy the worker on the Zora box and verify a real request/report.
-Do not mark Curator available until a worker can actually accept its requests.
+After installing the worker and host tools, verify a real request/report. Do not
+mark Curator available until a worker can actually accept its requests.
 
 For eventual execution, a brief needs course IDs, source revision, objective,
 acceptance criteria, allowed paths, execution limits and publication classification.

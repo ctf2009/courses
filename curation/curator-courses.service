@@ -7,7 +7,7 @@ Type=simple
 User=chris
 WorkingDirectory=/home/chris/curator-courses
 Environment=DOMAIN_INBOX_DIR=/home/chris/zora/data/domain-inbox
-ExecStart=/usr/bin/node /home/chris/curator-courses/curation/worker.mjs --watch
+ExecStart=/usr/bin/flock --nonblock --no-fork /home/chris/zora/data/domain-inbox/.curator-courses.supervisor.lock /usr/bin/node /home/chris/curator-courses/curation/worker.mjs --watch --recover-stale-lock
 Restart=on-failure
 RestartSec=15
 UMask=0077
