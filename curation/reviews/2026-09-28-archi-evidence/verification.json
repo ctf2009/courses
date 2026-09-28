@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "courseId": "archi",
+  "placement": "draft",
+  "profile": "course-work-v1",
+  "checkedAt": "2026-09-28T10:38:41.927000+00:00",
+  "status": "passed",
+  "browserVersion": "148.0.7778.96",
+  "browserVerified": true,
+  "sourceSha256": "4388ed5adb903de1c7f91728a925f606dc5bb72b6fe7c98424efd358bf0d4ff4",
+  "baseSha256": "bd1be35965b6e21e920630bb10fbc449445cfeb35135031796b9e3c267117074",
+  "factualReviewPerformed": false,
+  "publicationVerified": false,
+  "checks": [
+    {
+      "id": "stable-storage-key",
+      "status": "passed"
+    },
+    {
+      "id": "runtime-resource-policy",
+      "status": "passed"
+    },
+    {
+      "id": "hub-navigation",
+      "status": "passed"
+    },
+    {
+      "id": "all-module-rendering",
+      "status": "passed"
+    },
+    {
+      "id": "all-module-overflow",
+      "status": "passed"
+    },
+    {
+      "id": "free-module-navigation",
+      "status": "passed"
+    },
+    {
+      "id": "navigation-controls-work",
+      "status": "passed"
+    },
+    {
+      "id": "existing-state-preserved",
+      "status": "passed"
+    },
+    {
+      "id": "keyboard-selection",
+      "status": "passed"
+    },
+    {
+      "id": "existing-state-survives-new-attempt",
+      "status": "passed"
+    },
+    {
+      "id": "progress-count-matches-completion",
+      "status": "passed"
+    },
+    {
+      "id": "hub-progress-compatible",
+      "status": "passed"
+    },
+    {
+      "id": "meaningful-60-percent-boundary",
+      "status": "passed"
+    },
+    {
+      "id": "answers-hidden-before-submit",
+      "status": "passed"
+    },
+    {
+      "id": "failed-attempt-hides-missed-answers",
+      "status": "passed"
+    },
+    {
+      "id": "attempts-persist-after-reload",
+      "status": "passed"
+    },
+    {
+      "id": "explicit-retake-starts-blank",
+      "status": "passed"
+    },
+    {
+      "id": "javascript-runtime-errors",
+      "status": "passed"
+    },
+    {
+      "id": "candidate-input-unchanged",
+      "status": "passed"
+    },
+    {
+      "id": "draft-source-unchanged",
+      "status": "passed"
+    },
+    {
+      "id": "lesson-source-preserved",
+      "status": "passed"
+    },
+    {
+      "id": "installed-source-unchanged",
+      "status": "passed"
+    }
+  ],
+  "historicalStateMigration": "The original Archi player marked completion after any submitted attempt and did not save quiz answers. Historical completion flags are retained without inventing a score or a passing attempt. Other stored fields are preserved. New graded attempts use quiz.mN with picks, score, max and passed. Passing earns completion; failure and retake preserve previously earned or historical completion. Retake removes only that module's saved attempt. Historical completion cannot retrospectively establish a passing score.",
+  "limitations": [
+    "Structural/browser checks only; factual claims and sources remain unreviewed.",
+    "Screenshots do not constitute an exhaustive human visual review.",
+    "Hub screenshot is a private storage-compatibility preview, not public hub integration.",
+    "No learner course publication or deployment is established by this export."
+  ],
+  "artifacts": [
+    {
+      "name": "draft.html",
+      "sha256": "4388ed5adb903de1c7f91728a925f606dc5bb72b6fe7c98424efd358bf0d4ff4"
+    },
+    {
+      "name": "screenshots/desktop-module-00.png",
+      "sha256": "d921fd4e974051d549444dfae4e91ae00ef9c5af397fe6e356cdd708695b3e89"
+    },
+    {
+      "name": "screenshots/mobile-module-11.png",
+      "sha256": "fe632803fccf0ac82f550fc8d27dc3db8a59ec0ef89fae9abd6d408755c4568f"
+    },
+    {
+      "name": "screenshots/quiz-threshold-pass.png",
+      "sha256": "ea09b2c2cbd7af6d1ba800f1b3d9dd81421f00f97df7e4b5f00b55b48449293e"
+    },
+    {
+      "name": "screenshots/quiz-threshold-fail.png",
+      "sha256": "12cb993bc22f5f94b1a05bcbcda892ab431abe469ed7063daf73c7703348288d"
+    },
+    {
+      "name": "screenshots/hub-progress.png",
+      "sha256": "0243671521a5a28269a9a281a35ac934c079e3c146cccf45a85a4e0ca4183d39"
+    }
+  ]
+}

@@ -50,8 +50,8 @@
       "objective": "Interpret and construct architecture models using ArchiMate concepts",
       "progressKey": "archi-course-v1",
       "reviewStatus": "changes-needed",
-      "review": "curation/reviews/2026-09-10-draft-intake.md",
-      "reviewEvidence": "curation/reviews/2026-09-10-draft-hashes.json"
+      "review": "curation/reviews/2026-09-28-archi-candidate.md",
+      "reviewEvidence": "curation/reviews/2026-09-28-archi-hashes.json"
     },
     {
       "id": "istio",

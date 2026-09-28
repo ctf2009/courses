@@ -50,7 +50,12 @@ nav.toc button.on{background:var(--side-2);color:#fff}
 /* ---------- main ---------- */
 main{min-width:0}
 .topbar{display:none}
-.content{max-width:900px;margin:0 auto;padding:44px 40px 90px}
+.content{width:100%;max-width:900px;margin:0 auto;padding:44px 40px 90px;min-width:0}
+.hubLink{display:inline-block;color:#c9cbd6;font-size:11px;text-decoration:underline;text-underline-offset:2px}
+.hubLink:hover{color:#fff}
+article,.quiz,.pager{min-width:0}
+table{display:block;max-width:100%;overflow-x:auto}
+.fig{max-width:100%}
 .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--amber)}
 h2.mtitle{font-family:var(--disp);font-size:33px;line-height:1.15;margin:6px 0 6px;letter-spacing:-.3px}
 p.dek{color:var(--ink-2);font-size:17.5px;margin-bottom:26px}
@@ -128,7 +133,7 @@ td code{white-space:nowrap}
   </div>
   <div class="progress"><div class="pbar"><i id="pfill"></i></div><small id="ptext"></small></div>
   <nav class="toc" id="toc" aria-label="Modules"></nav>
-  <div class="sidefoot">ArchiMate&reg; and TOGAF&reg; are registered trademarks of The Open Group. Archi&reg; is the free modelling toolkit at archimatetool.com.<br><br><button id="resetBtn">Reset progress</button></div>
+  <div class="sidefoot"><a class="hubLink" href="/index.html">All courses</a><br><br>ArchiMate&reg; and TOGAF&reg; are registered trademarks of The Open Group. Archi&reg; is the free modelling toolkit at archimatetool.com.<br><br><button id="resetBtn">Reset progress</button></div>
 </aside>
 <main>
   <div class="topbar"><button id="menuBtn">Modules</button><span class="tt" id="tbTitle"></span></div>
@@ -337,7 +342,15 @@ const D = AM.dia;
 const MODULES = [];
 const KEY = 'archi-course-v1';
 const store = {
-  get(){ try{ return JSON.parse(localStorage.getItem(KEY)) || {done:{},quiz:{}} }catch(e){ return {done:{},quiz:{}} } },
+  get(){
+    try{
+      const s = JSON.parse(localStorage.getItem(KEY));
+      if (!s || typeof s !== 'object') return {done:{},quiz:{}};
+      if (!s.done || typeof s.done !== 'object') s.done = {};
+      if (!s.quiz || typeof s.quiz !== 'object') s.quiz = {};
+      return s;
+    }catch(e){ return {done:{},quiz:{}}; }
+  },
   set(s){ try{ localStorage.setItem(KEY, JSON.stringify(s)) }catch(e){} }
 };
 
@@ -382,7 +395,7 @@ function quizHTML(m, mi){
   if (!m.quiz || !m.quiz.length) return '';
   return `<div class="quiz" id="quiz">
     <h3>Check yourself</h3>
-    <p>Pick an answer for every question, then check. Any attempt marks the module complete.</p>
+    <p>Pick an answer for every question, then check. Score at least 60% to complete this module.</p>
     ${m.quiz.map((q,qi)=>`
       <div class="qq" data-q="${qi}">
         <div class="qt">${qi+1}. ${q.q}</div>
@@ -396,36 +409,108 @@ function quizHTML(m, mi){
 function wireQuiz(m, mi){
   if (!m.quiz || !m.quiz.length) return;
   const quiz = document.getElementById('quiz');
+  const key = 'm'+mi;
+  const st = store.get();
+  const attempt = st.quiz && st.quiz[key] && typeof st.quiz[key] === 'object' ? st.quiz[key] : null;
   const sel = new Array(m.quiz.length).fill(-1);
   const check = document.getElementById('checkBtn');
+  const scoreOut = document.getElementById('scoreOut');
+  const validPicks = attempt && Array.isArray(attempt.picks) && attempt.picks.length === m.quiz.length;
+  const submitted = !!attempt && validPicks;
+
+  if (validPicks) attempt.picks.forEach((pick, qi)=>{
+    if (Number.isInteger(pick) && pick >= 0 && pick < m.quiz[qi].o.length) sel[qi] = pick;
+  });
+
   quiz.querySelectorAll('.qq').forEach(qEl=>{
     const qi = +qEl.dataset.q;
     qEl.querySelectorAll('.opt').forEach(oEl=>{
+      const oi = +oEl.dataset.o;
+      if (sel[qi] === oi) oEl.classList.add('sel');
       oEl.onclick = ()=>{
         if (qEl.dataset.locked) return;
-        sel[qi] = +oEl.dataset.o;
+        sel[qi] = oi;
         qEl.querySelectorAll('.opt').forEach(x=>x.classList.remove('sel'));
         oEl.classList.add('sel');
         check.disabled = sel.some(s=>s<0);
       };
     });
   });
+
+  if (submitted){
+    const passed = attempt.passed === true;
+    quiz.querySelectorAll('.qq').forEach(qEl=>{
+      const qi = +qEl.dataset.q;
+      qEl.dataset.locked = '1';
+      qEl.querySelectorAll('.opt').forEach(oEl=>{
+        const oi = +oEl.dataset.o;
+        if (passed && oi === m.quiz[qi].a) oEl.classList.add('right');
+        else if (oi === sel[qi] && oi !== m.quiz[qi].a) oEl.classList.add('wrong');
+      });
+      if (passed) qEl.querySelector('.why').classList.add('show');
+    });
+    scoreOut.textContent = attempt.score + ' / ' + attempt.max + (passed ? ' — passed' : ' — try again');
+    check.disabled = true;
+    const retake = document.createElement('button');
+    retake.className = 'qbtn';
+    retake.type = 'button';
+    retake.id = 'retakeBtn';
+    retake.textContent = passed ? 'Retake quiz' : 'Try again';
+    retake.style.marginLeft = '10px';
+    retake.onclick = ()=>{
+      const next = store.get();
+      if (next.quiz) delete next.quiz[key];
+      store.set(next);
+      openModule(mi);
+    };
+    check.insertAdjacentElement('afterend', retake);
+    return;
+  }
+
+  check.disabled = sel.some(s=>s<0);
   check.onclick = ()=>{
     let right = 0;
     quiz.querySelectorAll('.qq').forEach(qEl=>{
-      const qi = +qEl.dataset.q, q = m.quiz[qi];
-      qEl.dataset.locked = 1;
+      const qi = +qEl.dataset.q;
+      const q = m.quiz[qi];
+      qEl.dataset.locked = '1';
       qEl.querySelectorAll('.opt').forEach(oEl=>{
         const oi = +oEl.dataset.o;
-        if (oi === q.a){ oEl.classList.add('right'); }
-        else if (oi === sel[qi]){ oEl.classList.add('wrong'); }
+        if (oi === sel[qi] && oi !== q.a) oEl.classList.add('wrong');
       });
-      qEl.querySelector('.why').classList.add('show');
       if (sel[qi] === q.a) right++;
     });
-    document.getElementById('scoreOut').textContent = right + ' / ' + m.quiz.length;
+    const max = m.quiz.length;
+    const passed = right / max >= 0.6;
+    scoreOut.textContent = right + ' / ' + max + (passed ? ' — passed' : ' — try again');
     check.disabled = true;
-    const st = store.get(); st.done['m'+mi] = true; store.set(st); buildNav();
+    const next = store.get();
+    next.quiz[key] = {picks:sel.slice(),score:right,max:max,passed:passed};
+    if (passed) next.done[key] = true;
+    store.set(next);
+    if (passed){
+      quiz.querySelectorAll('.qq').forEach(qEl=>{
+        const qi = +qEl.dataset.q;
+        qEl.querySelectorAll('.opt').forEach(oEl=>{
+          if (+oEl.dataset.o === m.quiz[qi].a) oEl.classList.add('right');
+        });
+        qEl.querySelector('.why').classList.add('show');
+      });
+    }
+    const retake = document.createElement('button');
+    retake.className = 'qbtn';
+    retake.type = 'button';
+    retake.id = 'retakeBtn';
+    retake.textContent = passed ? 'Retake quiz' : 'Try again';
+    retake.style.marginLeft = '10px';
+    retake.onclick = ()=>{
+      const fresh = store.get();
+      if (fresh.quiz) delete fresh.quiz[key];
+      store.set(fresh);
+      openModule(mi);
+    };
+    check.insertAdjacentElement('afterend', retake);
+    buildNav();
   };
 }
 </script>
