@@ -8,10 +8,14 @@
     "deploy": "wrangler deploy",
     "curate:run": "node curation/worker.mjs",
     "curate:watch": "node curation/worker.mjs --watch",
-    "curate:test": "node --test curation/*.test.mjs"
+    "curate:test": "node --test curation/*.test.mjs",
+    "curate:test:browser": "node --test curation/*.browser-test.mjs"
   },
   "devDependencies": {
     "@cloudflare/kv-asset-handler": "^0.3.4",
     "wrangler": "^4.68.1"
+  },
+  "dependencies": {
+    "playwright-core": "1.60.0"
   }
 }
