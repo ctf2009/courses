@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "courses": [
+    {
+      "id": "llm",
+      "title": "How Does an LLM Work?",
+      "path": "public/llm-course.html",
+      "placement": "served",
+      "audience": "Learners seeking an inside-out understanding of language models",
+      "objective": "Explain prediction, training and the limits of model outputs",
+      "progressKey": "llm-course-done",
+      "reviewStatus": "not-reviewed"
+    },
+    {
+      "id": "rag",
+      "title": "How RAG Actually Works",
+      "path": "public/rag-course.html",
+      "placement": "served",
+      "audience": "Learners building on language-model foundations",
+      "objective": "Explain retrieval, grounding and evaluation trade-offs",
+      "progressKey": "rag-course-done",
+      "reviewStatus": "not-reviewed"
+    },
+    {
+      "id": "websec",
+      "title": "Web Security",
+      "path": "public/websec-course.html",
+      "placement": "served",
+      "audience": "Developers learning the browser security model",
+      "objective": "Reason about cookies, origins, authentication and browser attacks",
+      "progressKey": "websec-progress-v1",
+      "reviewStatus": "not-reviewed"
+    },
+    {
+      "id": "togaf",
+      "title": "TOGAF 10",
+      "path": "public/togaf-course.html",
+      "placement": "served",
+      "audience": "Architecture certification learners",
+      "objective": "Apply ADM concepts and practise certification questions",
+      "progressKey": "togaf10:v1",
+      "reviewStatus": "not-reviewed"
+    },
+    {
+      "id": "archi",
+      "title": "Archi, Properly",
+      "path": "drafts/archi-course.html",
+      "placement": "draft",
+      "audience": "Architecture practitioners learning ArchiMate",
+      "objective": "Interpret and construct architecture models using ArchiMate concepts",
+      "progressKey": "archi-course-v1",
+      "reviewStatus": "changes-needed",
+      "review": "curation/reviews/2026-09-10-draft-intake.md",
+      "reviewEvidence": "curation/reviews/2026-09-10-draft-hashes.json"
+    },
+    {
+      "id": "istio",
+      "title": "Istio & Service Mesh — from nothing to judgement",
+      "path": "drafts/istio-course.html",
+      "placement": "draft",
+      "audience": "Developers and platform engineers assessing service meshes",
+      "objective": "Reason about mesh architecture, traffic, security and operational trade-offs",
+      "progressKey": "istio-course-v1",
+      "reviewStatus": "changes-needed",
+      "review": "curation/reviews/2026-09-10-draft-intake.md",
+      "reviewEvidence": "curation/reviews/2026-09-10-draft-hashes.json"
+    }
+  ]
+}

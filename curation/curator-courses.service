@@ -1,0 +1,20 @@
+[Unit]
+Description=Curator course catalogue and saved-review worker
+After=network.target
+
+[Service]
+Type=simple
+User=chris
+WorkingDirectory=/home/chris/curator-courses
+Environment=DOMAIN_INBOX_DIR=/home/chris/zora/data/domain-inbox
+ExecStart=/usr/bin/node /home/chris/curator-courses/curation/worker.mjs --watch
+Restart=on-failure
+RestartSec=15
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/chris/zora/data/domain-inbox
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Archi, Properly — an ArchiMate 3.2 course</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400;1,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1d2029; --ink-2:#4a4f5e; --ink-3:#7b8093;
+  --bg:#f7f6f2; --panel:#ffffff; --line:#e4e2d9;
+  --indigo:#4338ca; --indigo-soft:#eceafd;
+  --amber:#b45309; --amber-soft:#fdf1e0;
+  --teal:#0f766e; --teal-soft:#e2f4f1;
+  --rose:#be123c; --rose-soft:#fdecef;
+  --biz:#fffcb0; --biz-line:#98922f;
+  --app:#bdf3ff; --app-line:#2f7f98;
+  --side:#171923; --side-2:#232635; --side-ink:#c9cbd6;
+  --radius:10px;
+  --disp:'Space Grotesk',sans-serif; --body:'IBM Plex Sans',sans-serif; --mono:'IBM Plex Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{font-family:var(--body);background:var(--bg);color:var(--ink);font-size:16.5px;line-height:1.62}
+a{color:var(--indigo)}
+/* ---------- layout ---------- */
+.wrap{display:grid;grid-template-columns:302px 1fr;min-height:100vh}
+aside{background:var(--side);color:var(--side-ink);position:sticky;top:0;height:100vh;overflow-y:auto;padding:22px 0 30px}
+.brand{padding:0 22px 16px;border-bottom:1px solid var(--side-2)}
+.brand h1{font-family:var(--disp);font-size:21px;color:#fff;letter-spacing:.2px}
+.brand h1 span{color:#f2c744}
+.brand p{font-size:12.5px;color:#8d92a6;margin-top:3px}
+.progress{padding:14px 22px;border-bottom:1px solid var(--side-2)}
+.pbar{height:6px;background:var(--side-2);border-radius:3px;overflow:hidden}
+.pbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#f2c744,#40c4c0);border-radius:3px;transition:width .3s}
+.progress small{display:block;margin-top:6px;font-size:11.5px;color:#8d92a6}
+nav.toc{padding:10px 12px}
+nav.toc button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;color:var(--side-ink);font-family:var(--body);font-size:13.5px;line-height:1.35;padding:8px 10px;border-radius:8px;cursor:pointer}
+nav.toc button:hover{background:var(--side-2)}
+nav.toc button.on{background:var(--side-2);color:#fff}
+.mnum{font-family:var(--mono);font-size:10.5px;color:#0d0f16;background:#585d72;border-radius:5px;min-width:24px;height:20px;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.mnum.b{background:var(--biz)} .mnum.a{background:var(--app)} .mnum.x{background:linear-gradient(135deg,var(--biz) 50%,var(--app) 50%)} .mnum.n{background:#a9aebf}
+.tick{margin-left:auto;flex:none;width:16px;height:16px;border-radius:50%;border:1.5px solid #4a4f61;display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:transparent}
+.tick.done{background:#2fbf8f;border-color:#2fbf8f;color:#08130f}
+.sidefoot{padding:16px 22px 0;font-size:11px;color:#71768a;line-height:1.5}
+.sidefoot button{background:none;border:0;color:#71768a;text-decoration:underline;cursor:pointer;font-size:11px;padding:0}
+/* ---------- main ---------- */
+main{min-width:0}
+.topbar{display:none}
+.content{max-width:900px;margin:0 auto;padding:44px 40px 90px}
+.kicker{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--amber)}
+h2.mtitle{font-family:var(--disp);font-size:33px;line-height:1.15;margin:6px 0 6px;letter-spacing:-.3px}
+p.dek{color:var(--ink-2);font-size:17.5px;margin-bottom:26px}
+article h3{font-family:var(--disp);font-size:22px;margin:36px 0 10px;letter-spacing:-.2px}
+article h4{font-family:var(--disp);font-size:17px;margin:26px 0 8px}
+article p{margin:0 0 14px}
+article ul,article ol{margin:0 0 14px 22px}
+article li{margin-bottom:6px}
+strong{font-weight:600}
+code{font-family:var(--mono);font-size:.86em;background:#eeede6;border-radius:4px;padding:1px 5px}
+.term{border-bottom:1.5px dotted var(--indigo);font-weight:500}
+/* callouts */
+.co{border-radius:var(--radius);padding:14px 16px;margin:18px 0;font-size:15.5px;border:1px solid;position:relative}
+.co b.lbl{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px}
+.co.spec{background:var(--indigo-soft);border-color:#cdc7f5}.co.spec b.lbl{color:var(--indigo)}
+.co.tip{background:var(--teal-soft);border-color:#bfe4de}.co.tip b.lbl{color:var(--teal)}
+.co.warn{background:var(--amber-soft);border-color:#f0dcbb}.co.warn b.lbl{color:var(--amber)}
+.co.trap{background:var(--rose-soft);border-color:#f3ccd6}.co.trap b.lbl{color:var(--rose)}
+.co p:last-child{margin-bottom:0}
+/* figures */
+.fig{margin:24px 0;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px 16px 12px;overflow-x:auto}
+.fig svg{display:block;max-width:100%;height:auto;margin:0 auto}
+.fig figcaption{font-size:13.5px;color:var(--ink-3);margin-top:10px;padding-top:8px;border-top:1px dashed var(--line);line-height:1.5}
+.fig figcaption b{color:var(--ink-2);font-family:var(--mono);font-size:12px}
+/* tables */
+table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14.5px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+th{font-family:var(--disp);font-size:13px;text-align:left;background:#f0efe8;padding:9px 12px;border-bottom:1px solid var(--line)}
+td{padding:9px 12px;border-bottom:1px solid #efeee7;vertical-align:top}
+tr:last-child td{border-bottom:0}
+td code{white-space:nowrap}
+/* quiz */
+.quiz{margin-top:44px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:22px}
+.quiz h3{font-family:var(--disp);font-size:19px;margin:0 0 4px}
+.quiz>p{font-size:14px;color:var(--ink-3);margin-bottom:16px}
+.qq{margin-bottom:20px}
+.qq .qt{font-weight:600;margin-bottom:8px;font-size:15.5px}
+.opt{display:block;width:100%;text-align:left;font-family:var(--body);font-size:14.5px;background:#faf9f5;border:1.5px solid var(--line);border-radius:8px;padding:9px 12px;margin-bottom:7px;cursor:pointer;color:var(--ink)}
+.opt:hover{border-color:#c9c6b8}
+.opt.sel{border-color:var(--indigo);background:var(--indigo-soft)}
+.opt.right{border-color:#15803d;background:#e8f6ec}
+.opt.wrong{border-color:var(--rose);background:var(--rose-soft)}
+.why{display:none;font-size:13.5px;color:var(--ink-2);background:#f4f3ec;border-left:3px solid var(--indigo);padding:8px 12px;border-radius:0 6px 6px 0;margin-top:6px}
+.why.show{display:block}
+.qbtn{font-family:var(--disp);font-size:15px;background:var(--indigo);color:#fff;border:0;border-radius:8px;padding:10px 20px;cursor:pointer}
+.qbtn:disabled{opacity:.45;cursor:default}
+.score{margin-left:14px;font-family:var(--mono);font-size:14px;color:var(--ink-2)}
+/* pager */
+.pager{display:flex;justify-content:space-between;gap:12px;margin-top:34px}
+.pager button{font-family:var(--disp);font-size:14.5px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 16px;cursor:pointer;color:var(--ink)}
+.pager button:hover{border-color:var(--indigo);color:var(--indigo)}
+.pager button:disabled{opacity:.35;pointer-events:none}
+/* misc */
+.pill{display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:20px;margin-right:6px;border:1px solid}
+.pill.b{background:var(--biz);border-color:var(--biz-line)} .pill.a{background:var(--app);border-color:var(--app-line)}
+:focus-visible{outline:2.5px solid var(--indigo);outline-offset:2px}
+/* mobile */
+@media(max-width:900px){
+  .wrap{grid-template-columns:1fr}
+  aside{position:fixed;z-index:30;width:min(320px,86vw);height:100vh;transform:translateX(-102%);transition:transform .25s}
+  aside.open{transform:none;box-shadow:0 0 0 100vmax rgba(10,10,16,.45)}
+  .topbar{display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--line);padding:12px 16px}
+  .topbar button{font-family:var(--disp);background:var(--side);color:#fff;border:0;border-radius:7px;padding:7px 12px;font-size:13.5px;cursor:pointer}
+  .topbar .tt{font-family:var(--disp);font-size:15px}
+  .content{padding:26px 18px 70px}
+  h2.mtitle{font-size:26px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<aside id="side">
+  <div class="brand">
+    <h1>Archi, <span>Properly</span></h1>
+    <p>ArchiMate&reg; 3.2 &middot; business + application layers &middot; no mucking about</p>
+  </div>
+  <div class="progress"><div class="pbar"><i id="pfill"></i></div><small id="ptext"></small></div>
+  <nav class="toc" id="toc" aria-label="Modules"></nav>
+  <div class="sidefoot">ArchiMate&reg; and TOGAF&reg; are registered trademarks of The Open Group. Archi&reg; is the free modelling toolkit at archimatetool.com.<br><br><button id="resetBtn">Reset progress</button></div>
+</aside>
+<main>
+  <div class="topbar"><button id="menuBtn">Modules</button><span class="tt" id="tbTitle"></span></div>
+  <div class="content" id="content"></div>
+</main>
+</div>
+
+<script>
+/* ============================================================
+   AM — a tiny ArchiMate 3.2 notation engine (SVG)
+   Elements: [id, kind, label, x, y, w?, h?]
+   Rels:     [from, to, kind, label?, opts?]
+   ============================================================ */
+const AM = (() => {
+  const L = {
+    b:{fill:'#fffcb0', line:'#8f892b'},
+    a:{fill:'#bdf3ff', line:'#2c7d98'},
+    n:{fill:'#eceef2', line:'#7d8494'}
+  };
+  const INK='#23262e';
+  const KIND = {
+    bActor:      {l:'b', shape:'rect',  icon:'actor'},
+    bRole:       {l:'b', shape:'rect',  icon:'role'},
+    bCollab:     {l:'b', shape:'rect',  icon:'collab'},
+    bInterface:  {l:'b', shape:'rect',  icon:'iface'},
+    bProcess:    {l:'b', shape:'round', icon:'proc'},
+    bFunction:   {l:'b', shape:'round', icon:'func'},
+    bInteraction:{l:'b', shape:'round', icon:'inter'},
+    bEvent:      {l:'b', shape:'event'},
+    bService:    {l:'b', shape:'stadium'},
+    bObject:     {l:'b', shape:'object'},
+    contract:    {l:'b', shape:'contract'},
+    representation:{l:'b', shape:'rep'},
+    product:     {l:'b', shape:'product'},
+    aComponent:  {l:'a', shape:'rect',  icon:'comp'},
+    aCollab:     {l:'a', shape:'rect',  icon:'collab'},
+    aInterface:  {l:'a', shape:'rect',  icon:'iface'},
+    aProcess:    {l:'a', shape:'round', icon:'proc'},
+    aFunction:   {l:'a', shape:'round', icon:'func'},
+    aInteraction:{l:'a', shape:'round', icon:'inter'},
+    aEvent:      {l:'a', shape:'event'},
+    aService:    {l:'a', shape:'stadium'},
+    dataObject:  {l:'a', shape:'object'},
+    groupB:      {l:'b', shape:'group'},
+    groupA:      {l:'a', shape:'group'},
+    group:       {l:'n', shape:'group'},
+    note:        {l:'n', shape:'note'},
+    junction:    {l:'n', shape:'junction'}
+  };
+
+  /* ---- icons: drawn in a 15x15 box, stroke only ---- */
+  function icon(name, col){
+    const s = `fill="none" stroke="${col}" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"`;
+    switch(name){
+      case 'actor': return `<circle cx="7.5" cy="3.6" r="2.5" ${s}/><path d="M2.6,13.4 C2.6,9.2 12.4,9.2 12.4,13.4" ${s}/>`;
+      case 'role': return `<path d="M11,3.4 H4.4 A2.4,3.6 0 0 0 4.4,10.6 H11" ${s}/><ellipse cx="11" cy="7" rx="2.4" ry="3.6" ${s}/>`;
+      case 'collab': return `<circle cx="5.2" cy="7" r="3.9" ${s}/><circle cx="9.8" cy="7" r="3.9" ${s}/>`;
+      case 'iface': return `<path d="M0.8,7 H7.2" ${s}/><circle cx="10.6" cy="7" r="3.3" ${s}/>`;
+      case 'proc': return `<path d="M1,4.6 h7.4 v-2.8 l5.6,5.2 -5.6,5.2 v-2.8 H1 z" ${s}/>`;
+      case 'func': return `<path d="M2,13 V7.4 L7.5,2.4 L13,7.4 V13" ${s}/><path d="M7.5,13 V6.6" ${s}/><path d="M5,4.8 L7.5,2.4 L10,4.8" ${s}/>`;
+      case 'inter': return `<path d="M6.3,2.6 v9.8 h-1.6 a4.9,4.9 0 0 1 0,-9.8 z" ${s}/><path d="M8.7,2.6 v9.8 h1.6 a4.9,4.9 0 0 0 0,-9.8 z" ${s}/>`;
+      case 'comp': return `<rect x="4.6" y="1.4" width="9" height="12.2" ${s}/><rect x="1.4" y="3.6" width="6.2" height="2.6" fill="#fff" stroke="${col}" stroke-width="1.4"/><rect x="1.4" y="8" width="6.2" height="2.6" fill="#fff" stroke="${col}" stroke-width="1.4"/>`;
+    }
+    return '';
+  }
+
+  function wrapText(label, w){
+    const manual = String(label).split('\n');
+    const maxC = Math.max(6, Math.floor((w - 18) / 6.9));
+    const out = [];
+    manual.forEach(seg => {
+      const words = seg.split(' ');
+      let line = '';
+      words.forEach(wd => {
+        const t = line ? line + ' ' + wd : wd;
+        if (t.length > maxC && line){ out.push(line); line = wd; } else line = t;
+      });
+      out.push(line);
+    });
+    return out;
+  }
+
+  function elShape(e){
+    const k = KIND[e.kind]; if(!k) return '';
+    const c = L[k.l], {x,y,w,h} = e;
+    const st = `fill="${c.fill}" stroke="${c.line}" stroke-width="1.5"`;
+    let body = '', hasIcon = !!k.icon;
+    switch(k.shape){
+      case 'rect':    body = `<rect x="${x}" y="${y}" width="${w}" height="${h}" ${st}/>`; break;
+      case 'round':   body = `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="11" ${st}/>`; break;
+      case 'stadium': body = `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${h/2}" ${st}/>`; break;
+      case 'event':   body = `<path d="M ${x},${y} H ${x+w-14} Q ${x+w},${y} ${x+w},${y+h/2} Q ${x+w},${y+h} ${x+w-14},${y+h} H ${x} Q ${x+13},${y+h/2} ${x},${y} Z" ${st}/>`; break;
+      case 'object':  body = `<rect x="${x}" y="${y}" width="${w}" height="${h}" ${st}/><path d="M ${x},${y+15} H ${x+w}" stroke="${c.line}" stroke-width="1.5"/>`; break;
+      case 'contract':body = `<rect x="${x}" y="${y}" width="${w}" height="${h}" ${st}/><path d="M ${x},${y+15} H ${x+w} M ${x},${y+h-15} H ${x+w}" stroke="${c.line}" stroke-width="1.5"/>`; break;
+      case 'rep':     body = `<path d="M ${x},${y} H ${x+w} V ${y+h-8} Q ${x+w*0.75},${y+h-16} ${x+w/2},${y+h-8} Q ${x+w*0.25},${y+h} ${x},${y+h-8} Z" ${st}/>`; break;
+      case 'product': body = `<rect x="${x}" y="${y}" width="${w}" height="${h}" ${st}/><path d="M ${x},${y+15} H ${x+w/2} V ${y}" fill="none" stroke="${c.line}" stroke-width="1.5"/>`; break;
+      case 'group':   return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="${c.fill}" fill-opacity="0.28" stroke="${c.line}" stroke-opacity="0.75" stroke-width="1.3" stroke-dasharray="7 5"/><text x="${x+12}" y="${y+20}" font-family="'IBM Plex Mono',monospace" font-size="11" letter-spacing="1.5" fill="${c.line}">${e.label.toUpperCase()}</text>`;
+      case 'note':    return `<path d="M ${x},${y} H ${x+w-14} L ${x+w},${y+14} V ${y+h} H ${x} Z" fill="#fdfcf5" stroke="#b9b6a6" stroke-width="1.3"/>` + labelText(e, INK, 'italic');
+      case 'junction':return `<circle cx="${x}" cy="${y}" r="6" fill="${INK}"/>`;
+    }
+    return body + (hasIcon ? `<g transform="translate(${x+w-21},${y+5})">${icon(k.icon, c.line)}</g>` : '') + labelText(e, INK, null, hasIcon);
+  }
+
+  function labelText(e, col, style, hasIcon){
+    const lines = wrapText(e.label, e.w - (hasIcon?20:0));
+    const lh = 15.5, y0 = e.y + e.h/2 - (lines.length-1)*lh/2 + 4.5;
+    const it = style ? `font-style="${style}"` : '';
+    return lines.map((ln,i)=>`<text x="${e.x + e.w/2 - (hasIcon?7:0)}" y="${y0+i*lh}" text-anchor="middle" font-family="'IBM Plex Sans',sans-serif" font-size="12.6" font-weight="500" ${it} fill="${col}">${ln}</text>`).join('');
+  }
+
+  /* ---- relationship geometry ---- */
+  function center(e){ return KIND[e.kind].shape==='junction' ? {x:e.x, y:e.y} : {x:e.x+e.w/2, y:e.y+e.h/2}; }
+  function anchor(e, toward){
+    const c = center(e);
+    if (KIND[e.kind].shape==='junction'){ const dx=toward.x-c.x, dy=toward.y-c.y, m=Math.hypot(dx,dy)||1; return {x:c.x+dx/m*6, y:c.y+dy/m*6}; }
+    const dx = toward.x - c.x, dy = toward.y - c.y;
+    if (!dx && !dy) return c;
+    const sx = Math.abs(dx)/(e.w/2), sy = Math.abs(dy)/(e.h/2);
+    const t = 1/Math.max(sx, sy);
+    return {x: c.x + dx*t, y: c.y + dy*t};
+  }
+  const A = (p,q)=>Math.atan2(q.y-p.y, q.x-p.x)*180/Math.PI;
+  const back = (p, deg, d)=>({x:p.x - Math.cos(deg*Math.PI/180)*d, y:p.y - Math.sin(deg*Math.PI/180)*d});
+
+  /* arrowheads etc — drawn pointing along +x, rotated into place */
+  const heads = {
+    open:   (c)=>`<path d="M-11,-6 L0,0 L-11,6" fill="none" stroke="${c}" stroke-width="1.6" stroke-linecap="round"/>`,
+    solid:  (c)=>`<path d="M-12,-6 L0,0 L-12,6 Z" fill="${c}"/>`,
+    hollow: (c)=>`<path d="M-14,-7.5 L0,0 L-14,7.5 Z" fill="#fff" stroke="${c}" stroke-width="1.6"/>`,
+    diamond:(c,f)=>`<path d="M0,0 L9,-5.5 L18,0 L9,5.5 Z" fill="${f?c:'#fff'}" stroke="${c}" stroke-width="1.6"/>`,
+    ball:   (c)=>`<circle cx="4" cy="0" r="4" fill="${c}"/>`
+  };
+  function headAt(name, p, deg, col, filled){
+    return `<g transform="translate(${p.x},${p.y}) rotate(${deg})">${heads[name](col, filled)}</g>`;
+  }
+
+  const REL = {
+    composition:   {dash:null,  end:null,     start:'diamondF', trim:0,  trimS:18},
+    aggregation:   {dash:null,  end:null,     start:'diamondH', trim:0,  trimS:18},
+    assignment:    {dash:null,  end:'solid',  start:'ball',     trim:1,  trimS:0},
+    realization:   {dash:'2 3', end:'hollow', start:null,       trim:13, trimS:0},
+    serving:       {dash:null,  end:'open',   start:null,       trim:1,  trimS:0},
+    access:        {dash:'2 3', end:null,     start:null,       trim:0,  trimS:0},
+    triggering:    {dash:null,  end:'solid',  start:null,       trim:1,  trimS:0},
+    flow:          {dash:'7 4', end:'solid',  start:null,       trim:1,  trimS:0},
+    specialization:{dash:null,  end:'hollow', start:null,       trim:13, trimS:0},
+    association:   {dash:null,  end:null,     start:null,       trim:0,  trimS:0},
+    influence:     {dash:'2 3', end:'open',   start:null,       trim:1,  trimS:0}
+  };
+
+  function relShape(r, els){
+    const S = els[r[0]], T = els[r[1]], kind = r[2], label = r[3]||'', opts = r[4]||{};
+    const spec = REL[kind]; if(!spec || !S || !T) return '';
+    const col = '#3d414f';
+    const via = (opts.via||[]).map(p=>({x:p[0],y:p[1]}));
+    const p0 = anchor(S, via[0] || center(T));
+    const p1 = anchor(T, via[via.length-1] || center(S));
+    const pts = [p0, ...via, p1];
+    const degEnd = A(pts[pts.length-2], pts[pts.length-1]);
+    const degStart = A(pts[1], pts[0]);
+    let marks = '';
+    /* trim line ends so hollow shapes are not overdrawn */
+    let a = pts[0], z = pts[pts.length-1];
+    if (spec.start){
+      if (spec.start==='ball') marks += headAt('ball', p0, degStart+180, col);
+      else { marks += headAt('diamond', p0, degStart+180, col, spec.start==='diamondF'); a = back(p0, degStart, spec.trimS); }
+    }
+    if (spec.end){ marks += headAt(spec.end, p1, degEnd, col); z = back(p1, degEnd, spec.trim); }
+    /* access read/write arrows */
+    if (kind==='access'){
+      const m = opts.acc || 'w';
+      if (m.includes('w')) marks += headAt('open', p1, degEnd, col);
+      if (m.includes('r')) marks += headAt('open', p0, degStart, col);
+    }
+    const mid = pts.length===2 ? {x:(a.x+z.x)/2, y:(a.y+z.y)/2} : pts[Math.floor(pts.length/2)];
+    const seg = [a, ...via, z].map((p,i)=> (i?'L':'M') + p.x + ',' + p.y).join(' ');
+    const dash = spec.dash ? `stroke-dasharray="${spec.dash}"` : '';
+    const labAttrs = `text-anchor="middle" font-family="'IBM Plex Sans',sans-serif" font-size="11.6" font-style="italic"`;
+    const lab = label ? `<text x="${mid.x + (opts.lx||0)}" y="${mid.y + (opts.ly|| -7)}" ${labAttrs} stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" fill="#ffffff">${label}</text><text x="${mid.x + (opts.lx||0)}" y="${mid.y + (opts.ly|| -7)}" ${labAttrs} fill="#565b6b">${label}</text>` : '';
+    return `<path d="${seg}" fill="none" stroke="${col}" stroke-width="1.6" ${dash}/>` + marks + lab;
+  }
+
+  function dia(opts, elArr, relArr){
+    const els = {};
+    elArr.forEach(e => {
+      const o = {id:e[0], kind:e[1], label:e[2], x:e[3], y:e[4], w:e[5]||158, h:e[6]||54};
+      els[o.id] = o;
+    });
+    const groups = [], normal = [];
+    Object.values(els).forEach(e => (KIND[e.kind].shape==='group' ? groups : normal).push(e));
+    const body =
+      groups.map(elShape).join('') +
+      normal.map(elShape).join('') +
+      (relArr||[]).map(r => relShape(r, els)).join('');
+    const cap = opts.cap ? `<figcaption>${opts.n?'<b>Fig '+opts.n+'</b> &middot; ':''}${opts.cap}</figcaption>` : '';
+    return `<figure class="fig"><svg viewBox="0 0 ${opts.w} ${opts.h}" role="img" aria-label="${opts.alt||'ArchiMate diagram'}">${body}</svg>${cap}</figure>`;
+  }
+
+  return { dia };
+})();
+const D = AM.dia;
+
+/* ============================================================
+   Course engine
+   ============================================================ */
+const MODULES = [];
+const KEY = 'archi-course-v1';
+const store = {
+  get(){ try{ return JSON.parse(localStorage.getItem(KEY)) || {done:{},quiz:{}} }catch(e){ return {done:{},quiz:{}} } },
+  set(s){ try{ localStorage.setItem(KEY, JSON.stringify(s)) }catch(e){} }
+};
+
+function buildNav(){
+  const toc = document.getElementById('toc');
+  const st = store.get();
+  toc.innerHTML = MODULES.map((m,i)=>
+    `<button data-i="${i}" aria-current="${location.hash==='#m'+i}">
+      <span class="mnum ${m.layer}">${String(i).padStart(2,'0')}</span>
+      <span>${m.title}</span>
+      <span class="tick ${st.done['m'+i]?'done':''}">&#10003;</span>
+    </button>`).join('');
+  toc.querySelectorAll('button').forEach(b=>b.onclick=()=>{ openModule(+b.dataset.i); document.getElementById('side').classList.remove('open'); });
+  const done = MODULES.filter((m,i)=>st.done['m'+i]).length;
+  document.getElementById('pfill').style.width = (done/MODULES.length*100)+'%';
+  document.getElementById('ptext').textContent = done + ' of ' + MODULES.length + ' modules complete';
+}
+
+let current = 0;
+function openModule(i){
+  current = Math.max(0, Math.min(MODULES.length-1, i));
+  const m = MODULES[current];
+  history.replaceState(null,'','#m'+current);
+  document.getElementById('tbTitle').textContent = String(current).padStart(2,'0') + ' · ' + m.title;
+  const c = document.getElementById('content');
+  c.innerHTML =
+    `<div class="kicker">Module ${String(current).padStart(2,'0')}</div>
+     <h2 class="mtitle">${m.title}</h2>
+     <p class="dek">${m.dek}</p>
+     <article>${m.html}</article>
+     ${quizHTML(m, current)}
+     <div class="pager">
+       <button ${current===0?'disabled':''} onclick="openModule(${current-1})">&larr; ${current>0?String(current-1).padStart(2,'0')+' '+MODULES[current-1].title:''}</button>
+       <button ${current===MODULES.length-1?'disabled':''} onclick="openModule(${current+1})">${current<MODULES.length-1?String(current+1).padStart(2,'0')+' '+MODULES[current+1].title:''} &rarr;</button>
+     </div>`;
+  wireQuiz(m, current);
+  buildNav();
+  window.scrollTo({top:0});
+}
+
+function quizHTML(m, mi){
+  if (!m.quiz || !m.quiz.length) return '';
+  return `<div class="quiz" id="quiz">
+    <h3>Check yourself</h3>
+    <p>Pick an answer for every question, then check. Any attempt marks the module complete.</p>
+    ${m.quiz.map((q,qi)=>`
+      <div class="qq" data-q="${qi}">
+        <div class="qt">${qi+1}. ${q.q}</div>
+        ${q.o.map((o,oi)=>`<button class="opt" data-o="${oi}">${o}</button>`).join('')}
+        <div class="why">${q.why}</div>
+      </div>`).join('')}
+    <button class="qbtn" id="checkBtn" disabled>Check answers</button><span class="score" id="scoreOut"></span>
+  </div>`;
+}
+
+function wireQuiz(m, mi){
+  if (!m.quiz || !m.quiz.length) return;
+  const quiz = document.getElementById('quiz');
+  const sel = new Array(m.quiz.length).fill(-1);
+  const check = document.getElementById('checkBtn');
+  quiz.querySelectorAll('.qq').forEach(qEl=>{
+    const qi = +qEl.dataset.q;
+    qEl.querySelectorAll('.opt').forEach(oEl=>{
+      oEl.onclick = ()=>{
+        if (qEl.dataset.locked) return;
+        sel[qi] = +oEl.dataset.o;
+        qEl.querySelectorAll('.opt').forEach(x=>x.classList.remove('sel'));
+        oEl.classList.add('sel');
+        check.disabled = sel.some(s=>s<0);
+      };
+    });
+  });
+  check.onclick = ()=>{
+    let right = 0;
+    quiz.querySelectorAll('.qq').forEach(qEl=>{
+      const qi = +qEl.dataset.q, q = m.quiz[qi];
+      qEl.dataset.locked = 1;
+      qEl.querySelectorAll('.opt').forEach(oEl=>{
+        const oi = +oEl.dataset.o;
+        if (oi === q.a){ oEl.classList.add('right'); }
+        else if (oi === sel[qi]){ oEl.classList.add('wrong'); }
+      });
+      qEl.querySelector('.why').classList.add('show');
+      if (sel[qi] === q.a) right++;
+    });
+    document.getElementById('scoreOut').textContent = right + ' / ' + m.quiz.length;
+    check.disabled = true;
+    const st = store.get(); st.done['m'+mi] = true; store.set(st); buildNav();
+  };
+}
+</script>
+
+<script>
+/* ================= MODULE 00 ================= */
+MODULES.push({
+title:'Orientation: Archi vs ArchiMate',
+layer:'n',
+dek:'One is a language with a spec. The other is a free tool that draws it. Confusing the two is the first mistake most tutorials make.',
+html: `
+<p><span class="term">ArchiMate</span> is a modelling <em>language</em> — an Open Group standard, currently at version 3.2, with a formal metamodel: a fixed set of element types, a fixed set of relationship types, and rules about which relationships are allowed between which elements. <span class="term">Archi</span> is a free, open-source <em>tool</em> (archimatetool.com) that implements that language. Archi will happily let you draw a bad model; the language is what tells you it is bad. This course teaches the language through the tool, and everything in it is aligned to the ArchiMate 3.2 specification — where a definition matters, it is paraphrased from the spec, not from someone's blog.</p>
+
+<h3>The core framework: three aspects, two halves</h3>
+<p>Every ArchiMate layer is built from the same grammar, and once you see it you can never unsee it. Elements are one of three <strong>aspects</strong>:</p>
+<ul>
+<li><strong>Active structure</strong> — things that <em>do</em>: actors, roles, application components, interfaces. The subjects of sentences.</li>
+<li><strong>Behaviour</strong> — things that <em>happen</em>: processes, functions, services, events. The verbs.</li>
+<li><strong>Passive structure</strong> — things that are <em>acted upon</em>: business objects, data objects, contracts. The objects of sentences.</li>
+</ul>
+<p>And each aspect splits into an <strong>internal</strong> and an <strong>external</strong> half. Internal is how you work; external is what the outside world can see and use. The two external concepts — <strong>interface</strong> (active) and <strong>service</strong> (behaviour) — are the boundary of every layer, and they are the reason ArchiMate can say things a box-and-line diagram cannot.</p>
+
+${D({w:820,h:300,n:'0.1',cap:'The generic framework. Every layer repeats this grid. A model is just sentences built from it: an <em>actor</em> is <em>assigned to</em> a <em>process</em> that <em>accesses</em> an <em>object</em> and <em>realises</em> a <em>service</em> exposed at an <em>interface</em>.'},
+[
+ ['g1','group','Internal — how the layer works', 20, 60, 470, 220],
+ ['g2','group','External — what it offers', 520, 60, 280, 220],
+ ['as','bActor','Active structure\n(actor, role, component)', 45, 110, 190, 62],
+ ['bh','bProcess','Behaviour\n(process, function)', 265, 110, 190, 62],
+ ['ps','bObject','Passive structure\n(object, contract, data)', 155, 200, 190, 58],
+ ['ifc','bInterface','Interface', 545, 110, 230, 54],
+ ['svc','bService','Service', 545, 200, 230, 54]
+],
+[
+ ['as','bh','assignment','performs'],
+ ['bh','ps','access','uses',{acc:'rw'}],
+ ['bh','svc','realization','realises'],
+ ['ifc','svc','assignment','exposes'],
+ ['as','ifc','composition','',{via:[[140,85],[660,85]]}]
+])}
+
+<h3>Layers, and which ones we care about</h3>
+<p>ArchiMate 3.2 defines the <strong>business</strong>, <strong>application</strong> and <strong>technology</strong> layers as its core, plus physical, strategy, motivation and implementation &amp; migration. This course goes deep on <strong>business</strong> and <strong>application</strong> — the two layers where architects spend most of their time and where the modelling errors are most damaging. Technology, strategy and motivation each get exactly the mention they need and no more: they exist, the grammar is the same, and you will recognise them instantly once the business and application layers are solid.</p>
+
+<div class="co spec"><b class="lbl">Spec alignment</b><p>The generic metamodel and the aspect framework are Chapter 3–4 territory in the 3.2 spec; relationships are Chapter 5; the business layer is Chapter 8 and the application layer Chapter 9. When this course says "the spec says", that is where it is looking.</p></div>
+
+<h3>A model is a set of claims</h3>
+<p>The mindset shift that separates ArchiMate from drawing: a model is not a picture, it is a <strong>set of statements about the enterprise</strong>, each of which is true or false. "Internet Banking <em>realises</em> the Preference Capture service" is a claim someone can dispute. "Two boxes joined by a grey line" is not. Every element you add and every relationship you draw should survive the question: <em>what am I asserting, and would I defend it in a design review?</em></p>
+
+<div class="co tip"><b class="lbl">How ArchiMate relates to TOGAF</b><p>Both are Open Group standards and they are deliberately complementary: TOGAF gives you the method (the ADM, the deliverables), ArchiMate gives you the language the artefacts are written in. If you have done the TOGAF course, ArchiMate is what most of the Artifact Atlas would actually be drawn in.</p></div>
+`,
+quiz:[
+{q:'Archi refuses to let you draw a relationship between two elements. What is actually stopping you?', o:['A bug in the tool','The ArchiMate metamodel — that relationship is not defined between those element types','Your licence tier','The viewpoint you selected changes the language rules'], a:1, why:'Archi enforces the language. The metamodel defines exactly which relationships are permitted between which element types; viewpoints only filter what is shown, they never change the rules.'},
+{q:'Which pair are the two <em>external</em> concepts that form the boundary of every layer?', o:['Process and function','Actor and role','Interface and service','Object and contract'], a:2, why:'Interface is external active structure (the point of access); service is external behaviour (the exposed value). Everything else is internal machinery.'},
+{q:'A business service belongs to which aspect?', o:['Active structure','Behaviour','Passive structure','Motivation'], a:1, why:'A service is behaviour — something that happens, offered to the environment. It is the external half of the behaviour column.'},
+{q:'"A model is a set of claims" means…', o:['Models must be signed off before drawing','Every element and relationship asserts something that is true or false about the enterprise','Models are legally binding','Only relationships carry meaning, elements are decoration'], a:1, why:'Each element and each typed relationship is an assertion. That is why relationship <em>type</em> matters: serving, realisation and assignment make different claims.'}
+]});
+
+/* ================= MODULE 01 ================= */
+MODULES.push({
+title:'Thinking in services',
+layer:'n',
+dek:'The service is the anchor concept of the whole language. Get this and the layers organise themselves; miss it and every diagram becomes an app inventory.',
+html: `
+<p>A <span class="term">service</span> is a unit of behaviour that is <strong>explicitly exposed to the environment</strong>, defined by the value it delivers, hiding how it is done. That definition does three jobs at once: it separates <em>what</em> from <em>how</em>, it separates <em>outside</em> from <em>inside</em>, and it gives every layer a clean top surface for the layer above to stand on.</p>
+
+<h3>The canonical chain</h3>
+<p>Almost everything in this course is a variation of one five-element sentence, so learn it as a chain:</p>
+
+${D({w:860,h:150,n:'1.1',cap:'The canonical chain. Read right to left: someone benefits from a service, which is realised by internal behaviour, which is performed by active structure. The serving arrow points at the beneficiary; realisation points at the more abstract thing being made real.'},
+[
+ ['actor','bActor','Bank', 20, 48, 130, 54],
+ ['proc','bProcess','Update Statement Preference', 200, 48, 200, 54],
+ ['svc','bService','Statement Preference Management', 450, 48, 220, 54],
+ ['role','bRole','Account Holder', 720, 48, 120, 54]
+],
+[
+ ['actor','proc','assignment','performs'],
+ ['proc','svc','realization','realises'],
+ ['svc','role','serving','serves']
+])}
+
+<p>Note the directions, because they trip everyone: <strong>realisation points from the concrete to the abstract</strong> (the process makes the service real), and <strong>serving points from provider to beneficiary</strong> (the service serves the role). If your arrows go the other way, your model says the customer implements your bank.</p>
+
+<h3>Layers are layers of serving</h3>
+<p>The layer stack is not a filing system — it is a serving hierarchy. Application services <em>serve</em> business behaviour; technology services <em>serve</em> application components. Each layer consumes the layer below <em>only through its services</em>, which is exactly why the business layer can be modelled with no technology in it at all.</p>
+
+${D({w:640,h:330,n:'1.2',cap:'Layers as a serving stack. The business layer never touches an application component directly — it consumes application <em>services</em>. This is what makes the business view stable while implementations churn underneath it.'},
+[
+ ['gb','groupB','Business', 30, 30, 580, 120],
+ ['bp','bProcess','Business process', 70, 70, 210, 56],
+ ['bs','bService','Business service', 340, 70, 230, 56],
+ ['ga','groupA','Application', 30, 180, 580, 120],
+ ['ac','aComponent','Application component', 70, 222, 210, 56],
+ ['asv','aService','Application service', 340, 222, 230, 56]
+],
+[
+ ['bp','bs','realization',''],
+ ['ac','asv','realization',''],
+ ['asv','bp','serving','serves']
+])}
+
+<div class="co tip"><b class="lbl">Why you should care, concretely</b><p>Suppose statement preferences live in your internet banking platform today and move to a strategic customer platform in two years. The <em>business</em> service "Statement Preference Management", the process behind it and the business object it maintains do not change at all — only which application services serve them. A well-layered model localises a multi-year migration to a handful of serving and realisation arrows. That is the entire return on investment of doing this properly.</p></div>
+
+<h3>The "who cares" test</h3>
+<p>Service granularity is the first judgement call you will face. The test: a service exists at the level where <strong>someone outside would name it as a thing they consume</strong>. A customer would say "I can manage my statement preferences" — so that is a service. No customer would say "I can invoke the preference validation step" — so that is internal behaviour, not a service. When in doubt, ask who is on the other end of the serving arrow; if you cannot name them, you have not found a service.</p>
+
+<div class="co warn"><b class="lbl">Smell</b><p>A model where every internal step has been promoted to a service is not "service oriented", it is an org chart of your codebase. External means external.</p></div>
+`,
+quiz:[
+{q:'Which statement is the correct reading of a serving relationship from X to Y?', o:['Y implements X','X provides functionality that Y uses','X and Y exchange data','X is a specialisation of Y'], a:1, why:'Serving points from the provider to the beneficiary: X serves Y. If you catch yourself drawing it toward the provider, flip it.'},
+{q:'Realisation points…', o:['From abstract to concrete','From concrete to the more abstract thing it makes real','From left to right by convention','Always downward between layers'], a:1, why:'The process realises the service; the data object realises the business object. The arrowhead sits on the more abstract element.'},
+{q:'How does the business layer consume the application layer in a well-formed model?', o:['Business processes access data objects directly','Business actors are assigned to application components','Through application services serving business behaviour or actors','Through associations, since layers cannot share typed relationships'], a:2, why:'Layers consume the layer below through its external behaviour — services. That boundary is what keeps the business view implementation-free.'},
+{q:'"Preference validation step" should not be a business service because…', o:['It is too technical a name','Nobody outside the performing unit would name it as something they consume','Validation is always an application concern','Services must be nouns'], a:1, why:'The who-cares test: services are defined by an external consumer and the value they receive. Internal steps stay internal behaviour.'}
+]});
+
+/* ================= MODULE 02 ================= */
+MODULES.push({
+title:'Archi mechanics that actually matter',
+layer:'n',
+dek:'Ten minutes of tool discipline saves you from the two mistakes that quietly ruin every beginner model: view/model confusion and duplicate elements.',
+html: `
+<h3>The model is the tree. Views are projections.</h3>
+<p>The single most important fact about Archi: your model lives in the <strong>Model Tree</strong> (the left-hand panel). A <strong>view</strong> is just a canvas showing <em>some</em> of the model's elements, laid out for a purpose. One element can appear on ten views; deleting it from a view removes a picture of it, deleting it from the tree removes the element and every relationship it participates in, everywhere.</p>
+
+${D({w:840,h:250,n:'2.1',cap:'One model, many views. The element "Update Statement Preference" exists once in the tree; the two views each show a projection of it for a different audience. Same claim, two pictures.'},
+[
+ ['tree','note','MODEL TREE\nBusiness folder\n&nbsp;&nbsp;Update Statement Preference\n&nbsp;&nbsp;Statement Preference Mgmt\nApplication folder\n&nbsp;&nbsp;Internet Banking', 20, 30, 250, 180],
+ ['v1','group','View: customer journey', 320, 30, 230, 190],
+ ['v2','group','View: application landscape', 580, 30, 230, 190],
+ ['p1','bProcess','Update Statement Preference', 345, 90, 180, 56],
+ ['s1','bService','Statement Preference Mgmt', 345, 160, 180, 50],
+ ['p2','bProcess','Update Statement Preference', 605, 90, 180, 56],
+ ['c2','aComponent','Internet Banking', 605, 160, 180, 50]
+],
+[
+ ['p1','s1','realization',''],
+ ['c2','p2','serving','',{lx:30}]
+])}
+
+<ul>
+<li><strong>Dragging from the palette</strong> onto a view <em>creates a new element</em> in the model.</li>
+<li><strong>Dragging from the Model Tree</strong> onto a view <em>reuses the existing element</em>.</li>
+</ul>
+<p>Mix these up and you get the classic beginner disease: three separate elements all called "Internet Banking", each with a different subset of the relationships, and analysis output that is quietly wrong. If you suspect duplicates, sort the tree alphabetically and hunt; when adding to a view, reach for the tree first and the palette only for genuinely new concepts.</p>
+
+<div class="co trap"><b class="lbl">Trap</b><p>Copy-paste on a view can also create a duplicate element depending on your paste mode ("copy" duplicates, "reference" reuses). Check the tree after pasting. Two elements with the same name are still two different claims.</p></div>
+
+<h3>Six features to lean on</h3>
+<ul>
+<li><strong>Magic connector.</strong> Draw with the generic connector and Archi offers only the relationships the metamodel allows between those two types. Early on this is your live spec tutor — pay attention to what it offers and, more importantly, what it refuses to offer.</li>
+<li><strong>Validator.</strong> Run it regularly. It catches unused elements, missing names, and structurally suspect constructs. Treat warnings as questions, not noise.</li>
+<li><strong>Viewpoints.</strong> Setting a viewpoint on a view restricts the palette to a relevant subset (a Business Process Cooperation view hides application clutter). Viewpoints are filters for communication — they never change the model.</li>
+<li><strong>Nesting.</strong> Dropping one element inside another can draw containment instead of a line; Archi will offer to create the corresponding relationship (usually composition or aggregation). Nesting is notation, not magic — make sure the actual relationship exists in the model, or your tidy boxes assert nothing.</li>
+<li><strong>Properties &amp; documentation.</strong> Every element has a documentation field and free-form key/value properties. Lifecycle status, owning team, source-of-truth links — put the metadata here, not in the element name.</li>
+<li><strong>Analysis.</strong> Select an element and check its Analysis tab: every relationship it has and every view it appears on. This is how you answer "what breaks if we decommission this?" honestly.</li>
+</ul>
+
+<h3>Organising the tree</h3>
+<p>Archi gives you default folders per layer. Keep those, but inside them organise by <strong>domain, not by diagram</strong> — a "Statements" folder holding its processes, services and objects beats a "Diagram 7 stuff" folder every time. Views get their own folder tree by audience: current-state, target-state, and one folder per programme.</p>
+
+<div class="co tip"><b class="lbl">Working practices worth stealing</b><p>Name views after the question they answer ("How do preferences reach the statement engine?"), not after their contents. Export to HTML report for stakeholders who will never install Archi. If more than one person edits the model, use the coArchi plugin and a git repo rather than emailing .archimate files — merge conflicts in XML are nobody's idea of architecture.</p></div>
+`,
+quiz:[
+{q:'You delete an element from a view. What happened to the model?', o:['The element and its relationships are gone','Nothing — only that view lost its picture of the element','The element remains but loses its relationships','It moves to an archive folder'], a:1, why:'Views are projections. Only deleting from the Model Tree removes the element (and all its relationships) from the model itself.'},
+{q:'To reuse an existing element on a new view, you should…', o:['Drag it from the palette','Drag it from the Model Tree','Redraw it and give it the same name','Copy it from another view in copy mode'], a:1, why:'Palette drags create new elements. Same-name elements are still separate elements — the root cause of most broken analysis.'},
+{q:'What does setting a viewpoint on a view actually do?', o:['Restricts which relationships are legal in the model','Filters the palette/notation to a relevant subset for that view','Locks the view against editing','Converts elements to the matching layer'], a:1, why:'Viewpoints are communication filters. The metamodel rules are always in force regardless of viewpoint.'},
+{q:'Why is the magic connector recommended while learning?', o:['It draws faster','It only offers metamodel-legal relationships, so it teaches you the spec as you draw','It auto-names relationships','It prevents duplicate elements'], a:1, why:'What the magic connector refuses to offer is as instructive as what it offers — it is the metamodel made tangible.'}
+]});
+</script>
+
+<script>
+/* ================= MODULE 03 ================= */
+MODULES.push({
+title:'Business layer I: who and where',
+layer:'b',
+dek:'Actor, role, collaboration, interface — the active structure of the business layer, and the first place a "tech-free business view" gets decided.',
+html: `
+<p>Four elements describe <em>who acts</em> in the business layer and <em>where</em> its behaviour is offered. Two of them (actor, role) are constantly confused with each other, and one of them (interface) is constantly confused with technology. Sort these out and the business view largely writes itself.</p>
+
+${D({w:860,h:120,n:'3.1',cap:'The business active structure gallery. Square corners = structure. Icons top-right: person (actor), cylinder (role), overlapping circles (collaboration), lollipop (interface).'},
+[
+ ['a1','bActor','Business Actor', 20, 35, 190, 56],
+ ['a2','bRole','Business Role', 235, 35, 190, 56],
+ ['a3','bCollab','Business Collaboration', 450, 35, 190, 56],
+ ['a4','bInterface','Business Interface', 665, 35, 175, 56]
+],[])}
+
+<h3>Actor vs role: the hat rule</h3>
+<div class="co spec"><b class="lbl">Spec, paraphrased</b><p>A <strong>business actor</strong> is a business entity capable of performing behaviour — a person, a department, a company. A <strong>business role</strong> is the <em>responsibility</em> for performing specific behaviour, to which an actor can be assigned.</p></div>
+<p>Actors exist; roles are hats. "Jane Smith", "Contact Centre", "Acme Identity Pty Ltd" are actors. "Account Holder", "Applicant", "KYC Analyst" are roles. The same actor wears different hats at different times — a person is an <em>Applicant</em> during origination and an <em>Account Holder</em> five minutes later, and your processes care about the hat, not the person.</p>
+<p><strong>Practical rule: attach behaviour to roles, and use actors to show who currently fills them.</strong> Processes assigned to roles survive reorganisations; processes assigned to named departments die with the next restructure.</p>
+
+${D({w:600,h:130,n:'3.2',cap:'Actor assigned to role; role assigned to behaviour. When the org chart changes, only the left-hand arrow moves.'},
+[
+ ['c','bActor','Customer', 20, 40, 150, 54],
+ ['r','bRole','Account Holder', 230, 40, 160, 54],
+ ['p','bProcess','Update Statement Preference', 450, 40, 190, 54]
+],
+[
+ ['c','r','assignment',''],
+ ['r','p','assignment','']
+])}
+
+<h3>Collaboration: when the unit of work is a partnership</h3>
+<p>A <span class="term">business collaboration</span> is an aggregate of two or more active structure elements that work together — a credit committee, a bank-plus-verification-provider partnership. Use it when behaviour genuinely belongs to the <em>combination</em> and to neither party alone; the collaboration performs an <em>interaction</em> (next module). If one party clearly owns the behaviour and the other merely helps, skip the collaboration and use serving instead. Collaborations are for shared steering wheels, not for every meeting.</p>
+
+<h3>Interface: it is a channel, not an API</h3>
+<div class="co spec"><b class="lbl">Spec, paraphrased</b><p>A <strong>business interface</strong> is a point of access where business services are made available to the environment.</p></div>
+<p>This is where "tech-free" gets decided. A business interface is a <em>channel concept</em>: "Digital Channel", "Branch Counter", "Contact Centre", "Relationship Manager visit". It says <em>where the service can be reached</em>, and nothing about how it is built. The mobile app, the IVR, the branch teller system — those are application components, two modules from now. If you find yourself typing "API" into a business interface name, you have changed layers without noticing.</p>
+
+${D({w:700,h:210,n:'3.3',cap:'A service exposed at two interfaces. The business claim: you can manage statement preferences digitally or by phone. Which systems implement the digital channel is deliberately not said here.'},
+[
+ ['i1','bInterface','Digital Channel', 30, 30, 170, 54],
+ ['i2','bInterface','Contact Centre', 30, 120, 170, 54],
+ ['s','bService','Statement Preference Management', 300, 75, 230, 56],
+ ['r','bRole','Account Holder', 590, 75, 90, 56, 90]
+],
+[
+ ['i1','s','assignment',''],
+ ['i2','s','assignment',''],
+ ['s','r','serving','']
+])}
+
+<div class="co warn"><b class="lbl">Direction check</b><p>The interface is <em>assigned to</em> the service (active structure performs/exposes behaviour), and the service <em>serves</em> the role. Two different relationship types doing two different jobs on one small diagram — this is the norm in ArchiMate, and it is exactly the precision that a generic connector throws away.</p></div>
+`,
+quiz:[
+{q:'"KYC Analyst" is best modelled as a…', o:['Business actor','Business role','Business collaboration','Business interface'], a:1, why:'It is a responsibility — a hat. The team or person who wears it (an actor) gets assigned to it, and can change without touching the processes.'},
+{q:'Why attach processes to roles rather than directly to named departments?', o:['Roles render better in Archi','The spec forbids actor-to-process assignment','Processes assigned to roles survive reorganisation; the actor-to-role assignment absorbs the change','Departments are technology-layer concepts'], a:2, why:'Actor-to-process assignment is legal, but brittle. Roles isolate the behaviour from org churn. (This is a judgement rule, not a metamodel rule.)'},
+{q:'Which is a well-formed business interface?', o:['REST Preferences API','Digital Channel','Internet Banking platform','Kafka topic: preference-events'], a:1, why:'A business interface is a channel-level point of access. APIs, platforms and topics belong in the application (or technology) layer.'},
+{q:'When does a business collaboration earn its place?', o:['Whenever two elements are on the same view','When behaviour belongs to the combination of parties and to neither alone','Whenever an external company is involved','When more than three roles exist'], a:1, why:'Collaborations perform interactions — genuinely collective behaviour. Mere assistance is a serving relationship, not a collaboration.'}
+]});
+
+/* ================= MODULE 04 ================= */
+MODULES.push({
+title:'Business layer II: what happens, to what',
+layer:'b',
+dek:'Process vs function is the most argued distinction in ArchiMate. Events, services and the passive elements — object, contract, representation, product — round out the business vocabulary.',
+html: `
+${D({w:860,h:200,n:'4.1',cap:'Business behaviour (rounded corners) and passive structure. Note the shapes: pill = service, pennant = event, top-band rectangle = object, double band = contract, wavy base = representation, half band = product.'},
+[
+ ['b1','bProcess','Business Process', 20, 25, 190, 54],
+ ['b2','bFunction','Business Function', 235, 25, 190, 54],
+ ['b3','bService','Business Service', 450, 25, 190, 54],
+ ['b4','bEvent','Business Event', 665, 25, 175, 54],
+ ['p1','bObject','Business Object', 20, 115, 190, 54],
+ ['p2','contract','Contract', 235, 115, 190, 54],
+ ['p3','representation','Representation', 450, 115, 190, 60],
+ ['p4','product','Product', 665, 115, 175, 54]
+],[])}
+
+<h3>Process vs function: two ways to slice the same behaviour</h3>
+<div class="co spec"><b class="lbl">Spec, paraphrased</b><p>A <strong>business process</strong> is a sequence of business behaviours that achieves a specific result, such as a defined set of products or services. A <strong>business function</strong> is a collection of business behaviour grouped by chosen criteria — required skills, resources, competences — typically aligned to how the organisation is arranged rather than to any one product.</p></div>
+<p>Same behaviour, two slicings. <strong>Processes run left-to-right through time toward a result</strong>: "Originate Product", "Issue Statement". <strong>Functions stand still and describe capability</strong>: "Payments", "Customer Management", "Risk Assessment". A process typically <em>uses</em> several functions on its way through the organisation.</p>
+
+${D({w:820,h:280,n:'4.2',cap:'One reality, two slicings. The origination process cuts across three functions. Capability maps are drawn in functions; value delivery is drawn in processes; the two views cross-reference, they do not compete.'},
+[
+ ['f1','bFunction','Customer\nManagement', 40, 40, 170, 60],
+ ['f2','bFunction','Risk\nAssessment', 40, 120, 170, 60],
+ ['f3','bFunction','Product\nAdministration', 40, 200, 170, 60],
+ ['p','bProcess','Originate Product', 330, 120, 200, 60],
+ ['s','bService','Product Origination', 610, 120, 190, 60]
+],
+[
+ ['f1','p','serving','',{}],
+ ['f2','p','serving',''],
+ ['f3','p','serving',''],
+ ['p','s','realization','']
+])}
+
+<div class="co warn"><b class="lbl">Smell</b><p>Functions chained together with triggering arrows is a process wearing a disguise. Functions do not flow into each other through time — if you need sequence, you have found a process. And keep BPMN-level detail (gateways, twenty steps, swim lanes) in BPMN; ArchiMate processes should stay at the level where an executive still recognises the names.</p></div>
+
+<h3>Events: state changes worth announcing</h3>
+<p>A <span class="term">business event</span> is something that happens — an organisational state change — that behaviour reacts to or produces: "Application Submitted", "Statement Cycle Reached", "Preference Changed". Use events at the <strong>boundaries</strong> between processes, where one thing ends and another may begin (possibly much later, possibly in a different part of the org). Events decouple; triggering inside a process couples. Both are legitimate — choose deliberately.</p>
+
+<h3>The passive four</h3>
+<ul>
+<li><strong>Business object</strong> — a concept the business talks about: "Statement Delivery Preference", "Product Application". It is an <em>idea</em>, not a schema, not a table, not a JSON payload.</li>
+<li><strong>Contract</strong> — a specialisation of business object: a formal or informal agreement. Account terms and conditions; an electronic-delivery consent. If regulation cares whether it was agreed, it is probably a contract.</li>
+<li><strong>Representation</strong> — a perceptible form of the information in a business object: the PDF statement, the welcome email, the printed letter. One object, many representations — which is precisely the distinction you need when the same statement must exist as PDF, print file and accessible format.</li>
+<li><strong>Product</strong> — a coherent bundle of services and passive elements, wrapped with a contract, offered as a whole: "Everyday Account". Products <em>aggregate</em> services — this is how "what we sell" connects to "what we do".</li>
+</ul>
+
+${D({w:760,h:250,n:'4.3',cap:'The product pattern. The Everyday Account aggregates its contract and its customer-facing services. The representation realises the object: the welcome email is a perceptible form of the confirmation, not a second copy of the information.'},
+[
+ ['prod','product','Everyday Account', 40, 30, 190, 56],
+ ['ct','contract','Account Terms &\nConditions', 300, 30, 190, 60],
+ ['sv','bService','Statement Preference Management', 550, 30, 190, 60],
+ ['ob','bObject','Account Opening Confirmation', 300, 150, 190, 60],
+ ['rep','representation','Welcome Email', 550, 150, 190, 62]
+],
+[
+ ['prod','ct','aggregation',''],
+ ['prod','sv','aggregation','',{via:[[135,15],[645,15]]}],
+ ['rep','ob','realization','realises']
+])}
+
+<div class="co tip"><b class="lbl">The naming convention that does half the work</b><p>Processes: verb + object ("Update Statement Preference", "Verify Identity"). Services: noun phrase naming the offered capability ("Statement Preference Management", "Identity Verification"). Objects: singular nouns ("Product Application"). If an element resists its convention, you have probably picked the wrong type — a "service" that wants a verb is usually a process.</p></div>
+`,
+quiz:[
+{q:'"Risk Assessment" appearing as a box that three different processes lean on is best typed as a…', o:['Business process','Business function','Business service','Business interaction'], a:1, why:'It is behaviour grouped by competence, stable across products, used by many processes — the definition of a function.'},
+{q:'What is the smell in a chain of business functions joined by triggering relationships?', o:['Functions cannot have relationships','It is a process in disguise — sequence toward a result means process','Triggering only exists in the application layer','Nothing, this is the recommended style'], a:1, why:'Functions describe capability at rest. Time-ordered flow toward a result is exactly what the process element is for.'},
+{q:'The same statement exists as a PDF, a print file and an accessible HTML version. In ArchiMate terms these are…', o:['Three business objects','Three representations of one business object','Three data objects','One representation with three properties'], a:1, why:'Representation = perceptible form of a business object. One concept, many forms — the distinction regulation and archiving both depend on.'},
+{q:'Why type electronic-delivery consent as a contract rather than a plain business object?', o:['Contracts render with two lines','It is an agreement with formal standing — the specialisation exists precisely to mark that','Objects cannot be accessed by processes','Consent is a technology concern'], a:1, why:'Contract is a specialisation of business object for agreements. Modelling it as such makes the regulatory nature visible in the model itself.'},
+{q:'A product element aggregates…', o:['Only contracts','Processes and events','Services and passive elements offered as a coherent whole','Application components'], a:2, why:'Product = bundle of services and/or passive elements plus the contract, offered as a whole. It is the bridge between what you sell and what you do.'}
+]});
+</script>
+
+<script>
+/* ================= MODULE 05 ================= */
+MODULES.push({
+title:'Relationships: the eleven that matter',
+layer:'n',
+dek:'The relationships are the language. Elements are just nouns; every claim your model makes is carried by an arrow, so the arrow type and direction have to be exact.',
+html: `
+<p>ArchiMate defines four families: <strong>structural</strong> (composition, aggregation, assignment, realisation), <strong>dependency</strong> (serving, access, influence, association), <strong>dynamic</strong> (triggering, flow) and <strong>other</strong> (specialisation, plus the junction node for and/or splits). Here they are with the claim each one makes:</p>
+
+${D({w:800,h:660,n:'5.1',cap:'The relationship atlas. Line style + end decoration is the notation; the label is the claim in shorthand. Access arrows: toward the object = write, toward the behaviour = read, both = read/write.'},
+[
+ ['c1','bActor','Bank', 20, 20, 180, 46], ['c2','bInterface','Digital Channel', 600, 20, 180, 46],
+ ['g1','bActor','Sales Division', 20, 83, 180, 46], ['g2','bRole','Product Specialist', 600, 83, 180, 46],
+ ['s1','bRole','Account Holder', 20, 146, 180, 46], ['s2','bProcess','Update Preference', 600, 146, 180, 46],
+ ['r1','bProcess','Update Preference', 20, 209, 180, 46], ['r2','bService','Preference Mgmt', 600, 209, 180, 46],
+ ['v1','bService','Preference Mgmt', 20, 272, 180, 46], ['v2','bRole','Account Holder', 600, 272, 180, 46],
+ ['x1','bProcess','Update Preference', 20, 335, 180, 46], ['x2','bObject','Delivery Preference', 600, 335, 180, 46],
+ ['t1','bProcess','Verify Identity', 20, 398, 180, 46], ['t2','bProcess','Establish Customer', 600, 398, 180, 46],
+ ['f1','bProcess','Capture Application', 20, 461, 180, 46], ['f2','bProcess','Verify Identity', 600, 461, 180, 46],
+ ['p1','contract','E-Delivery Consent', 20, 524, 180, 46], ['p2','bObject','Business Object', 600, 524, 180, 46],
+ ['a1','bObject','Delivery Preference', 20, 587, 180, 46], ['a2','contract','E-Delivery Consent', 600, 587, 180, 46]
+],
+[
+ ['c1','c2','composition','composition &mdash; is an exclusive part of'],
+ ['g1','g2','aggregation','aggregation &mdash; groups (shareable part)'],
+ ['s1','s2','assignment','assignment &mdash; performs'],
+ ['r1','r2','realization','realisation &mdash; makes real'],
+ ['v1','v2','serving','serving &mdash; serves'],
+ ['x1','x2','access','access &mdash; reads / writes',{acc:'rw'}],
+ ['t1','t2','triggering','triggering &mdash; when done, starts'],
+ ['f1','f2','flow','flow &mdash; passes something (label it)'],
+ ['p1','p2','specialization','specialisation &mdash; is a kind of'],
+ ['a1','a2','association','association &mdash; related, somehow']
+])}
+
+<h3>Direction mnemonics — memorise these five</h3>
+<table>
+<tr><th>Relationship</th><th>Mnemonic</th></tr>
+<tr><td><strong>Assignment</strong></td><td>Ball on the doer, arrow on the deed. <em>Who does what.</em></td></tr>
+<tr><td><strong>Realisation</strong></td><td>Arrow points at the promise. The concrete thing realises the abstract thing.</td></tr>
+<tr><td><strong>Serving</strong></td><td>Arrow points at the beneficiary. Provider → consumer, always.</td></tr>
+<tr><td><strong>Access</strong></td><td>Write goes <em>to</em> the object, read comes <em>from</em> it. Arrow = direction of information.</td></tr>
+<tr><td><strong>Composition</strong></td><td>Diamond on the whole. The part dies with the whole (aggregation: hollow diamond, part survives).</td></tr>
+</table>
+
+<h3>Triggering vs flow</h3>
+<p>Triggering is <strong>control</strong>: this finishes, that starts. Flow is <strong>transfer</strong>: something (label it — "application data", "KYC result") moves from one behaviour to another, saying nothing about sequence. An event-driven handoff is typically a triggering into an event plus a flow carrying the payload — or just the flow, if sequence is obvious. If you cannot say what flows, you meant triggering.</p>
+
+<h3>Derived relationships — why Archi allows "shortcuts"</h3>
+<p>The spec defines a strength order for structural/dependency relationships (roughly: association &lt; access &lt; serving &lt; realisation &lt; assignment &lt; aggregation &lt; composition). A valid chain can be collapsed into a single relationship of the <strong>weakest type in the chain</strong>. Example: Internet Banking (component) is <em>assigned to</em> a function that <em>realises</em> the Preference Capture service ⇒ a derived <em>realisation</em> from Internet Banking straight to the service is valid. This is why high-level views can legitimately say "component realises service" without showing the function — the shortcut is licensed by the detail, not a replacement for it.</p>
+
+<div class="co warn"><b class="lbl">Association is a confession</b><p>Association claims only "these are related somehow". Every association in a finished model is a place you have not yet decided what is true. A few are fine (genuinely loose links, like a contract associated with the object it governs); a model held together by them is a drawing.</p></div>
+`,
+quiz:[
+{q:'In an access relationship drawn from a process to an object with the arrowhead at the object, the process is…', o:['Reading the object','Writing the object','Specialising the object','Serving the object'], a:1, why:'Arrow shows the direction information moves: toward the object = write, toward the behaviour = read, both ends = read/write.'},
+{q:'The filled ball of an assignment sits on…', o:['The behaviour being performed','The active element doing the performing','Whichever end is drawn first','The more abstract element'], a:1, why:'Ball on the doer, arrow on the deed.'},
+{q:'Composition vs aggregation: the real semantic difference is…', o:['Filled diamonds look stronger','A composed part belongs to exactly one whole and cannot exist without it; an aggregated part can be shared and survive','Composition is business-layer only','Aggregation is deprecated in 3.2'], a:1, why:'Existence dependency and exclusivity. Digital Channel composed into the Bank dies with the Bank; specialists aggregated into a division do not.'},
+{q:'A component is assigned to a function which realises a service. Which single derived relationship from component to service is licensed?', o:['Assignment','Realisation','Serving','Composition'], a:1, why:'A chain collapses to its weakest link. Realisation is weaker than assignment, so the derived relationship is realisation — exactly the shortcut summary views use.'},
+{q:'You want to show that a KYC result is passed from one process to another. Which relationship, and what else should you do?', o:['Triggering, add a note','Flow, and label it with what flows','Association, keep it neutral','Serving, since one helps the other'], a:1, why:'Flow = transfer of something; the label carries the meaning. Unlabelled flows and triggering are routinely confused — the label is the discipline.'}
+]});
+
+/* ================= MODULE 06 ================= */
+MODULES.push({
+title:'Application layer',
+layer:'a',
+dek:'Same grammar, blue paint: components perform functions that realise services exposed at interfaces, reading and writing data objects. The judgement is all in granularity.',
+html: `
+<p>If you internalised the framework in module 00, the application layer costs you nothing new: it is the same three aspects, internal/external split and all, applied to software. The learning here is not vocabulary — it is deciding <em>what deserves to be a component</em> and keeping the layer's passive element honest.</p>
+
+${D({w:860,h:200,n:'6.1',cap:'The application gallery. Identical grammar to the business layer: square = active, rounded = behaviour, pill = service, pennant = event, top-band = data object.'},
+[
+ ['e1','aComponent','Application Component', 20, 25, 190, 54],
+ ['e2','aInterface','Application Interface', 235, 25, 190, 54],
+ ['e3','aFunction','Application Function', 450, 25, 190, 54],
+ ['e4','aService','Application Service', 665, 25, 175, 54],
+ ['e5','aProcess','Application Process', 20, 115, 190, 54],
+ ['e6','aEvent','Application Event', 235, 115, 190, 54],
+ ['e7','dataObject','Data Object', 450, 115, 190, 54],
+ ['e8','aCollab','Application Collaboration', 665, 115, 175, 54]
+],[])}
+
+<h3>The definitions that carry weight</h3>
+<ul>
+<li><strong>Application component</strong> — a modular, replaceable encapsulation of application functionality, aligned to <em>implementation structure</em>. "Internet Banking", "Customer Master", "Notification Hub". The test: would it appear by name in a solution design, with an owner and a lifecycle? Classes, jars and lambda functions: no. Named systems and deployable services: yes.</li>
+<li><strong>Application interface</strong> — where the component's services are reachable: an API, a UI, a file drop. This is where "REST API" finally belongs.</li>
+<li><strong>Application function</strong> — what the component does internally. Often one meaningful function per component at portfolio level; more when the internal split matters to the story.</li>
+<li><strong>Application service</strong> — the component's externally meaningful behaviour: "Preference Capture", "Identity Check", "Notification Dispatch". Services are what the business layer is allowed to see.</li>
+<li><strong>Application process / event</strong> — automated sequences and state changes. An event-driven backbone lives here as application events and flows: "Preference Changed" as an application event is a real, publishable thing.</li>
+<li><strong>Data object</strong> — data structured for automated processing: "Preference Record", "KYC Result". Logical, not physical — the table, topic and file are technology-layer artifacts that would <em>realise</em> it.</li>
+</ul>
+
+${D({w:820,h:330,n:'6.2',cap:'The standard component pattern. The component composes its interface and performs its function; the function realises the service and accesses the data object; the interface is assigned to the service it exposes. Learn this shape — both worked examples are built from it.'},
+[
+ ['comp','aComponent','Internet Banking', 40, 130, 200, 60],
+ ['ifc','aInterface','Preferences API / UI', 330, 40, 200, 54],
+ ['fn','aFunction','Preference Management', 330, 130, 200, 60],
+ ['svc','aService','Preference Capture', 610, 85, 185, 56],
+ ['do','dataObject','Preference Record', 330, 240, 200, 56]
+],
+[
+ ['comp','ifc','composition',''],
+ ['comp','fn','assignment','performs'],
+ ['fn','svc','realization',''],
+ ['ifc','svc','assignment',''],
+ ['fn','do','access','',{acc:'rw'}]
+])}
+
+<h3>Three objects, one concept</h3>
+<p>Keep the tower straight: the <strong>business object</strong> "Statement Delivery Preference" is the concept; the <strong>data object</strong> "Preference Record" is its automated form and <em>realises</em> it; a technology-layer <strong>artifact</strong> (the DB2 row, the compacted topic, the JSON file) would realise the data object in turn. Three layers, three claims, one idea. Collapse them and you get models where a Kafka topic serves a customer.</p>
+
+<div class="co warn"><b class="lbl">Granularity: the component test</b><p>If your application view has forty components, you have modelled modules; if it has three, you have modelled vendors. The useful middle: things a solution architect would put on a context diagram — independently deployable, separately owned, separately replaceable. When a platform contains meaningfully separate parts, compose child components into a parent rather than flattening either way.</p></div>
+
+<div class="co tip"><b class="lbl">Where does the orchestrator go?</b><p>A workflow engine question worth settling now: the <em>orchestration behaviour</em> ("run the origination flow") is an application function or process of an orchestration component. The engine product itself (the cluster you deploy) is technology — a system software node that <em>serves</em> your components. Model the behaviour in the application layer and resist naming the vendor there.</p></div>
+`,
+quiz:[
+{q:'Which of these is a well-scoped application component for a portfolio-level model?', o:['PreferenceValidator.java','Customer Master','the AWS ap-southeast-2 region','POST /preferences endpoint'], a:1, why:'Component = modular, replaceable, implementation-aligned, with an owner and lifecycle. Classes and endpoints are too small; regions are technology.'},
+{q:'"REST Preferences API" belongs in the model as…', o:['A business interface','An application interface','An application service','A data object'], a:1, why:'An API is a point of access to application services. The service is the behaviour ("Preference Capture"); the API is where you reach it.'},
+{q:'The relationship between the data object "Preference Record" and the business object "Statement Delivery Preference" is…', o:['Association','Serving','Realisation, from data object to business object','Composition'], a:2, why:'The automated form realises the concept. Arrow at the abstract end, as always.'},
+{q:'In the standard component pattern, the component relates to its own function via…', o:['Serving','Assignment','Realisation','Flow'], a:1, why:'Active structure is assigned to the behaviour it performs. The function then realises the service; the interface is assigned to the service it exposes.'},
+{q:'Where does the deployed workflow-engine cluster itself belong?', o:['Application component','Application function','Technology layer, serving the application components','Business function'], a:2, why:'The orchestration behaviour is application-layer; the engine product/cluster is technology (system software / node) serving it.'}
+]});
+
+/* ================= MODULE 07 ================= */
+MODULES.push({
+title:'Cross-layer patterns',
+layer:'x',
+dek:'Four relationship patterns connect the application layer to the business layer. Choosing between serving and realisation across the boundary is a precise claim about automation.',
+html: `
+<p>Everything the application layer does for the business travels over a small set of licensed cross-layer relationships. There are exactly four you will use constantly:</p>
+
+<table>
+<tr><th>Pattern</th><th>The claim it makes</th></tr>
+<tr><td>Application service <strong>serves</strong> business process / function / role / actor</td><td>"This system behaviour <em>supports</em> that business behaviour" — people and systems share the work. Your default.</td></tr>
+<tr><td>Application process/function/service <strong>realises</strong> business process / service</td><td>"That business behaviour <em>is</em> this application behaviour" — fully automated, no human variant exists.</td></tr>
+<tr><td>Application component <strong>assigned to</strong> business process</td><td>Shorthand for full automation at the structural level: the component performs the business process outright.</td></tr>
+<tr><td>Data object <strong>realises</strong> business object</td><td>"This is the automated form of that concept." The passive tower from the last module.</td></tr>
+</table>
+
+<div class="co tip"><b class="lbl">The rule of thumb</b><p><strong>Serving = supports. Realisation/assignment across layers = is.</strong> A branch officer can still take a preference change over the counter, so Preference Capture <em>serves</em> the business process. Nightly statement rendering has no human variant, so the rendering function may <em>realise</em> that business behaviour. Choosing the weaker claim when unsure costs nothing; choosing the stronger one wrongly asserts automation that does not exist.</p></div>
+
+<h3>The sandwich</h3>
+<p>Put the canonical chain of module 01 on top of the component pattern of module 06 and you get the layered view — the single most reused diagram shape in ArchiMate. Learn to read it bottom-up as a chain of evidence: <em>this component performs this function, which realises this application service, which serves this business process, which realises the business service the customer actually experiences.</em></p>
+
+${D({w:640,h:620,n:'7.1',cap:'The sandwich, generic form. Every layered view in the worked examples is an instance of this shape. The dashed data column on the right carries the passive tower: data object realises business object.'},
+[
+ ['gb','groupB','Business', 25, 25, 590, 265],
+ ['role','bRole','Consumer role', 60, 65, 180, 52],
+ ['bsvc','bService','Business service', 60, 145, 180, 52],
+ ['bproc','bProcess','Business process', 60, 222, 180, 52],
+ ['bobj','bObject','Business object', 390, 222, 180, 52],
+ ['ga','groupA','Application', 25, 320, 590, 270],
+ ['asvc','aService','Application service', 60, 355, 180, 52],
+ ['afn','aFunction','Application function', 60, 435, 180, 52],
+ ['acmp','aComponent','Application component', 60, 515, 180, 52],
+ ['dobj','dataObject','Data object', 390, 435, 180, 52]
+],
+[
+ ['bsvc','role','serving',''],
+ ['bproc','bsvc','realization',''],
+ ['bproc','bobj','access','',{acc:'rw'}],
+ ['asvc','bproc','serving','serves'],
+ ['afn','asvc','realization',''],
+ ['acmp','afn','assignment',''],
+ ['afn','dobj','access','',{acc:'rw'}],
+ ['dobj','bobj','realization','realises']
+])}
+
+<h3>Two legitimate shortcuts</h3>
+<ul>
+<li><strong>Application service serving a role directly.</strong> Where the "business process" between a self-service UI and the customer would be vacuous, the spec permits the application service to serve the business role or actor straight. Use it for genuinely thin self-service; keep the process when there are rules, approvals or downstream obligations worth naming — which, in a bank, is nearly always.</li>
+<li><strong>Derived component-realises-service.</strong> From module 05: portfolio views may draw the component realising the application service directly, licensed by the assignment-plus-realisation chain underneath. Summary, not sloppiness — the detailed view still exists.</li>
+</ul>
+
+<div class="co warn"><b class="lbl">The one thing never to draw</b><p>An application component <em>serving</em> or <em>realising</em> a business <strong>actor</strong>'s existence, or accessing a business object directly. Behaviour crosses layers through services; passive structure crosses through realisation. Components do not reach into the business layer and touch concepts — if you feel that urge, you are missing an application service or a data object.</p></div>
+`,
+quiz:[
+{q:'Statement preference changes can be made digitally or over the counter by staff. The application service relates to the business process by…', o:['Realisation — the system does it','Serving — it supports a process people also perform','Assignment','Flow'], a:1, why:'A human variant exists, so the system supports rather than is the process. Realisation across layers claims full automation.'},
+{q:'An application component assigned to a business process asserts…', o:['The component was built by that process','The process is performed entirely by the component — full automation','The component and process share a name','The process serves the component'], a:1, why:'Cross-layer assignment is the structural way to claim automation: the component performs the business process outright.'},
+{q:'How does passive structure legitimately cross the business/application boundary?', o:['Business objects are copied into the application layer','Data object realises business object','Access relationships from components to business objects','It cannot cross'], a:1, why:'The concept stays business; its automated form is the data object, joined by realisation. Components touching business objects directly is the classic malformed shortcut.'},
+{q:'When is "application service serves the business role directly" the right call?', o:['Never — always insert a process','For thin self-service where an intervening business process would say nothing','Whenever the UI is mobile','Only in the technology layer'], a:1, why:'The spec allows it, and it is honest for genuinely thin interactions. Where rules, approvals or obligations exist, keep the process — it is where those claims live.'}
+]});
+</script>
+
+<script>
+/* ================= MODULE 08 ================= */
+MODULES.push({
+title:'Worked example I: statement preferences',
+layer:'x',
+dek:'A customer can choose how their statements are delivered. Small enough to model completely, rich enough to exercise everything so far — and the business view contains not one system.',
+html: `
+<p>The brief: <em>customers can set statement preferences — email or post — and statements are produced accordingly.</em> The instinct is to open Archi and draw the internet banking app. Resist it. We build three views in order: the business view (what is true regardless of systems), the application view (which software does what), and the layered view (the evidence chain joining them). Follow the element-by-element reasoning; the reasoning is the course.</p>
+
+<h3>View 1 — the business view</h3>
+<p><strong>Step 1: find the service.</strong> What does the bank offer? The ability to nominate how statements are delivered. Name it as a consumable capability: <strong>Statement Preference Management</strong> (business service). Apply the who-cares test: an account holder would name this as a thing they can do. Pass.</p>
+<p><strong>Step 2: who benefits, who performs.</strong> The beneficiary is a role, <strong>Account Holder</strong>, filled by the actor <strong>Customer</strong>. The performing behaviour is a process, <strong>Update Statement Preference</strong> — verb + object — which realises the service.</p>
+<p><strong>Step 3: where is it offered.</strong> Two business interfaces: <strong>Digital Channel</strong> and <strong>Contact Centre</strong>. Note what this claims: the capability is channel-complete. Nothing yet about apps.</p>
+<p><strong>Step 4: what information it maintains.</strong> One business object, <strong>Statement Delivery Preference</strong> — the concept, not a table. The process accesses it read/write. Alongside it, a contract: <strong>E-Delivery Consent</strong>. Regulation cares that electronic delivery was agreed to, so the agreement gets the contract type and an association to the preference it governs.</p>
+<p><strong>Step 5: what it announces, and who else cares.</strong> The process raises a business event, <strong>Preference Changed</strong>. And here is the payoff element: a second process, <strong>Issue Statement</strong>, realising a second service, <strong>Statement Issuing</strong> — which only <em>reads</em> the preference. The read/write arrows now tell the whole story: one process maintains the object, another consumes it, possibly months later, at cycle time.</p>
+
+${D({w:860,h:560,n:'8.1',alt:'Business view of statement preferences',cap:'The business view. Every claim here survives any replatforming: the services, the channels, the process, the concept, the consent, the event. Read the access arrows — write from Update, read from Issue — that pair of arrows is the requirements document.'},
+[
+ ['cust','bActor','Customer', 30, 30, 150, 52],
+ ['role','bRole','Account Holder', 245, 30, 160, 52],
+ ['i1','bInterface','Digital Channel', 30, 150, 160, 52],
+ ['i2','bInterface','Contact Centre', 30, 235, 160, 52],
+ ['svc','bService','Statement Preference Management', 250, 190, 220, 56],
+ ['svc2','bService','Statement Issuing', 570, 190, 200, 56],
+ ['proc','bProcess','Update Statement Preference', 250, 320, 220, 56],
+ ['evt','bEvent','Preference Changed', 570, 320, 190, 52],
+ ['obj','bObject','Statement Delivery Preference', 250, 460, 220, 56],
+ ['consent','contract','E-Delivery Consent', 30, 460, 170, 56],
+ ['proc2','bProcess','Issue Statement', 570, 460, 190, 56]
+],
+[
+ ['cust','role','assignment',''],
+ ['i1','svc','assignment',''],
+ ['i2','svc','assignment',''],
+ ['svc','role','serving',''],
+ ['svc2','role','serving','',{via:[[670,90],[420,56]]}],
+ ['proc','svc','realization',''],
+ ['proc','obj','access','write',{acc:'w',lx:-32}],
+ ['proc','evt','triggering',''],
+ ['consent','obj','association',''],
+ ['proc2','obj','access','read',{acc:'r',ly:16}],
+ ['proc2','svc2','realization','']
+])}
+
+<div class="co trap"><b class="lbl">Why not…</b><p><strong>…make Digital Channel the internet banking app?</strong> Because then the business view dies when the app does. The channel is the promise; the app is this year&rsquo;s way of keeping it. <strong>…make the preference a contract?</strong> The preference is a choice, freely changeable; the consent is the agreement with formal standing. Different claims, different types. <strong>…draw a flow from Update to Issue?</strong> Nothing is passed between them at change time — Issue reads the preference whenever a cycle runs. The shared object with read/write access is the honest model; a flow would invent a hand-off that does not exist.</p></div>
+
+<h3>View 2 — the application view</h3>
+<p>Now, and only now, the software. Internet banking owns preference capture today; the statements platform consumes preferences at cycle time. Two instances of the module 06 component pattern, sharing one data object:</p>
+
+${D({w:860,h:470,n:'8.2',alt:'Application view of statement preferences',cap:'The application view. Internet Banking composes its interface, performs its function, realises Preference Capture, and writes the Preference Record; Statement Production only reads it. The application event mirrors the business event — a publishable fact downstream consumers can subscribe to.'},
+[
+ ['comp','aComponent','Internet Banking', 40, 160, 190, 58],
+ ['ifc','aInterface','Preferences UI &amp; API', 310, 40, 200, 52],
+ ['fn','aFunction','Preference Management', 310, 160, 200, 58],
+ ['svc','aService','Preference Capture', 590, 100, 200, 54],
+ ['do','dataObject','Preference Record', 310, 290, 200, 54],
+ ['evt','aEvent','Preference Changed', 590, 290, 200, 52],
+ ['comp2','aComponent','Statements Platform', 40, 390, 190, 58],
+ ['fn2','aFunction','Statement Production', 310, 390, 200, 58]
+],
+[
+ ['comp','ifc','composition',''],
+ ['comp','fn','assignment',''],
+ ['fn','svc','realization',''],
+ ['ifc','svc','assignment',''],
+ ['fn','do','access','write',{acc:'w',lx:-30}],
+ ['fn','evt','triggering',''],
+ ['comp2','fn2','assignment',''],
+ ['fn2','do','access','read',{acc:'r',ly:16}]
+])}
+
+<h3>View 3 — the layered view</h3>
+<p>The sandwich from module 07, instantiated. Read it bottom-up as the evidence chain: Internet Banking performs Preference Management, which realises Preference Capture, which serves Update Statement Preference, which realises the service the customer experiences. On the passive side, Preference Record realises Statement Delivery Preference.</p>
+
+${D({w:660,h:620,n:'8.3',alt:'Layered view of statement preferences',cap:'The layered view. When preference mastery moves from Internet Banking to a strategic platform, only the bottom half of this diagram changes — the serving arrow gets a new source, the data-object realisation gets a new home, and every business claim above the line is untouched. This diagram is the migration impact assessment.'},
+[
+ ['gb','groupB','Business', 25, 25, 610, 275],
+ ['role','bRole','Account Holder', 60, 62, 190, 52],
+ ['bsvc','bService','Statement Preference Management', 60, 142, 210, 52],
+ ['bproc','bProcess','Update Statement Preference', 60, 222, 210, 52],
+ ['bobj','bObject','Statement Delivery Preference', 405, 222, 205, 52],
+ ['ga','groupA','Application', 25, 330, 610, 265],
+ ['asvc','aService','Preference Capture', 60, 365, 210, 52],
+ ['afn','aFunction','Preference Management', 60, 443, 210, 52],
+ ['acmp','aComponent','Internet Banking', 60, 521, 210, 52],
+ ['dobj','dataObject','Preference Record', 405, 443, 205, 52]
+],
+[
+ ['bsvc','role','serving',''],
+ ['bproc','bsvc','realization',''],
+ ['bproc','bobj','access','',{acc:'rw'}],
+ ['asvc','bproc','serving','serves'],
+ ['afn','asvc','realization',''],
+ ['acmp','afn','assignment',''],
+ ['afn','dobj','access','',{acc:'rw'}],
+ ['dobj','bobj','realization','realises']
+])}
+
+<div class="co tip"><b class="lbl">Build order in Archi</b><p>Create the elements in the Model Tree first (or on the business view, which adds them to the tree), then build views 2 and 3 by dragging <em>from the tree</em>. All three views share the same elements — change the process name once and every view updates. If you built view 3 by dragging from the palette, you now have duplicates; go back to module 02.</p></div>
+`,
+quiz:[
+{q:'Why does the business view show Digital Channel rather than Internet Banking?', o:['Internet Banking is too long a name','The channel is the stable business promise; the app is its current implementation and belongs one layer down','Business interfaces must be physical locations','Archi will not allow apps on business views'], a:1, why:'Archi would happily allow it — the discipline is yours. The channel survives replatforming; the app does not. That separation is the entire value of the business view.'},
+{q:'The relationship between Issue Statement and Statement Delivery Preference is access-read, not flow, because…', o:['Flows are application-layer only','Nothing is handed from Update to Issue at change time; Issue consumes the object whenever a cycle runs','Read access is stronger than flow','Flow requires an event'], a:1, why:'A flow would invent a hand-off that does not exist. The shared object with a write on one side and a read on the other is the honest claim — and it captures the time gap.'},
+{q:'E-Delivery Consent is typed as a contract because…', o:['All preferences are contracts','It is an agreement with formal/regulatory standing, unlike the freely changeable preference','Contracts are required for every service','It will be stored in a document system'], a:1, why:'Preference = a choice; consent = an agreement. The contract specialisation exists to make exactly that distinction visible.'},
+{q:'In the layered view, which relationships change when preference mastery moves to a new strategic platform?', o:['All of them','Only the business-layer relationships','The application-side serving, realisation, assignment and data-object realisation — everything above the layer boundary is untouched','None — a new model is required'], a:2, why:'The business claims are implementation-free by construction, so the migration is localised to the application half of the sandwich. This is the diagram doing impact assessment for you.'}
+]});
+
+/* ================= MODULE 09 ================= */
+MODULES.push({
+title:'Worked example II: online origination',
+layer:'x',
+dek:'A person applies online for an account: capture, KYC, customer creation, account opening, notification. Composed processes, an outsourced verification service, events at the boundaries — and the Customer trap.',
+html: `
+<p>The brief: <em>a person can apply online for an everyday account; the bank verifies their identity, establishes them as a customer, opens the account and notifies them.</em> This example earns its place by forcing four things the first one did not: a <strong>composed process</strong>, an <strong>external provider</strong>, <strong>events at process boundaries</strong>, and the single most common conceptual error in banking models — Customer as actor versus customer as information.</p>
+
+<h3>View 1 — behaviour and structure</h3>
+<p><strong>The service.</strong> <strong>Product Origination</strong>, offered at the Digital Channel, serving the role <strong>Applicant</strong>. Note the role: the same human is an Applicant today and an Account Holder tomorrow. Model the hats, and the transition between them stops being mysterious — establishing the customer is precisely the moment the person acquires the new role.</p>
+<p><strong>The process, composed.</strong> One parent process, <strong>Originate Product</strong>, realises the service; five child processes, joined by triggering, do the work: <em>Capture Application → Verify Identity → Establish Customer → Open Account → Notify Customer</em>. Composition (diamonds at the parent) says the children are parts; triggering says they run in order. Milestone level only — the twenty-step reality lives in BPMN, linked from the documentation field.</p>
+<p><strong>Events at the boundaries.</strong> <strong>Application Submitted</strong> starts the chain — it decouples the moment of submission from the machinery that reacts. <strong>Account Opened</strong> is raised near the end, and everything downstream that cares (statements, marketing, servicing) subscribes to the fact rather than being welded into this process.</p>
+<p><strong>The outsourcing pattern.</strong> Identity verification is bought, not built: the external actor <strong>Acme Identity</strong> is assigned to a business service, <strong>Identity Verification</strong>, which <em>serves</em> our Verify Identity process. Their service, our process — the boundary of responsibility drawn in two arrows. The role <strong>KYC Analyst</strong> is also assigned to Verify Identity: referred cases go to a human. That one assignment is why, in the layered view, the application service will <em>serve</em> this process rather than realise it.</p>
+
+${D({w:910,h:520,n:'9.1',alt:'Origination business view: structure and behaviour',cap:'Behaviour and structure. The parent process realises the service and composes five children in a triggering chain; events bracket the chain; Acme Identity serves Verify Identity from outside the bank, and the KYC Analyst assignment records the human path for referrals.'},
+[
+ ['per','bActor','Person', 20, 30, 140, 52],
+ ['role','bRole','Applicant', 205, 30, 150, 52],
+ ['i1','bInterface','Digital Channel', 20, 140, 160, 52],
+ ['svc','bService','Product Origination', 225, 140, 200, 54],
+ ['par','bProcess','Originate Product', 500, 140, 190, 54],
+ ['evt1','bEvent','Application Submitted', 20, 250, 175, 50],
+ ['evt2','bEvent','Account Opened', 700, 245, 150, 50],
+ ['cap','bProcess','Capture Application', 20, 350, 152, 56],
+ ['ver','bProcess','Verify Identity', 196, 350, 148, 56],
+ ['est','bProcess','Establish Customer', 368, 350, 152, 56],
+ ['opn','bProcess','Open Account', 544, 350, 148, 56],
+ ['ntf','bProcess','Notify Customer', 716, 350, 148, 56],
+ ['idv','bActor','Acme Identity (external)', 20, 455, 170, 54],
+ ['idvs','bService','Identity Verification', 240, 455, 180, 54],
+ ['kyc','bRole','KYC Analyst', 470, 455, 150, 54]
+],
+[
+ ['per','role','assignment',''],
+ ['i1','svc','assignment',''],
+ ['svc','role','serving',''],
+ ['par','svc','realization',''],
+ ['par','cap','composition','',{via:[[240,300]]}],
+ ['par','ver','composition',''],
+ ['par','est','composition',''],
+ ['par','opn','composition',''],
+ ['par','ntf','composition','',{via:[[888,180],[888,330]]}],
+ ['evt1','cap','triggering',''],
+ ['cap','ver','triggering',''],
+ ['ver','est','triggering',''],
+ ['est','opn','triggering',''],
+ ['opn','ntf','triggering',''],
+ ['opn','evt2','triggering',''],
+ ['idv','idvs','assignment',''],
+ ['idvs','ver','serving',''],
+ ['kyc','ver','assignment','']
+])}
+
+<h3>View 2 — information</h3>
+<p>Same model, second view — this is one-model-many-views working for you. The information story: capture writes the <strong>Product Application</strong>; verification reads <strong>Identity Evidence</strong>; establishing the customer writes the <strong>Customer File</strong>; opening the account reads the accepted <strong>Account Terms &amp; Conditions</strong> (a contract); notifying writes the <strong>Account Opening Confirmation</strong>, whose perceptible form is the <strong>Welcome Email</strong> representation.</p>
+
+<div class="co trap"><b class="lbl">The Customer trap</b><p>The person applying is a business <strong>actor</strong> — they exist in the world. What Establish Customer creates is not a person; it is <em>information about</em> a person: the <strong>Customer File</strong>, a business object. Models that write "Customer" on both an actor and an object without deciding which is which end up claiming that a process manufactures human beings. Name the object for what it is — file, record, profile — and the actor for who they are.</p></div>
+
+${D({w:880,h:420,n:'9.2',alt:'Origination information view',cap:'The information view. Reads and writes made explicit per child process; the contract carries the regulatory weight of acceptance; the representation is the email, the object is the fact it conveys.'},
+[
+ ['cap','bProcess','Capture Application', 20, 40, 152, 56],
+ ['ver','bProcess','Verify Identity', 196, 40, 148, 56],
+ ['est','bProcess','Establish Customer', 368, 40, 152, 56],
+ ['opn','bProcess','Open Account', 544, 40, 148, 56],
+ ['ntf','bProcess','Notify Customer', 716, 40, 148, 56],
+ ['app','bObject','Product Application', 20, 190, 152, 56],
+ ['evd','bObject','Identity Evidence', 196, 190, 148, 56],
+ ['cf','bObject','Customer File', 368, 190, 152, 56],
+ ['tcs','contract','Account Terms &amp; Conditions', 544, 190, 148, 60],
+ ['conf','bObject','Account Opening Confirmation', 716, 190, 148, 60],
+ ['wel','representation','Welcome Email', 716, 320, 148, 60]
+],
+[
+ ['cap','app','access','write',{acc:'w',lx:-30}],
+ ['ver','evd','access','read',{acc:'r',lx:-28}],
+ ['est','cf','access','write',{acc:'w',lx:-30}],
+ ['opn','tcs','access','read',{acc:'r',lx:-28}],
+ ['ntf','conf','access','write',{acc:'w',lx:-30}],
+ ['wel','conf','realization','realises']
+])}
+
+<h3>View 3 — the application landscape</h3>
+<p>Six components. The <strong>Origination Portal</strong> captures; an <strong>Origination Workflow</strong> component owns the orchestration behaviour (the engine it runs on is technology, per module 06); the <strong>IDV Gateway</strong>, <strong>Customer Master</strong>, <strong>Core Banking</strong> and <strong>Notification Hub</strong> each expose one service. Note two things: the component-realises-service arrows are the licensed derived shortcut from module 05 (the functions exist, a detail view would show them), and every access comes from a <em>service</em> — behaviour — because active structure never touches passive structure directly.</p>
+
+${D({w:880,h:490,n:'9.3',alt:'Origination application view',cap:'The application view. The portal announces Application Submitted; the workflow consumes the event and the application data flow, then draws on four services. Component-to-service realisations are derived shortcuts; access relationships come from behaviour, never from components.'},
+[
+ ['por','aComponent','Origination Portal', 30, 40, 185, 56],
+ ['evt','aEvent','Application Submitted', 280, 40, 190, 50],
+ ['wf','aComponent','Origination Workflow', 540, 40, 200, 56],
+ ['s1','aService','Identity Check', 30, 210, 180, 52],
+ ['s2','aService','Customer Creation', 250, 210, 180, 52],
+ ['s3','aService','Account Provisioning', 470, 210, 180, 52],
+ ['s4','aService','Notification Dispatch', 690, 210, 175, 52],
+ ['c1','aComponent','IDV Gateway', 30, 310, 180, 54],
+ ['c2','aComponent','Customer Master', 250, 310, 180, 54],
+ ['c3','aComponent','Core Banking', 470, 310, 180, 54],
+ ['c4','aComponent','Notification Hub', 690, 310, 175, 54],
+ ['d1','dataObject','KYC Result', 30, 410, 180, 52],
+ ['d2','dataObject','Customer Record', 250, 410, 180, 52],
+ ['d3','dataObject','Arrangement Record', 470, 410, 180, 52],
+ ['d4','dataObject','Notification Message', 690, 410, 175, 52]
+],
+[
+ ['por','evt','triggering',''],
+ ['evt','wf','triggering',''],
+ ['por','wf','flow','application data',{via:[[420,130]],ly:16}],
+ ['s1','wf','serving',''],
+ ['s2','wf','serving',''],
+ ['s3','wf','serving',''],
+ ['s4','wf','serving',''],
+ ['c1','s1','realization',''],
+ ['c2','s2','realization',''],
+ ['c3','s3','realization',''],
+ ['c4','s4','realization',''],
+ ['s1','d1','access','',{acc:'w',via:[[15,290],[15,436]]}],
+ ['s2','d2','access','',{acc:'w',via:[[235,290],[235,436]]}],
+ ['s3','d3','access','',{acc:'w',via:[[455,290],[455,436]]}],
+ ['s4','d4','access','',{acc:'w',via:[[675,290],[675,436]]}]
+])}
+
+<h3>View 4 — two cross-layer claims, side by side</h3>
+<p>The layered slice below makes the serving-versus-assignment distinction from module 07 concrete. Verify Identity keeps a human in the loop, so Identity Check <em>serves</em> it. Nobody hand-sends welcome emails, so the Notification Hub is <em>assigned to</em> Notify Customer — the component performs the business process outright.</p>
+
+${D({w:800,h:440,n:'9.4',alt:'Cross-layer slice: supported vs automated',cap:'Left: supported — the app service serves a process a human also performs (the analyst assignment is the evidence). Right: automated — cross-layer assignment claims the component performs the business process, full stop. Two arrows, two very different statements about your operating model.'},
+[
+ ['gb1','groupB','Business', 25, 25, 360, 165],
+ ['ver','bProcess','Verify Identity', 55, 70, 170, 54],
+ ['kyc','bRole','KYC Analyst', 55, 145, 170, 40],
+ ['ga1','groupA','Application', 25, 220, 360, 190],
+ ['s1','aService','Identity Check', 55, 260, 170, 52],
+ ['c1','aComponent','IDV Gateway', 55, 340, 170, 52],
+ ['gb2','groupB','Business', 415, 25, 360, 165],
+ ['ntf','bProcess','Notify Customer', 445, 70, 170, 54],
+ ['ga2','groupA','Application', 415, 220, 360, 190],
+ ['c4','aComponent','Notification Hub', 445, 300, 170, 54]
+],
+[
+ ['kyc','ver','assignment',''],
+ ['s1','ver','serving','serves (supports)'],
+ ['c1','s1','realization',''],
+ ['c4','ntf','assignment','performs (automated)']
+])}
+
+<div class="co tip"><b class="lbl">What this model can now answer</b><p>Which business capability breaks if the IDV vendor has an outage? (Follow the serving arrows up.) What is the blast radius of replacing Customer Master? (Analysis tab on the component.) Where does a human touch origination? (Every role assignment onto a child process.) What does the customer legally agree to, and when? (The contract access on Open Account.) Models earn their keep by answering questions — these four views answer real ones.</p></div>
+`,
+quiz:[
+{q:'Why is Applicant a separate role from Account Holder when it is the same human?', o:['The spec requires one role per view','Behaviour attaches to responsibilities, and origination is precisely the transition where the person acquires the new hat','Applicants are not customers legally','To make the diagram symmetrical'], a:1, why:'Roles are hats. The actor persists; the responsibilities change — and Establish Customer is the moment the change happens. Modelling both hats makes that explicit instead of mysterious.'},
+{q:'Acme Identity relates to our Verify Identity process how?', o:['Acme is assigned directly to our process','Acme is assigned to its own Identity Verification business service, which serves our process','Our process realises their service','Via a flow labelled KYC'], a:1, why:'Their service, our process. The two arrows draw the boundary of responsibility — what we buy versus what we own.'},
+{q:'What does Establish Customer actually create, in model terms?', o:['A business actor','A business role','A business object — the Customer File — information about the person','An application component'], a:2, why:'Processes produce and change information, not people. The actor already exists; the object is what the bank writes down about them. This is the Customer trap.'},
+{q:'In view 9.3, why do the access arrows come from the services rather than the components?', o:['Purely visual preference','Access is defined between behaviour and passive structure; active structure elements never access objects directly','Components may only compose','Data objects are business-layer'], a:1, why:'The metamodel restricts access to behaviour elements. The component acts on data only through the behaviour it performs — which is also why the derived shortcuts remain honest.'},
+{q:'Identity Check serves Verify Identity, but Notification Hub is assigned to Notify Customer. The difference asserts…', o:['Notification is more important','Verify Identity keeps a human path (referrals); Notify Customer is fully automated','Assignment is newer syntax','Serving is deprecated across layers'], a:1, why:'Serving = supports; cross-layer assignment = performs outright. The KYC Analyst assignment on Verify Identity is the evidence for choosing the weaker claim there.'}
+]});
+</script>
+
+<script>
+/* ================= MODULE 10 ================= */
+MODULES.push({
+title:'Modelling judgement & the rogues gallery',
+layer:'n',
+dek:'The metamodel stops illegal models; it cannot stop bad ones. These are the seven patterns that make published ArchiMate examples so poor, with the fix for each.',
+html: `
+<h3>Rogue 1 — the app wearing a business costume</h3>
+<p>The most common error on the public internet: "Internet Banking" drawn as a business actor, serving the customer. It feels natural — customers do use internet banking — and it destroys the model, because now the business view churns with every replatform and the layering means nothing.</p>
+
+${D({w:840,h:290,n:'10.1',cap:'Left: the rogue — a system posing as a business actor. Right: the fix — the system is an application component whose service serves the role, with the business channel (if needed) as an interface. Same facts, but only the right-hand model survives contact with a migration.'},
+[
+ ['bad','group','Rogue', 20, 25, 380, 240],
+ ['ba','bActor','Internet Banking', 55, 75, 170, 54],
+ ['bc','bActor','Customer', 55, 180, 170, 54],
+ ['good','group','Fix', 435, 25, 385, 240],
+ ['gr','bRole','Account Holder', 620, 60, 170, 50],
+ ['gs','aService','Preference Capture', 620, 135, 170, 50],
+ ['gc','aComponent','Internet Banking', 620, 205, 170, 50]
+],
+[
+ ['ba','bc','serving','serves ??'],
+ ['gs','gr','serving',''],
+ ['gc','gs','realization','']
+])}
+
+<h3>Rogue 2 — association soup</h3>
+<p>Every element joined to every neighbour with plain lines. It looks finished; it asserts nothing. Ten associations carry less information than three typed relationships, because a typed relationship can be <em>wrong</em> — and only claims that can be wrong can be useful.</p>
+
+${D({w:840,h:210,n:'10.2',cap:'Left: soup — related somehow, direction unknown, nothing checkable. Right: the same three elements making three checkable claims. If you cannot pick the type, that is the model telling you that you have not finished thinking.'},
+[
+ ['sg','group','Rogue', 20, 25, 380, 165],
+ ['s1','bProcess','Update Preference', 50, 70, 150, 50],
+ ['s2','bObject','Delivery Preference', 230, 70, 150, 50],
+ ['s3','bService','Preference Mgmt', 140, 135, 150, 48],
+ ['fg','group','Fix', 435, 25, 385, 165],
+ ['f1','bProcess','Update Preference', 465, 70, 150, 50],
+ ['f2','bObject','Delivery Preference', 650, 70, 150, 50],
+ ['f3','bService','Preference Mgmt', 555, 135, 150, 48]
+],
+[
+ ['s1','s2','association',''],
+ ['s1','s3','association',''],
+ ['s2','s3','association',''],
+ ['f1','f2','access','',{acc:'rw'}],
+ ['f1','f3','realization','']
+])}
+
+<h3>Rogues 3–7, briefly</h3>
+<table>
+<tr><th>Rogue</th><th>What it looks like</th><th>Fix</th></tr>
+<tr><td><strong>Serving drawn backwards</strong></td><td>Arrow pointing at the provider, because "the customer uses it"</td><td>Arrow at the beneficiary, always. Say the sentence aloud: "X serves Y."</td></tr>
+<tr><td><strong>BPMN cosplay</strong></td><td>Twenty-step process chains with decision diamonds improvised out of junctions</td><td>ArchiMate processes stop at the level executives recognise; detail goes to BPMN, linked in the documentation field. Junctions are for genuine and/or splits in coarse flows, not gateways.</td></tr>
+<tr><td><strong>Interface promoted to service</strong></td><td>A service named "REST API" or "Preferences Endpoint"</td><td>The API is <em>where</em>; the service is <em>what</em>. "Preference Capture" (service) exposed at "Preferences API" (interface).</td></tr>
+<tr><td><strong>CRUD explosion</strong></td><td>CreatePreferenceService, UpdatePreferenceService, DeletePreferenceService…</td><td>One service at the who-cares level. Operations are interface detail, not architecture.</td></tr>
+<tr><td><strong>Function conveyor belt</strong></td><td>Business functions chained with triggering, left to right</td><td>Sequence toward a result = process. Functions stand still; processes flow through them (module 04).</td></tr>
+</table>
+
+<h3>When not to model</h3>
+<p>Every element costs attention forever — it must be named, maintained, and explained in every review it appears in. So apply the test from module 02 in reverse: <strong>a view exists to answer a question; an element exists to be part of an answer.</strong> No question, no element. Some concrete permissions:</p>
+<ul>
+<li>You may leave out the interface when the channel story is not the point.</li>
+<li>You may use the derived component-realises-service shortcut on every portfolio view.</li>
+<li>You may model one function per component until the internal split matters.</li>
+<li>You may omit actors entirely and work in roles until an org-mapping question shows up.</li>
+</ul>
+<p>Minimalism is not laziness; it is respect for the reader. The best ArchiMate views look almost empty and answer their question completely.</p>
+
+<div class="co tip"><b class="lbl">Naming, one last time</b><p>Processes: verb + object. Services: capability noun phrase. Functions: gerund-free competence names ("Risk Assessment", not "Assessing Risks"). Objects: singular nouns. Events: past-tense facts ("Application Submitted"). Components: the name the operations team uses at 2am. An element fighting its convention is usually the wrong type.</p></div>
+`,
+quiz:[
+{q:'What is actually wrong with "Internet Banking" as a business actor?', o:['The name is too vague','It binds the business view to an implementation, so the layering stops protecting anything','Business actors must be people','Nothing, if it is coloured yellow'], a:1, why:'The whole return on layering is a business view that survives replatforming. A system in the business layer forfeits it — legally, per the metamodel, an actor can be many things; the judgement rule is what protects you.'},
+{q:'Why do three typed relationships beat ten associations?', o:['Fewer lines render faster','Typed relationships make checkable claims — they can be wrong, therefore they can be useful','Associations are deprecated','Associations cannot be labelled'], a:1, why:'A model is a set of claims. Association claims almost nothing, so it can almost never be wrong — and almost never be informative.'},
+{q:'A colleague models CreateCustomer, UpdateCustomer and DeleteCustomer as three application services. Best advice?', o:['Add ReadCustomer for completeness','Collapse to one service at the who-cares level; operations are interface detail','Convert them to business services','Use flows instead'], a:1, why:'Nobody outside consumes "delete customer" as a distinct capability. Service granularity follows external meaning, not HTTP verbs.'},
+{q:'The governing test for whether an element belongs in a view is…', o:['Whether it fits without overlapping','Whether it is part of the answer to the question the view exists to ask','Whether the validator allows it','Whether it appears in other views'], a:1, why:'Views answer questions. Elements that answer nothing cost attention forever and pay no rent.'}
+]});
+
+/* ================= MODULE 11 ================= */
+MODULES.push({
+title:'Notation atlas & cheat sheet',
+layer:'x',
+dek:'Everything on two screens: the elements, the arrows, the sayings, the naming rules — and the course in ten sentences.',
+html: `
+<h3>Element atlas</h3>
+${D({w:860,h:200,n:'11.1',cap:'Business layer. Square = active structure, rounded = behaviour, pill = service, pennant = event; passive shapes: top band = object, double band = contract, wavy = representation, half band = product. Icons: person, cylinder, circles, lollipop, arrow, merge, split-arrow.'},
+[
+ ['q1','bActor','Business Actor', 20, 25, 190, 50],
+ ['q2','bRole','Business Role', 235, 25, 190, 50],
+ ['q3','bCollab','Business Collaboration', 450, 25, 190, 50],
+ ['q4','bInterface','Business Interface', 665, 25, 175, 50],
+ ['q5','bProcess','Business Process', 20, 92, 190, 50],
+ ['q6','bFunction','Business Function', 235, 92, 190, 50],
+ ['q7','bService','Business Service', 450, 92, 190, 50],
+ ['q8','bEvent','Business Event', 665, 92, 175, 50],
+ ['q9','bObject','Business Object', 20, 159, 190, 36],
+ ['q10','contract','Contract', 235, 159, 190, 36],
+ ['q11','representation','Representation', 450, 159, 190, 38],
+ ['q12','product','Product', 665, 159, 175, 36]
+],[])}
+${D({w:860,h:135,n:'11.2',cap:'Application layer — identical grammar, blue paint. The data object realises its business counterpart; the interface exposes the service; the component performs the function.'},
+[
+ ['w1','aComponent','Application Component', 20, 25, 190, 50],
+ ['w2','aInterface','Application Interface', 235, 25, 190, 50],
+ ['w3','aFunction','Application Function', 450, 25, 190, 50],
+ ['w4','aService','Application Service', 665, 25, 175, 50],
+ ['w5','aProcess','Application Process', 20, 92, 190, 36],
+ ['w6','aEvent','Application Event', 235, 92, 190, 36],
+ ['w7','dataObject','Data Object', 450, 92, 190, 36],
+ ['w8','aCollab','Application Collaboration', 665, 92, 175, 36]
+],[])}
+
+<h3>Say it → draw it</h3>
+<table>
+<tr><th>You want to say…</th><th>Draw</th><th>Direction check</th></tr>
+<tr><td>Who performs this</td><td>Assignment</td><td>Ball on the doer, arrow on the deed</td></tr>
+<tr><td>This makes that real</td><td>Realisation (dotted, hollow head)</td><td>Arrow at the abstract end</td></tr>
+<tr><td>This supports / is used by that</td><td>Serving (solid, open head)</td><td>Arrow at the beneficiary</td></tr>
+<tr><td>This reads / writes that</td><td>Access (dotted)</td><td>Write → object; read → behaviour; both = r/w</td></tr>
+<tr><td>When this ends, that starts</td><td>Triggering (solid, filled head)</td><td>Time flows with the arrow</td></tr>
+<tr><td>Something is passed along</td><td>Flow (dashed, filled head)</td><td>Label what flows, always</td></tr>
+<tr><td>This is a part that dies with the whole</td><td>Composition</td><td>Filled diamond on the whole</td></tr>
+<tr><td>This groups that (shareable part)</td><td>Aggregation</td><td>Hollow diamond on the whole</td></tr>
+<tr><td>This is a kind of that</td><td>Specialisation</td><td>Arrow at the general</td></tr>
+<tr><td>Related, and that is all I can defend</td><td>Association</td><td>Use sparingly; each one is unfinished thinking</td></tr>
+</table>
+
+<h3>The cross-layer four</h3>
+<table>
+<tr><th>Claim</th><th>Pattern</th></tr>
+<tr><td>System behaviour <em>supports</em> business behaviour</td><td>App service → serving → business process/function/role</td></tr>
+<tr><td>Business behaviour <em>is</em> automated</td><td>App behaviour → realisation → business behaviour, or component → assignment → business process</td></tr>
+<tr><td>This data is the automated form of that concept</td><td>Data object → realisation → business object</td></tr>
+<tr><td>Portfolio shorthand</td><td>Component → realisation → app service (derived; licensed by the detail)</td></tr>
+</table>
+
+<h3>Naming</h3>
+<table>
+<tr><th>Element</th><th>Convention</th><th>Example</th></tr>
+<tr><td>Business process</td><td>Verb + object</td><td>Update Statement Preference</td></tr>
+<tr><td>Business service</td><td>Capability noun phrase</td><td>Statement Preference Management</td></tr>
+<tr><td>Business function</td><td>Competence name</td><td>Risk Assessment</td></tr>
+<tr><td>Event</td><td>Past-tense fact</td><td>Application Submitted</td></tr>
+<tr><td>Object / data object</td><td>Singular noun</td><td>Customer File / Preference Record</td></tr>
+<tr><td>Interface</td><td>Channel or access point</td><td>Digital Channel / Preferences API</td></tr>
+<tr><td>Component</td><td>The 2am operational name</td><td>Customer Master</td></tr>
+</table>
+
+<h3>The course in ten sentences</h3>
+<ol>
+<li>ArchiMate is a language with a metamodel; Archi is the free tool that enforces it — the model is the tree, and views are projections of it.</li>
+<li>Every layer is the same grammar: active structure performs behaviour that acts on passive structure, with interface and service as the external boundary.</li>
+<li>A model is a set of claims, and every claim is carried by a typed, directed relationship — which is why type and direction are the craft.</li>
+<li>The service is the anchor: externally meaningful behaviour, named at the level someone outside would consume, hiding everything internal.</li>
+<li>Actors exist, roles are hats; attach behaviour to the hats and let assignments absorb the org chart.</li>
+<li>Processes flow through time toward results; functions stand still and describe capability; events decouple the boundaries between them.</li>
+<li>Objects are concepts, contracts are agreements, representations are their perceptible forms, and products bundle services for sale.</li>
+<li>The application layer repeats the grammar in blue, at the granularity of things a solution design would name, with data objects realising business concepts.</li>
+<li>Layers meet through four patterns — serving for support, realisation or cross-layer assignment for automation, data-realises-object for information — so the business view survives every replatform.</li>
+<li>Model only what answers a question; minimal views with exact arrows beat crowded views with vague ones, every single time.</li>
+</ol>
+
+<div class="co tip"><b class="lbl">Where to next</b><p>Rebuild both worked examples from scratch in Archi without looking — tree first, then the three views by dragging from the tree. Then take one real capability you own, write its business view before naming any system, and see how long it survives your next architecture review. That is the whole method.</p></div>
+`,
+quiz:[
+{q:'One sentence summary of the layering payoff:', o:['Layers keep diagrams colourful','Layers meet only through services and realisation, so business claims survive implementation churn','Layers are mandatory in Archi','Layers map to org departments'], a:1, why:'Sentence nine. The boundary discipline is what converts a drawing habit into a migration impact tool.'},
+{q:'Which is the correct trio of shapes?', o:['Square = behaviour, rounded = structure, pill = event','Square = active structure, rounded = behaviour, pill = service','Square = passive, pill = process, pennant = service','All elements share one shape, only colour differs'], a:1, why:'Square corners act, rounded corners happen, the pill is the exposed service, the pennant is the event.'},
+{q:'You cannot decide which relationship type to use between two elements. The atlas advice is…', o:['Default to association permanently','Treat it as unfinished thinking: work out which claim is true, or remove the line','Use the strongest available type','Use flow, unlabelled'], a:1, why:'Only claims that can be wrong can be useful. An undecidable line usually means a missing element (often a service) or an undecided fact.'}
+]});
+</script>
+
+<script>
+/* ================= init ================= */
+(function(){
+  document.getElementById('menuBtn').onclick = ()=>document.getElementById('side').classList.toggle('open');
+  document.addEventListener('click', e=>{
+    const s = document.getElementById('side');
+    if (s.classList.contains('open') && !s.contains(e.target) && e.target.id!=='menuBtn') s.classList.remove('open');
+  });
+  document.getElementById('resetBtn').onclick = ()=>{
+    if (confirm('Reset all progress?')){ localStorage.removeItem(KEY); buildNav(); openModule(current); }
+  };
+  buildNav();
+  const h = location.hash.match(/^#m(\d+)$/);
+  openModule(h ? +h[1] : 0);
+})();
+</script>
+</body>
+</html>
