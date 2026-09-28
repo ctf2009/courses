@@ -9,6 +9,10 @@ Live: <https://courses.chrisflaherty.au>
 
 The served site lives in `public/`; everything else is repo tooling.
 
+Curator's catalogue, review standards and draft intake findings live in
+[`curation/`](curation/README.md). Imported courses stay in `drafts/` until ready
+for publication. Run `npm run curate:check` to validate catalogue integrity.
+
 ## The courses
 
 | File | Title | Modules | Completion key | Attempt key |
