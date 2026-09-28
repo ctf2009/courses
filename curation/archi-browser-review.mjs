@@ -2,7 +2,8 @@ import { chromium } from 'playwright-core';
 import path from 'node:path';
 
 export const ARCHI_REVIEW_PROFILE = 'archi-browser-v1';
-const REVIEW_URL = 'https://curator.invalid/archi-course.html';
+export const REVIEW_URL = 'https://curator.invalid/archi-course.html';
+export const HUB_PREVIEW_URL = 'https://curator.invalid/index.html';
 const STORAGE_KEY = 'archi-course-v1';
 const REVIEW_TIMEOUT_MS = 60_000;
 const CSP = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; worker-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'";
@@ -25,14 +26,11 @@ export async function probeFreshReviewRuntime() {
   } finally { await browser?.close(); }
 }
 
-export async function reviewArchiInBrowser(html, evidenceDirectory) {
+export async function openIsolatedCourseBrowser(html, maximumDurationMs = REVIEW_TIMEOUT_MS, hubHtml) {
   const browser = await chromium.launch(browserOptions());
-  const deadline = setTimeout(() => { void browser.close(); }, REVIEW_TIMEOUT_MS);
-  const checks = [];
-  const screenshots = [];
+  const deadline = setTimeout(() => { void browser.close(); }, maximumDurationMs);
   const pageErrors = [];
   const blockedRequests = new Set();
-  const add = (id, passed, evidence) => checks.push({ id, status: passed ? 'passed' : 'failed', evidence });
   try {
     const context = await browser.newContext({ viewport: { width: 1280, height: 900 },
       serviceWorkers: 'block', acceptDownloads: false, reducedMotion: 'reduce', permissions: [] });
@@ -40,8 +38,9 @@ export async function reviewArchiInBrowser(html, evidenceDirectory) {
     context.setDefaultNavigationTimeout(5000);
     await context.routeWebSocket('**/*', socket => { blockedRequests.add('websocket:' + new URL(socket.url()).origin); socket.close(); });
     await context.route('**/*', async route => {
-      if (route.request().url() === REVIEW_URL && route.request().isNavigationRequest()) {
-        await route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: html,
+      const requested = route.request().url();
+      if ((requested === REVIEW_URL || (requested === HUB_PREVIEW_URL && typeof hubHtml === 'string')) && route.request().isNavigationRequest()) {
+        await route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: requested === REVIEW_URL ? html : hubHtml,
           headers: { 'Content-Security-Policy': CSP, 'Cache-Control': 'no-store' } });
       } else {
         blockedRequests.add(route.request().url());
@@ -51,6 +50,17 @@ export async function reviewArchiInBrowser(html, evidenceDirectory) {
     const page = await context.newPage();
     page.on('pageerror', error => pageErrors.push(error.message.slice(0, 500)));
     page.on('dialog', dialog => { void dialog.dismiss(); });
+    return { browser, context, page, pageErrors, blockedRequests, async close() { clearTimeout(deadline); await browser.close(); } };
+  } catch (error) { clearTimeout(deadline); await browser.close(); throw error; }
+}
+
+export async function reviewArchiInBrowser(html, evidenceDirectory) {
+  const session = await openIsolatedCourseBrowser(html);
+  const { browser, page, pageErrors, blockedRequests } = session;
+  const checks = [];
+  const screenshots = [];
+  const add = (id, passed, evidence) => checks.push({ id, status: passed ? 'passed' : 'failed', evidence });
+  try {
     const snapshot = async name => {
       await page.screenshot({ path: path.join(evidenceDirectory, name), fullPage: false });
       screenshots.push(name);
@@ -168,7 +178,6 @@ export async function reviewArchiInBrowser(html, evidenceDirectory) {
         'Mobile checks cover module 0 only; diagram quality and visual layout still need human screenshot review.', 'Hub progress integration, downloadable assets and live publication were not verified.',
         'External fonts were blocked, so screenshots use fallback fonts.'] };
   } finally {
-    clearTimeout(deadline);
-    await browser.close();
+    await session.close();
   }
 }

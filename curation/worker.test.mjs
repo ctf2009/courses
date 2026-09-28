@@ -97,7 +97,7 @@ test('watch heartbeat proves a successful pass and is removed on shutdown', asyn
   await runWatch({ ...f, signal: controller.signal, onBatch(results) {
     assert.equal(results[0].outcome, 'catalogue');
     const heartbeat = JSON.parse(readFileSync(path.join(f.inbox, 'workers/curator-courses.json'), 'utf8'));
-    assert.equal(heartbeat.version, '1.2.0');
+    assert.equal(heartbeat.version, '1.3.0');
     assert.ok(Array.isArray(heartbeat.reviewProfiles));
     sawReady = true;
     controller.abort();

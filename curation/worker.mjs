@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { setTimeout as wait } from 'node:timers/promises';
 import { handleRequest } from './handler.mjs';
 import { probeFreshReviewRuntime } from './archi-browser-review.mjs';
+import { publishCourseWorkSource, runCourseWorkChecks } from './course-work.mjs';
 
 const domain = 'curator-courses';
 const safeId = /^[A-Za-z0-9_-]+$/;
@@ -77,6 +78,9 @@ export async function runOnce({ inbox, repository, recoverDeadOwner = false }) {
           results.push({ file: filename, outcome: 'invalid-request', error: error.message });
           continue;
         }
+        // The host owns authoring lifecycle; this worker only verifies its
+        // separately hash-bound candidates and must not complete the parent job.
+        if (request.requestType === 'course_work') continue;
         const reportId = `rep_curator_${request.id}`;
         let report;
         for (const state of ['pending', 'delivered', 'rejected', 'retained']) {
@@ -114,6 +118,7 @@ export async function runOnce({ inbox, repository, recoverDeadOwner = false }) {
         results.push({ requestId: request.id, reportId, outcome: report.payload.outcome });
       }
     }
+    results.push(...await runCourseWorkChecks({ inbox, repository }));
     return results;
   } finally { await rm(lock, { recursive: true }); }
 }
@@ -126,9 +131,11 @@ export async function runWatch({ inbox, repository, signal, intervalMs = 15_000,
     while (!signal?.aborted) {
       // A heartbeat is evidence of a successful worker pass and readable catalogue.
       await handleRequest({ requestType: 'catalogue', payload: {} }, repository);
+      await publishCourseWorkSource(inbox, repository);
       const results = await runOnce({ inbox, repository, recoverDeadOwner });
       await writeAtomic(heartbeatFile, {
-        domainName: domain, ready: true, pid: process.pid, checkedAt: Date.now(), version: '1.2.0', ...freshReviewRuntime,
+        domainName: domain, ready: true, pid: process.pid, checkedAt: Date.now(), version: '1.3.0', ...freshReviewRuntime,
+        workProfiles: freshReviewRuntime.reviewProfiles.length ? ['course-work-v1'] : [],
       });
       onBatch(results);
       try { await wait(intervalMs, undefined, { signal }); }
