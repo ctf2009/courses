@@ -1,35 +1,35 @@
 # Prepare Archi for catalogue review
 
-Blocked on the courses repository and courses-default verification profile being
-registered in Ralph, and the courses baseline (including this draft) being committed
-and available remotely. Keep in Backlog without approved until those are ready.
-This is a draft-PR job; it must not deploy the new course.
+Status, 2026-09-28: a draft authored by Zora through standalone Curator is prepared
+for human review. The accepted candidate passed all 22 checks in the
+`course-work-v1` browser profile. This work did not use Ralph; the earlier
+Ralph registration prerequisite is superseded for this brief.
 
-```yaml
-ralph: 1
-mode: ticket
-repo: courses
-base: main
-agent: codex
-objective: Prepare the imported Archi course for catalogue review, preserving lesson content and diagram styling.
-acceptance:
-  - Implement the README quiz contract with 60 percent pass, submit-all grading, saved attempts and explicit retakes.
-  - Preserve archi-course-v1 and document migration of historical completion without losing learner state.
-  - Failed attempts withhold missed answers and rationales; reload restores the recorded attempt.
-  - Add hub navigation and matching progress; preserve unrestricted module navigation.
-  - Retain browser evidence for passing, failing, retaking, reloading, narrow screens and diagrams.
-  - Update catalogue placement and review records accurately; identify factual review still required before release.
-  - Do not deploy or modify other courses, runtime credentials or publication configuration.
-verify:
-  profile: courses-default
-limits:
-  max_passes: 4
-  max_minutes: 90
-  retry_policy: none
-pr:
-  title: Prepare Archi course for catalogue review
-  draft: true
-```
+The owner delegated the saved brief to Zora. Her durable task discovered Curator,
+commissioned the work and subsequently assessed the returned checks. Curator's
+configured model authored the candidate. An operator transported the accepted
+source and sanitized evidence into this review branch without editing the
+candidate. Browser success does not establish factual accuracy, human approval
+or publication.
 
-Evidence and detailed findings: curation/reviews/2026-09-10-draft-intake.md.
-Publication requires human review. A passing inventory check alone is insufficient.
+## Original acceptance and current scope
+
+- Apply the README quiz contract: submit-all grading, 60% pass, saved attempts,
+  reload replay, explicit retakes and withheld missed answers on failure.
+- Preserve `archi-course-v1`, historical completion, other saved learner state,
+  all lesson and quiz content, and diagram data.
+- Preserve unrestricted module navigation and add a course-hub link. Verify
+  progress compatibility in the private hub preview; public hub integration
+  remains a separate release task.
+- Retain browser evidence for passing, failing, retaking, reloading, narrow
+  screens, diagrams and historical state.
+- Keep catalogue placement as `draft`. Complete factual and human review before
+  changing publication readiness.
+- Do not deploy, change other courses, credentials or hosting configuration.
+
+The [dated candidate review](../reviews/2026-09-28-archi-candidate.md) records the
+source hash, checks, migration limits and outstanding work. The
+[original intake](../reviews/2026-09-10-draft-intake.md) remains historical evidence.
+
+Draft PR title: **Prepare Archi course for catalogue review**.
+Publication requires a separate review and decision.

@@ -52,8 +52,29 @@ test('structured draft passes real 60%, persistence, retake, navigation and all-
   await assert.rejects(runCourseWorkChecks(f), /hash mismatch/);
 });
 
-test('current unedited Archi is a failing candidate with preserved lesson source', async t => {
+test('current Archi draft passes all candidate checks with preserved lesson source', async t => {
   const f = await fixture(t, 'revise');
+  await runCourseWorkChecks(f);
+  const result = JSON.parse(await readFile(completed(f)));
+  assert.equal(result.status, 'passed', JSON.stringify({ error: result.error, findings: result.findings }));
+  assert.equal(result.browserVerified, true, result.error);
+  assert.equal(result.checks.find(item => item.id === 'lesson-source-preserved').status, 'passed');
+  assert.equal(result.checks.find(item => item.id === 'meaningful-60-percent-boundary').status, 'passed');
+  assert.equal(result.checks.find(item => item.id === 'attempts-persist-after-reload').status, 'passed');
+  assert.equal(result.checks.find(item => item.id === 'existing-state-survives-new-attempt').status, 'passed');
+  assert.equal(hash(await readFile(path.join(repository, 'drafts/archi-course.html'))), f.check.baseSha256);
+});
+
+test('test-only scoring and persistence regressions fail without changing lesson source', async t => {
+  const source = await readFile(path.join(repository, 'drafts/archi-course.html'), 'utf8');
+  const grading = 'const passed = right / max >= 0.6;';
+  const persistence = 'next.quiz[key] = {picks:sel.slice(),score:right,max:max,passed:passed};';
+  assert.equal(source.split(grading).length, 2, 'Expected one scoring boundary to regress');
+  assert.equal(source.split(persistence).length, 2, 'Expected one attempt save to regress');
+  // Reintroduce two historical failures only in the isolated candidate.
+  const candidate = source.replace(grading, 'const passed = true;')
+    .replace(persistence, 'delete next.quiz[key];');
+  const f = await fixture(t, 'revise', candidate);
   await runCourseWorkChecks(f);
   const result = JSON.parse(await readFile(completed(f)));
   assert.equal(result.status, 'failed');
@@ -61,27 +82,6 @@ test('current unedited Archi is a failing candidate with preserved lesson source
   assert.equal(result.checks.find(item => item.id === 'lesson-source-preserved').status, 'passed');
   assert.equal(result.checks.find(item => item.id === 'meaningful-60-percent-boundary').status, 'failed');
   assert.equal(result.checks.find(item => item.id === 'attempts-persist-after-reload').status, 'failed');
-  assert.equal(hash(await readFile(path.join(repository, 'drafts/archi-course.html'))), f.check.baseSha256);
-});
-
-test('behaviour-only Archi candidate passes without modifying lessons or the original course', async t => {
-  const source = await readFile(path.join(repository, 'drafts/archi-course.html'), 'utf8');
-  const start = source.indexOf('MODULES.push({');
-  const end = source.lastIndexOf('</script>', source.indexOf('/* ================= init'));
-  // Test-only candidate: original lesson bytes and notation engine, trusted quiz
-  // behaviour. This fixture is never written into the learner repository.
-  const player = (await readFile(path.join(repository, 'curation/course-player.js'), 'utf8'))
-    .replace('const MODULES = COURSE_DATA.modules;', '')
-    .replace('const KEY = `curator-${COURSE_DATA.courseId}-v1`;', "const KEY = 'archi-course-v1';");
-  const prefix = source.slice(0, source.indexOf('const MODULES = [];')).replace('<aside id="side">', '<aside id="side"><a href="/index.html">All courses</a>')
-    .replace('</style>', '@media(max-width:900px){article{overflow-x:auto}td code{white-space:normal;overflow-wrap:anywhere}}</style>');
-  const candidate = prefix + 'const MODULES = [];\n' + source.slice(start, end) + '</script><script>' + player + '</script></body></html>';
-  const f = await fixture(t, 'revise', candidate);
-  await runCourseWorkChecks(f);
-  const result = JSON.parse(await readFile(completed(f)));
-  assert.equal(result.status, 'passed', JSON.stringify({ error: result.error, findings: result.findings }));
-  assert.equal(result.checks.find(item => item.id === 'lesson-source-preserved').status, 'passed');
-  assert.equal(result.checks.find(item => item.id === 'existing-state-survives-new-attempt').status, 'passed');
   assert.equal(hash(await readFile(path.join(repository, 'drafts/archi-course.html'))), hash(source));
 });
 

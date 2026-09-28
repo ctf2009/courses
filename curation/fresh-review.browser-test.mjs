@@ -44,7 +44,7 @@ test('fresh file request executes current Archi browser checks and retains origi
   assert.equal(review.checks.find(check => check.id === 'runtime-dependencies').status, 'passed');
   assert.equal(review.checks.find(check => check.id === 'desktop-module-rendering').status, 'passed');
   for (const id of ['failed-attempt-does-not-complete', 'failed-attempt-persists-on-reload', 'passing-attempt-persists-on-reload', 'explicit-retake-available']) {
-    assert.equal(review.checks.find(check => check.id === id).status, 'failed');
+    assert.equal(review.checks.find(check => check.id === id).status, 'passed');
   }
   assert.equal(review.screenshots.length, 4);
   const evidence = path.join(inbox, review.evidenceLocation);
