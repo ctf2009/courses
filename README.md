@@ -13,6 +13,10 @@ Curator's catalogue, review standards and draft intake findings live in
 [`curation/`](curation/README.md). Imported courses stay in `drafts/` until ready
 for publication. Run `npm run curate:check` to validate catalogue integrity.
 
+Curator's independently installed worker and Zora discovery plugin live in
+[zora-domain-curator](https://github.com/ITF-Solutions/zora-domain-curator).
+This repository owns course content and publication only.
+
 ## The courses
 
 | File | Title | Modules | Completion key | Attempt key |
