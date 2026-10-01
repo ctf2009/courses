@@ -15,6 +15,7 @@ export function preparePublication({ publicationId, courseId, html, sourceSha256
     if (!bounded(metadata?.[name], maximum)) throw new Error(`Missing or oversized ${name}`);
   }
   if (Object.keys(metadata).some(key => !['title', 'description', 'topic', 'audience', 'objective'].includes(key))) throw new Error('Unexpected publication metadata field');
+  if (/[\r\n]/.test(metadata.title)) throw new Error('Publication title must be a single line');
   if (!evidence || evidence.browserVerified !== true || !bounded(evidence.reviewSummary, 12000)) throw new Error('Browser evidence and review summary are required');
   const catalogue = JSON.parse(catalogueText);
   if (catalogue.schemaVersion !== 1 || !Array.isArray(catalogue.courses)) throw new Error('Invalid catalogue');

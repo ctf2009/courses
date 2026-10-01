@@ -41,5 +41,7 @@ export function validatePublication({ manifest, publicationId, changedPaths, rea
     || (previous && previous.progressKey !== entry.progressKey)) throw new Error('Catalogue does not describe this publication');
   if (JSON.stringify(catalogue.courses.filter(course => course.id !== courseId)) !== JSON.stringify(previousCatalogue.courses.filter(course => course.id !== courseId))) throw new Error('Publication changed another course');
   const review = String(read(reviewPath));
-  if (!review.includes(`\nPublication: ${publicationId}\nCandidate SHA-256: ${manifest.sourceSha256}\n`)) throw new Error('Acceptance record does not describe this candidate');
+  const header = /^# ([^\r\n]+)\n\nPublication: (req_[A-Za-z0-9_-]{1,120})\nCandidate SHA-256: ([a-f0-9]{64})\n\n## Acceptance evidence\n\n/.exec(review);
+  if (!header || header[1] !== entry.title || header[2] !== publicationId || header[3] !== manifest.sourceSha256
+    || (review.match(/^Publication:/gm) ?? []).length !== 1 || (review.match(/^Candidate SHA-256:/gm) ?? []).length !== 1) throw new Error('Acceptance record does not describe this candidate');
 }

@@ -45,6 +45,9 @@ test('release validates draft promotion and later updates including catalogue an
   record.content = plan.files.find(file => file.path.endsWith('.md')).content;
   wrongAcceptance.manifest.repositoryChanges.find(file => file.path === record.path).sha256 = createHash('sha256').update(record.content).digest('hex');
   assert.throws(() => validate(wrongAcceptance, prior), /Acceptance record/);
+  record.content += `\nPublication: ${next.manifest.publicationId}\nCandidate SHA-256: ${next.manifest.sourceSha256}\n`;
+  wrongAcceptance.manifest.repositoryChanges.find(file => file.path === record.path).sha256 = createHash('sha256').update(record.content).digest('hex');
+  assert.throws(() => validate(wrongAcceptance, prior), /Acceptance record/);
 });
 
 test('metadata cannot replace release identity or catalogue fields', () => {
