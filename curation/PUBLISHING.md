@@ -16,6 +16,8 @@ Zora can prepare a release after the latest retained candidate passes its browse
 
 The workflow is manual-dispatch only: a repository push never publishes a course. Production jobs are serialized. Do not manually deploy or update main during a publication.
 
+Both the workflow and runner require `CURATOR_PUBLICATION_ENABLED=true`. Release manifest version 2 hashes the catalogue and acceptance record as well as course/index bytes, records draft removal, and binds catalogue identity and acceptance to the same candidate. Older prepared plans must be prepared again after this upgrade.
+
 ## One-time activation
 
 The existing local Wrangler OAuth login is suitable for operator use, not a shared unattended CI secret. Configure the courses repository with:

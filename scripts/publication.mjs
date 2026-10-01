@@ -14,6 +14,7 @@ export function preparePublication({ publicationId, courseId, html, sourceSha256
   for (const [name, maximum] of [['title', 120], ['description', 600], ['topic', 80], ['audience', 500], ['objective', 600]]) {
     if (!bounded(metadata?.[name], maximum)) throw new Error(`Missing or oversized ${name}`);
   }
+  if (Object.keys(metadata).some(key => !['title', 'description', 'topic', 'audience', 'objective'].includes(key))) throw new Error('Unexpected publication metadata field');
   if (!evidence || evidence.browserVerified !== true || !bounded(evidence.reviewSummary, 12000)) throw new Error('Browser evidence and review summary are required');
   const catalogue = JSON.parse(catalogueText);
   if (catalogue.schemaVersion !== 1 || !Array.isArray(catalogue.courses)) throw new Error('Invalid catalogue');
@@ -57,7 +58,8 @@ export function preparePublication({ publicationId, courseId, html, sourceSha256
     if (existing.path !== `drafts/${courseId}-course.html`) throw new Error('Unexpected draft path');
     files.push({ path: existing.path, content: null });
   }
-  const manifest = { schemaVersion: 1, publicationId, courseId, sourceSha256, modules: structure.modules, progressKey: structure.key,
+  const manifest = { schemaVersion: 2, publicationId, courseId, sourceSha256, modules: structure.modules, progressKey: structure.key, completion: structure.completion,
+    repositoryChanges: files.map(file => ({ path: file.path, sha256: file.content === null ? null : sha(file.content) })),
     files: files.filter(file => file.path.startsWith('public/')).map(file => ({ path: file.path.slice(7), sha256: sha(file.content) })) };
   files.push({ path: `curation/publications/${publicationId}.json`, content: json(manifest) });
   return { files, manifest, summary: { courseId, title: metadata.title, modules: structure.modules, progressKey: structure.key,
