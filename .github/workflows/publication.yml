@@ -16,6 +16,7 @@ permissions:
   contents: write
 jobs:
   publish:
+    if: vars.CURATOR_PUBLICATION_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -36,6 +37,7 @@ jobs:
       - name: Publish and verify the complete release
         env:
           GH_TOKEN: ${{ github.token }}
+          CURATOR_PUBLICATION_ENABLED: ${{ vars.CURATOR_PUBLICATION_ENABLED }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           PUBLICATION_ID: ${{ inputs.publication_id }}
