@@ -28,7 +28,7 @@
   .sub{font-size:15px;color:var(--muted);max-width:62ch;margin:0 0 44px}
   /* 340px floor settles the current four courses into a balanced 2x2 rather than 3+1;
      revisit the floor when a fifth course lands. */
-  .courses{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px}
+  .courses{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(340px,100%),1fr));gap:20px}
   .course{background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:26px;display:flex;flex-direction:column;text-decoration:none;color:inherit;transition:transform .15s,box-shadow .15s}
   .course:hover{transform:translateY(-3px);box-shadow:0 4px 8px rgba(26,27,46,.06),0 18px 44px rgba(26,27,46,.12)}
   .course .step{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:8px}
@@ -107,6 +107,7 @@
       <div class="pmeta"><span>17 modules</span><span id="togafMeta">not started</span></div>
       <span class="go">Start course →</span>
     </a>
+    <!-- curator-course-cards -->
   </div>
 
   <div class="order">New here? The two AI courses read best in order — start with <b>How Does an LLM Work?</b>; its closing idea (a model predicts what's <i>plausible</i>, not what's <i>true</i>) is exactly what <b>How RAG Actually Works</b> sets out to fix. <b>Web Security</b> and <b>TOGAF 10</b> each stand alone — take them whenever. TOGAF is the odd one out by design: it's exam preparation rather than a look under the bonnet, so it comes with scored quizzes, mock exams and downloadable worked artifacts.</div>
@@ -134,5 +135,6 @@
   paint('togafBar','togafMeta',Math.min(countPassed(tg.progress||{}),17),17);
 })();
 </script>
+<script src="course-progress.js"></script>
 </body>
 </html>
