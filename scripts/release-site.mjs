@@ -33,7 +33,7 @@ export function originHtml(html) {
     script.includes('/cdn-cgi/challenge-platform/scripts/jsd/main.js') && script.endsWith('}}}})();</script>') ? '' : script);
 }
 
-export async function verifyRelease(release, fetcher = fetch) {
+export async function verifySiteAssets(release, fetcher = fetch) {
   if (release?.schemaVersion !== 1 || !/^[A-Za-z0-9_-]{1,160}$/.test(release.publicationId ?? '')
     || !/^[a-f0-9]{40}$/.test(release.revision ?? '') || !Array.isArray(release.files) || !release.files.length
     || release.files.length > 1000 || new Set(release.files.map(file => file.path)).size !== release.files.length) throw new Error('Invalid release manifest');
@@ -48,7 +48,12 @@ export async function verifyRelease(release, fetcher = fetch) {
   }
   const root = await fetcher(`${siteUrl}/?release=${release.publicationId}`, { redirect: 'error', signal: AbortSignal.timeout(30000), cache: 'no-store' });
   if (!root.ok || hash(originHtml(await root.text())) !== release.files.find(file => file.path === 'index.html')?.sha256) throw new Error('Live main index does not match the release');
+  return { verifiedAssets: release.files.length, indexVerified: true };
+}
+
+export async function verifyRelease(release, fetcher = fetch) {
+  const result = await verifySiteAssets(release, fetcher);
   const marker = await fetcher(`${siteUrl}/publication.json?release=${release.publicationId}`, { redirect: 'error', signal: AbortSignal.timeout(30000), cache: 'no-store' });
   if (!marker.ok || JSON.stringify(await marker.json()) !== JSON.stringify(release)) throw new Error('Live publication marker does not match the release');
-  return { verifiedAssets: release.files.length, indexVerified: true };
+  return result;
 }
