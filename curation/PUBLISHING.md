@@ -27,7 +27,24 @@ The existing local Wrangler OAuth login is suitable for operator use, not a shar
 - Variable `CURATOR_PUBLICATION_ENABLED`: leave `false` until the baseline and credentials have been verified; then set `true`.
 - Curator's GitHub token: access to this repository with Contents read/write, Actions read/write (workflow dispatch and monitoring), and Variables read (readiness). It does not need the Cloudflare token or repository-secret access.
 
-The first live baseline must be deployed from the exact tooling main commit, retaining the same four existing public courses. In a clean checkout of that commit, run `npm ci`, run the repository checks, generate a marker with:
+After establishing the initial tooling baseline below, run the manual **Test publication deployment** workflow
+(`publication-smoke.yml`). Supply the exact current main SHA and run it from main.
+It uses the same Cloudflare secret, Worker and production concurrency group as
+course publication. It refuses deployment unless every existing public asset and
+the root index already match the checked-out bytes. It then deploys those same
+assets with a baseline marker and verifies all files, the root URL, marker and
+unchanged GitHub main. A receipt is retained for 90 days. It does not enable
+publication, promote drafts, or advance main. This tests deployment and baseline
+verification; a real owner-approved course release is still needed to verify
+Curator dispatch, index assembly and main promotion end to end. Automatic rollback
+failure paths remain separately tested with injected effects.
+
+The first operator baseline installs the repository's publishing support assets
+and index hooks while retaining the existing public courses. Compare live content
+with repository main before deploying; account explicitly for infrastructure
+changes and line-ending differences. The strict smoke test intentionally rejects
+these differences until this baseline exists. In a clean checkout of the exact
+tooling main commit, run `npm ci`, run the repository checks, generate a marker with:
 
 ```sh
 node --input-type=module -e 'import {writeRelease} from "./scripts/release-site.mjs"; import {execFileSync} from "node:child_process"; await writeRelease("bootstrap",execFileSync("git",["rev-parse","HEAD"],{encoding:"utf8"}).trim())'
